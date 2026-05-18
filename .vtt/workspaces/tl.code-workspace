@@ -1,0 +1,49 @@
+{
+  "folders": [
+    {
+      "name": "🟢 project (write)",
+      "path": "../../../../memory-service-project"
+    },
+    {
+      "name": "🟢 api (write — único)",
+      "path": "../../../../memory-service-api"
+    },
+    {
+      "name": "🟢 backend (write)",
+      "path": "../../../../memory-service-backend"
+    },
+    {
+      "name": "🟢 frontend (write)",
+      "path": "../../../../memory-service-frontend"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/.next": true,
+      "**/build": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/build": true
+    },
+    "editor.formatOnSave": true,
+    "[typescript]": { "editor.defaultFormatter": "dbaeumer.vscode-eslint" },
+    "[typescriptreact]": { "editor.defaultFormatter": "dbaeumer.vscode-eslint" },
+    "git.autofetch": true,
+    "git.confirmSync": false,
+    "window.title": "TL (Memory Service) — ${rootName}${separator}${activeEditorMedium}"
+  },
+  "extensions": {
+    "recommendations": [
+      "anthropic.claude-code",
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "Prisma.prisma",
+      "bradlc.vscode-tailwindcss",
+      "yzhang.markdown-all-in-one"
+    ]
+  }
+}

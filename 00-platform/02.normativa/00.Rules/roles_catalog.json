@@ -1,0 +1,169 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-05-13",
+  "source": "doc_sec_02 §3 + doc_sec_04 §4.1 + §4.3 (matriz)",
+  "description": "Catálogo de los 9 roles base de Bloque 1 con la matriz RBAC consolidada. Cada rol vive en un scope (platform/org/workspace) y tiene asignadas N capabilities. Los markers en la matriz (*, **, ***) indican policies ABAC adicionales requeridas.",
+  "total_roles": 9,
+  "by_scope": {
+    "platform": 1,
+    "organization": 2,
+    "workspace": 6
+  },
+  "roles": [
+    {
+      "code": "platform_super_admin",
+      "scope_level": "PLATFORM",
+      "title": "Platform Super Admin",
+      "description": "Acceso de plataforma. Bypass de superficie para infra/emergencia.",
+      "policy": "Solo infraestructura / emergencia. No debe ser modo normal de operación. No debe usarse como sustituto de roles organizacionales o de workspace.",
+      "actor_types": ["HUMAN"],
+      "source_section": "doc_sec_02 §6.1",
+      "capabilities_summary": "Todas las 30 capabilities (bypass)",
+      "sensitive": true
+    },
+    {
+      "code": "org_owner",
+      "scope_level": "ORGANIZATION",
+      "title": "Organization Owner",
+      "description": "Dueño de la organización (tenant). Autoridad final humana.",
+      "policy": "Acceso total funcional dentro de su organización. Puede aprobar tareas y flujos críticos. Puede gestionar usuarios y workspaces de su org. Sigue sujeto a restricciones críticas cuando aplique.",
+      "actor_types": ["HUMAN"],
+      "source_section": "doc_sec_02 §6.2",
+      "human_only": true,
+      "can_approve": true
+    },
+    {
+      "code": "org_admin",
+      "scope_level": "ORGANIZATION",
+      "title": "Organization Admin",
+      "description": "Administrador organizacional. Gestiona estructura pero no decisiones críticas finales.",
+      "policy": "Administra org y workspaces. NO aprueba por defecto si la política del flujo lo reserva a org_owner. No sustituye al owner humano en decisiones críticas.",
+      "actor_types": ["HUMAN"],
+      "source_section": "doc_sec_02 §6.3",
+      "can_approve": false
+    },
+    {
+      "code": "ws_tech_lead",
+      "scope_level": "WORKSPACE",
+      "title": "Workspace Tech Lead",
+      "description": "Tech Lead del workspace. Opera y revisa hasta completed.",
+      "policy": "Lectura completa operativa del workspace. Puede asignar. Puede cambiar estados hasta completed. NO puede pasar a approved. Puede operar sobre tareas y entregables del workspace.",
+      "actor_types": ["HUMAN", "AGENT"],
+      "source_section": "doc_sec_02 §6.4",
+      "can_approve": false
+    },
+    {
+      "code": "ws_lead",
+      "scope_level": "WORKSPACE",
+      "title": "Workspace Lead",
+      "description": "Liderazgo funcional de área (ej. BE lead, FE lead).",
+      "policy": "Liderazgo funcional de área. Puede mover estados hasta completed. Puede crear o coordinar trabajo según capability asignada. NO aprueba.",
+      "actor_types": ["HUMAN", "AGENT"],
+      "source_section": "doc_sec_02 §6.5",
+      "can_approve": false
+    },
+    {
+      "code": "ws_developer",
+      "scope_level": "WORKSPACE",
+      "title": "Workspace Developer",
+      "description": "Ejecutor operativo de tareas (BE, FE, DB, DO, etc.).",
+      "policy": "Ejecuta trabajo operativo. Actualiza tareas dentro de su scope. Puede crear/actualizar issues según reglas. NO crea tareas salvo decisión explícita. NO aprueba.",
+      "actor_types": ["HUMAN", "AGENT"],
+      "source_section": "doc_sec_02 §6.6",
+      "can_approve": false
+    },
+    {
+      "code": "ws_reviewer",
+      "scope_level": "WORKSPACE",
+      "title": "Workspace Reviewer",
+      "description": "Revisor de trabajo (QA, AR, code reviewer).",
+      "policy": "Revisa trabajo. Puede crear y actualizar issues. Puede participar en transición hacia completed según reglas. NO aprueba.",
+      "actor_types": ["HUMAN", "AGENT"],
+      "source_section": "doc_sec_02 §6.7",
+      "can_approve": false
+    },
+    {
+      "code": "ws_analyst",
+      "scope_level": "WORKSPACE",
+      "title": "Workspace Analyst",
+      "description": "Analista (SA, UX Researcher, Market Researcher).",
+      "policy": "Lectura y análisis. Sin ejecución operativa de cambios en tareas ni aprobación.",
+      "actor_types": ["HUMAN", "AGENT"],
+      "source_section": "doc_sec_02 §6.8",
+      "can_approve": false
+    },
+    {
+      "code": "ws_observer",
+      "scope_level": "WORKSPACE",
+      "title": "Workspace Observer",
+      "description": "Observador (stakeholder, auditor interno con read-only).",
+      "policy": "Solo lectura.",
+      "actor_types": ["HUMAN"],
+      "source_section": "doc_sec_02 §6.9",
+      "can_approve": false
+    }
+  ],
+  "rbac_matrix": {
+    "description": "Matriz RBAC base de doc_sec_04 §4.3. Cada celda indica si el rol tiene la capability. Notas (*..*****) requieren policies ABAC adicionales (DEV-01, REV-01, ST-01..03).",
+    "legend": {
+      "true": "Rol tiene la capability (sujeto a ABAC si abac_required=true en capability)",
+      "false": "Rol NO tiene la capability",
+      "*": "Developer: solo en tareas asignadas a él (DEV-01)",
+      "**": "Reviewer: solo en tareas dentro de su scope de revisión (REV-01)",
+      "***": "Tech Lead/Lead: puede mover hasta completed, nunca approved (ST-01, ST-02)",
+      "****": "Developer: solo transiciones operativas autorizadas y en tareas asignadas (DEV-02)",
+      "*****": "Reviewer: solo transiciones de revisión autorizadas"
+    },
+    "matrix": {
+      "tasks.read":              {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": true, "ws_lead": true, "ws_developer": true, "ws_reviewer": true, "ws_analyst": true, "ws_observer": true},
+      "tasks.create":            {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": true, "ws_lead": true, "ws_developer": false, "ws_reviewer": false, "ws_analyst": false, "ws_observer": false},
+      "tasks.update":            {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": true, "ws_lead": true, "ws_developer": "*", "ws_reviewer": "**", "ws_analyst": false, "ws_observer": false},
+      "tasks.delete":            {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": false, "ws_lead": false, "ws_developer": false, "ws_reviewer": false, "ws_analyst": false, "ws_observer": false},
+      "tasks.status":            {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": "***", "ws_lead": "***", "ws_developer": "****", "ws_reviewer": "*****", "ws_analyst": false, "ws_observer": false},
+      "tasks.assign":            {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": true, "ws_lead": false, "ws_developer": false, "ws_reviewer": false, "ws_analyst": false, "ws_observer": false},
+      "tasks.approve":           {"platform_super_admin": true, "org_owner": true, "org_admin": false, "ws_tech_lead": false, "ws_lead": false, "ws_developer": false, "ws_reviewer": false, "ws_analyst": false, "ws_observer": false},
+      "phases.read":             {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": true, "ws_lead": true, "ws_developer": true, "ws_reviewer": true, "ws_analyst": true, "ws_observer": true},
+      "phases.create":           {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": false, "ws_lead": false, "ws_developer": false, "ws_reviewer": false, "ws_analyst": false, "ws_observer": false},
+      "phases.update":           {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": true, "ws_lead": false, "ws_developer": false, "ws_reviewer": false, "ws_analyst": false, "ws_observer": false},
+      "phases.delete":           {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": false, "ws_lead": false, "ws_developer": false, "ws_reviewer": false, "ws_analyst": false, "ws_observer": false},
+      "workspaces.read":         {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": true, "ws_lead": true, "ws_developer": true, "ws_reviewer": true, "ws_analyst": true, "ws_observer": true},
+      "workspaces.create":       {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": false, "ws_lead": false, "ws_developer": false, "ws_reviewer": false, "ws_analyst": false, "ws_observer": false},
+      "workspaces.update":       {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": false, "ws_lead": false, "ws_developer": false, "ws_reviewer": false, "ws_analyst": false, "ws_observer": false},
+      "workspaces.delete":       {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": false, "ws_lead": false, "ws_developer": false, "ws_reviewer": false, "ws_analyst": false, "ws_observer": false},
+      "deliveries.read":         {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": true, "ws_lead": true, "ws_developer": true, "ws_reviewer": true, "ws_analyst": true, "ws_observer": true},
+      "deliveries.create":       {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": true, "ws_lead": true, "ws_developer": true, "ws_reviewer": false, "ws_analyst": false, "ws_observer": false},
+      "deliveries.update":       {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": true, "ws_lead": false, "ws_developer": false, "ws_reviewer": false, "ws_analyst": false, "ws_observer": false},
+      "deliveries.delete":       {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": false, "ws_lead": false, "ws_developer": false, "ws_reviewer": false, "ws_analyst": false, "ws_observer": false},
+      "tracking.view_all":       {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": true, "ws_lead": true, "ws_developer": false, "ws_reviewer": true, "ws_analyst": false, "ws_observer": false},
+      "tracking.manage_workflows": {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": false, "ws_lead": false, "ws_developer": false, "ws_reviewer": false, "ws_analyst": false, "ws_observer": false},
+      "lifecycle.read":          {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": true, "ws_lead": true, "ws_developer": true, "ws_reviewer": true, "ws_analyst": true, "ws_observer": true},
+      "lifecycle.update":        {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": false, "ws_lead": false, "ws_developer": false, "ws_reviewer": false, "ws_analyst": false, "ws_observer": false},
+      "issues.create":           {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": true, "ws_lead": true, "ws_developer": true, "ws_reviewer": true, "ws_analyst": false, "ws_observer": false},
+      "issues.update":           {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": true, "ws_lead": true, "ws_developer": true, "ws_reviewer": true, "ws_analyst": false, "ws_observer": false},
+      "users.read":              {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": true, "ws_lead": true, "ws_developer": true, "ws_reviewer": true, "ws_analyst": true, "ws_observer": true},
+      "users.manage":            {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": false, "ws_lead": false, "ws_developer": false, "ws_reviewer": false, "ws_analyst": false, "ws_observer": false},
+      "catalogs.read":           {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": true, "ws_lead": true, "ws_developer": true, "ws_reviewer": true, "ws_analyst": true, "ws_observer": true},
+      "attachments.manage":      {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": true, "ws_lead": true, "ws_developer": "*", "ws_reviewer": "**", "ws_analyst": false, "ws_observer": false},
+      "import.execute":          {"platform_super_admin": true, "org_owner": true, "org_admin": true, "ws_tech_lead": false, "ws_lead": false, "ws_developer": false, "ws_reviewer": false, "ws_analyst": false, "ws_observer": false}
+    }
+  },
+  "role_to_vtt_role_mapping": {
+    "description": "Mapeo conceptual entre roles RBAC (doc_sec_02) y roles operativos VTT actuales. Útil al asignar capabilities a UUIDs reales del equipo.",
+    "mappings": [
+      {"rbac_role": "platform_super_admin", "vtt_roles": ["super_admin (no instanciado aún)"]},
+      {"rbac_role": "org_owner", "vtt_roles": ["PM (Martin)", "Product Owner"]},
+      {"rbac_role": "org_admin", "vtt_roles": ["Program Manager"]},
+      {"rbac_role": "ws_tech_lead", "vtt_roles": ["TL Memory Service", "TL DesignMine"]},
+      {"rbac_role": "ws_lead", "vtt_roles": ["DL Memory Service", "QA Lead"]},
+      {"rbac_role": "ws_developer", "vtt_roles": ["BE", "FE", "DB", "DO", "UX"]},
+      {"rbac_role": "ws_reviewer", "vtt_roles": ["AR", "QA", "Integration Reviewer", "SA Reviewer"]},
+      {"rbac_role": "ws_analyst", "vtt_roles": ["SA", "Market Research Analyst", "Competitive Intelligence Analyst", "Product Strategy Analyst"]},
+      {"rbac_role": "ws_observer", "vtt_roles": ["Stakeholders externos (futuro)"]}
+    ]
+  },
+  "notes": [
+    "La matriz solo cubre las 30 capabilities base de Bloque 1. Capabilities VTT-específicas (devlog, trackable_items, evidence, manifest) están en IMPROVE-005.",
+    "Cada celda con * o ** requiere ABAC adicional documentada en rules_catalog.json.",
+    "tasks.approve solo está habilitada para platform_super_admin y org_owner. Ambos deben ser HUMAN (ver actor_types del rol)."
+  ]
+}

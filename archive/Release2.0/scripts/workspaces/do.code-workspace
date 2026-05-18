@@ -1,0 +1,42 @@
+{
+  "folders": [
+    {
+      "name": "🟢 project (write — devlogs)",
+      "path": "../../../../memory-service-project"
+    },
+    {
+      "name": "🟢 backend (write — solo infra/, .github/)",
+      "path": "../../../../memory-service-backend"
+    },
+    {
+      "name": "🟢 frontend (write — solo .github/)",
+      "path": "../../../../memory-service-frontend"
+    },
+    {
+      "name": "🟡 api (read-only)",
+      "path": "../../../../memory-service-api"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/dist": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true
+    },
+    "editor.formatOnSave": true,
+    "git.autofetch": true,
+    "window.title": "DO (Memory Service) — ${rootName}${separator}${activeEditorMedium}"
+  },
+  "extensions": {
+    "recommendations": [
+      "anthropic.claude-code",
+      "ms-azuretools.vscode-docker",
+      "github.vscode-github-actions",
+      "redhat.vscode-yaml",
+      "yzhang.markdown-all-in-one"
+    ]
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "folders": [
+    {
+      "name": "🟢 frontend (write)",
+      "path": "../../../../memory-service-frontend"
+    },
+    {
+      "name": "🟢 project (write — devlogs)",
+      "path": "../../../../memory-service-project"
+    },
+    {
+      "name": "🟡 api (read-only)",
+      "path": "../../../../memory-service-api"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/.vite": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true
+    },
+    "editor.formatOnSave": true,
+    "[typescript]": { "editor.defaultFormatter": "dbaeumer.vscode-eslint" },
+    "[typescriptreact]": { "editor.defaultFormatter": "dbaeumer.vscode-eslint" },
+    "git.autofetch": true,
+    "window.title": "FE (Memory Service) — ${rootName}${separator}${activeEditorMedium}"
+  },
+  "extensions": {
+    "recommendations": [
+      "anthropic.claude-code",
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "bradlc.vscode-tailwindcss",
+      "yzhang.markdown-all-in-one"
+    ]
+  }
+}

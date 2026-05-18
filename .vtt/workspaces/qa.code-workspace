@@ -1,0 +1,44 @@
+{
+  "folders": [
+    {
+      "name": "🟢 backend (write — tests/)",
+      "path": "../../../../memory-service-backend"
+    },
+    {
+      "name": "🟢 frontend (write — tests/)",
+      "path": "../../../../memory-service-frontend"
+    },
+    {
+      "name": "🟡 api (read-only — contratos)",
+      "path": "../../../../memory-service-api"
+    },
+    {
+      "name": "🟢 project (write — devlogs)",
+      "path": "../../../../memory-service-project"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/build": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/build": true
+    },
+    "editor.formatOnSave": true,
+    "git.autofetch": true,
+    "window.title": "QA/Testing/Integraciones (Memory Service) — ${rootName}${separator}${activeEditorMedium}"
+  },
+  "extensions": {
+    "recommendations": [
+      "anthropic.claude-code",
+      "ms-playwright.playwright",
+      "orta.vscode-jest",
+      "humao.rest-client",
+      "yzhang.markdown-all-in-one"
+    ]
+  }
+}

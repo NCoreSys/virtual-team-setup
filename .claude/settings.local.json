@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(git commit *)",
+      "Bash(git * main)",
+      "Bash(* --version)",
+      "Bash(* --help *)",
+      "Bash(*)",
+      "Bash(npm install:*)",
+      "Read(//c/Users/Martin/Documents/virtual-teams/**)",
+      "Bash(mkdir -p \"C:/Users/Martin/.claude/projects/C--Users-Martin-Documents-virtual-teams/memory\")",
+      "Read(//c/Users/Martin/.claude/projects/C--Users-Martin-Documents-virtual-teams/**)",
+      "Bash(cp /c/Users/Martin/Documents/virtual-teams/memory-service/.claude/agents/OPERATIVO_SA_REVIEWER.md /c/Users/Martin/Documents/virtual-teams/memory-service/memory-service-project/.claude/agents/OPERATIVO_SA_REVIEWER.md)",
+      "Bash(git -C /c/Users/Martin/Documents/virtual-teams/memory-service/memory-service-project checkout -b feature/sa-reviewer)",
+      "Bash(git -C /c/Users/Martin/Documents/virtual-teams/memory-service/memory-service-project add .claude/agents/OPERATIVO_SA_REVIEWER.md)",
+      "Bash(git -C /c/Users/Martin/Documents/virtual-teams/memory-service/memory-service-project commit -m ' *)",
+      "Bash(git -C /c/Users/Martin/Documents/virtual-teams/memory-service/memory-service-project push origin feature/sa-reviewer)",
+      "Bash(cp \"c:\\\\Users\\\\Martin\\\\Documents\\\\virtual-teams\\\\memory-service\\\\.claude\\\\agents\\\\OPERATIVO_SA_REVIEWER.md\" \"c:\\\\Users\\\\Martin\\\\Documents\\\\virtual-teams\\\\memory-service\\\\SA_REVIEWER_REVIEW/OPERATIVO_SA_REVIEWER.md\")",
+      "Bash(cp \"c:\\\\Users\\\\Martin\\\\Documents\\\\virtual-teams\\\\memory-service\\\\memory-service-project\\\\.claude\\\\agents\\\\OPERATIVO_SA_REVIEWER.md\" \"c:\\\\Users\\\\Martin\\\\Documents\\\\virtual-teams\\\\memory-service\\\\SA_REVIEWER_REVIEW/OPERATIVO_SA_REVIEWER_memservice.md\")",
+      "Read(//c/Users/Martin/.claude/projects/c--Users-Martin-Documents-virtual-teams-memory-service/**)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\Martin\\Documents\\virtual-teams",
+      "c:\\Users\\Martin\\Documents\\virtual-teams\\memory-service\\.claude",
+      "c:\\Users\\Martin\\Documents\\virtual-teams\\memory-service\\.claude\\rules",
+      "\\tmp",
+      "c:\\tmp",
+      "C:\\Users\\Martin\\.claude\\projects\\C--Users-Martin-Documents-virtual-teams\\memory",
+      "C:\\Users\\Martin\\Documents\\virtual-teams\\memory-service\\.claude\\agents",
+      "c:\\Users\\Martin\\Documents\\virtual-teams\\memory-service\\.claude\\agents",
+      "c:\\Users\\Martin\\Documents\\virtual-teams\\memory-service\\memory-service-project\\.claude\\agents"
+    ]
+  },
+  "defaultMode": "bypassPermissions"
+}

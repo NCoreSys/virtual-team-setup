@@ -1,0 +1,260 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vtt.ai/schemas/rules_schema.json",
+  "title": "VTT Rules Schema",
+  "description": "JSON Schema validador del catálogo de reglas VTT. Define la estructura que toda regla debe respetar. Alineado con doc_sec_01..04.",
+  "version": "1.0",
+  "type": "object",
+  "required": ["schema_version", "generated_at", "rules", "summary"],
+  "properties": {
+    "schema_version": {"type": "string", "const": "1.0"},
+    "generated_at": {"type": "string", "format": "date"},
+    "source_files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {"type": "string"},
+          "version": {"type": "string"}
+        }
+      }
+    },
+    "rules": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/rule"}
+    },
+    "summary": {
+      "type": "object",
+      "properties": {
+        "total_rules": {"type": "integer"},
+        "by_level": {"type": "object"},
+        "by_status": {"type": "object"},
+        "by_actor_type": {"type": "object"},
+        "mandatory": {"type": "integer"},
+        "human_only": {"type": "integer"}
+      }
+    }
+  },
+  "$defs": {
+    "rule": {
+      "type": "object",
+      "required": ["id", "title", "rule_text", "status", "scope", "actor_types", "markers", "source_origin"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^RULE-[A-Z]+-[0-9]{3}$",
+          "description": "Código único de la regla. Pattern: RULE-<CATEGORIA>-<NNN>"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 200,
+          "description": "Título corto y descriptivo de la regla"
+        },
+        "rule_text": {
+          "type": "string",
+          "minLength": 10,
+          "description": "Texto completo de la regla con su descripción operativa"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "deprecated", "superseded", "draft"],
+          "description": "Estado de la regla en su ciclo de vida"
+        },
+        "version": {
+          "type": "string",
+          "default": "1.0"
+        },
+        "scope": {"$ref": "#/$defs/scope"},
+        "actor_types": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": ["HUMAN", "AGENT", "SERVICE_ACCOUNT", "EXTERNAL"]
+          },
+          "description": "Tipos de actor a los que aplica la regla. Ortogonal al scope."
+        },
+        "required_capabilities": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Capabilities que el actor debe tener (de capabilities_catalog.json) para que la regla aplique. Vacío = no requiere capabilities específicas."
+        },
+        "required_role_codes": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Roles específicos que debe tener el actor (de roles_catalog.json). Vacío = cualquier rol."
+        },
+        "markers": {"$ref": "#/$defs/markers"},
+        "violation": {"$ref": "#/$defs/violation"},
+        "source_origin": {"$ref": "#/$defs/source_origin"},
+        "examples": {
+          "type": "object",
+          "properties": {
+            "compliant": {"type": "string"},
+            "violation": {"type": "string"}
+          }
+        },
+        "related_rules": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "IDs de reglas relacionadas (mismas reglas que se aplican en conjunto)"
+        },
+        "supersedes": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "IDs de reglas anteriores que esta regla reemplaza"
+        },
+        "tags": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "created_at": {"type": "string", "format": "date"},
+        "updated_at": {"type": "string", "format": "date"}
+      }
+    },
+    "scope": {
+      "type": "object",
+      "required": ["level"],
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": ["PLATFORM", "ORGANIZATION", "WORKSPACE", "PROJECT", "PHASE", "TASK", "ROLE", "AGENT"],
+          "description": "Nivel jerárquico de aplicación de la regla. Platform > Organization > Workspace > Project > Phase > Task > Role > Agent."
+        },
+        "platform_id": {"type": ["string", "null"]},
+        "organization_id": {"type": ["string", "null"]},
+        "workspace_id": {"type": ["string", "null"]},
+        "project_id": {"type": ["string", "null"]},
+        "phase_id": {"type": ["string", "null"]},
+        "phase_key": {
+          "type": ["string", "null"],
+          "description": "Alias del phase_id usando el código del SDLC (ej. '04-Development', '3B-Design Technical'). Útil cuando la regla aplica a la fase X de cualquier proyecto."
+        },
+        "task_criteria": {
+          "type": ["object", "null"],
+          "description": "Criterios que la tarea debe cumplir para que la regla aplique. Ej: {category: 'feature', has_endpoints: true}",
+          "additionalProperties": true
+        },
+        "role_codes": {
+          "type": ["array", "null"],
+          "items": {"type": "string"},
+          "description": "Códigos de rol cuando scope=ROLE (ej. ['ws_developer', 'ws_tech_lead'])"
+        },
+        "agent_id": {
+          "type": ["string", "null"],
+          "description": "UUID del agente específico cuando scope=AGENT"
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"level": {"const": "PLATFORM"}}},
+          "then": {}
+        },
+        {
+          "if": {"properties": {"level": {"const": "ORGANIZATION"}}},
+          "then": {"required": []}
+        },
+        {
+          "if": {"properties": {"level": {"const": "TASK"}}},
+          "then": {"required": ["task_criteria"]}
+        },
+        {
+          "if": {"properties": {"level": {"const": "ROLE"}}},
+          "then": {"required": ["role_codes"]}
+        },
+        {
+          "if": {"properties": {"level": {"const": "AGENT"}}},
+          "then": {"required": ["agent_id"]}
+        }
+      ]
+    },
+    "markers": {
+      "type": "object",
+      "properties": {
+        "mandatory": {
+          "type": "boolean",
+          "default": true,
+          "description": "Si true, la regla bloquea operaciones cuando no se cumple"
+        },
+        "sensitive": {
+          "type": "boolean",
+          "default": false,
+          "description": "Si true, las acciones bajo esta regla requieren AuditLog (doc_sec_01 §11)"
+        },
+        "human_only": {
+          "type": "boolean",
+          "default": false,
+          "description": "Si true, solo HUMAN puede ejercer la acción (doc_sec_01 §12)"
+        },
+        "sod_enforcement": {
+          "type": "boolean",
+          "default": false,
+          "description": "Si true, la regla implementa Segregación de Funciones (ej. quien ejecuta no aprueba)"
+        },
+        "blocks_review_gate": {
+          "type": "boolean",
+          "default": false,
+          "description": "Si true, violación bloquea el Review Gate de la tarea"
+        },
+        "auto_detect": {
+          "type": "boolean",
+          "default": false,
+          "description": "Si true, el sistema puede detectar automáticamente violaciones"
+        },
+        "agent_default_forbidden": {
+          "type": "boolean",
+          "default": false,
+          "description": "Si true, la acción está prohibida a agentes por defecto (doc_sec_02 §12.3)"
+        }
+      }
+    },
+    "violation": {
+      "type": "object",
+      "required": ["severity", "action"],
+      "properties": {
+        "severity": {
+          "type": "string",
+          "enum": ["critical", "high", "medium", "low"]
+        },
+        "action": {
+          "type": "string",
+          "enum": [
+            "block",
+            "block_and_escalate",
+            "block_review_gate",
+            "warn",
+            "log_only",
+            "request_human_approval"
+          ]
+        },
+        "auto_detect_query": {
+          "type": "string",
+          "description": "Query/check para detectar violaciones automáticamente (cuando auto_detect=true)"
+        },
+        "escalate_to_role": {
+          "type": "string",
+          "description": "Rol al que escalar si action=block_and_escalate"
+        }
+      }
+    },
+    "source_origin": {
+      "type": "object",
+      "required": ["file"],
+      "properties": {
+        "file": {
+          "type": "string",
+          "description": "Path al archivo fuente de la regla (relativo a 00-platform/)"
+        },
+        "section": {
+          "type": "string",
+          "description": "Sección específica del archivo (ej. '§4 Reglas de Code Logic')"
+        },
+        "rule_label_in_source": {
+          "type": "string",
+          "description": "Etiqueta de la regla en el archivo fuente (ej. 'DEV-01', 'ST-02')"
+        }
+      }
+    }
+  }
+}

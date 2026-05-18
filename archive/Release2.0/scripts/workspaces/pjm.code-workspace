@@ -1,0 +1,41 @@
+{
+  "folders": [
+    {
+      "name": "🟢 project (write)",
+      "path": "../../../../memory-service-project"
+    },
+    {
+      "name": "🟡 api (read)",
+      "path": "../../../../memory-service-api"
+    },
+    {
+      "name": "🟡 backend (read)",
+      "path": "../../../../memory-service-backend"
+    },
+    {
+      "name": "🟡 frontend (read)",
+      "path": "../../../../memory-service-frontend"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/.next": true,
+      "**/build": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/build": true
+    },
+    "git.autofetch": true,
+    "window.title": "PJM (Memory Service) — ${rootName}${separator}${activeEditorMedium}"
+  },
+  "extensions": {
+    "recommendations": [
+      "anthropic.claude-code",
+      "yzhang.markdown-all-in-one"
+    ]
+  }
+}

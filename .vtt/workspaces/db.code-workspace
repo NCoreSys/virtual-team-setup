@@ -1,0 +1,34 @@
+{
+  "folders": [
+    {
+      "name": "🟢 backend (write — solo prisma/)",
+      "path": "../../../../memory-service-backend"
+    },
+    {
+      "name": "🟢 project (write — devlogs)",
+      "path": "../../../../memory-service-project"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/dist": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true
+    },
+    "editor.formatOnSave": true,
+    "git.autofetch": true,
+    "window.title": "DB (Memory Service) — ${rootName}${separator}${activeEditorMedium}"
+  },
+  "extensions": {
+    "recommendations": [
+      "anthropic.claude-code",
+      "Prisma.prisma",
+      "mtxr.sqltools",
+      "mtxr.sqltools-driver-pg",
+      "yzhang.markdown-all-in-one"
+    ]
+  }
+}

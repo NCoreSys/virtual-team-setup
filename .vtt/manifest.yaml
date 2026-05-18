@@ -1,0 +1,184 @@
+# VTT Project Manifest
+# Mapeo entre carpetas del backend VTT (fuente de verdad) y carpetas locales del proyecto
+# El Daemon usa este archivo para saber qué sincronizar y en qué versión está cada recurso
+
+project:
+  name: "memory-service"
+  key: "MS"
+  vtt_project_id: "d0fc276d-e764-4a83-96e9-d65f086ed803"
+  created: "2026-04-23"
+  last_sync: "2026-04-27"
+
+# sync_map: cada entrada define un canal de sincronización Daemon ↔ VTT backend
+# remote: ruta lógica en el backend VTT (no URL física, el Daemon la resuelve)
+# local:  ruta relativa desde la raíz de este repo (memory-service-project/)
+# version: versión instalada localmente
+# sync_mode:
+#   pull_only   → el Daemon solo descarga (templates centrales, no se editan aquí)
+#   push_pull   → bidireccional (documentos de proyecto que el PM puede editar)
+#   read_only   → el Daemon muestra diff pero no aplica cambios sin aprobación manual
+
+sync_map:
+
+  # ── AGENTS ─────────────────────────────────────────────────────────────────
+  - id: agents-operativos
+    remote: "vtt-backend://agents/roles/standard/"
+    local: ".vtt/agents/"
+    version: "1.0"
+    sync_mode: pull_only
+    description: "OPERATIVO_*.md por rol — instrucciones de sistema para cada agente"
+    files_tracked:
+      - OPERATIVO_PM.md
+      - OPERATIVO_TL.md
+      - OPERATIVO_PJM.md
+      - OPERATIVO_BE.md
+      - OPERATIVO_DB.md
+      - OPERATIVO_FE.md
+      - OPERATIVO_QA.md
+      - OPERATIVO_DO.md
+      - OPERATIVO_DL.md
+      - OPERATIVO_AR.md
+      - OPERATIVO_SA.md
+
+  # ── RULES ──────────────────────────────────────────────────────────────────
+  - id: rules-project
+    remote: "vtt-backend://rules/project/"
+    local: ".vtt/rules/"
+    version: "1.5"
+    sync_mode: push_pull
+    description: "Reglas del proyecto — PROJECT_RULES.md y derivados"
+    files_tracked:
+      - PROJECT_RULES.md
+
+  # ── TEMPLATES · SETUP · PM ─────────────────────────────────────────────────
+  - id: templates-setup-pm
+    remote: "vtt-backend://templates/SETUP/PM/"
+    local: ".vtt/templates/setup/pm/"
+    version: "1.0"
+    sync_mode: pull_only
+    description: "Templates del proceso PM: cierre, seed, HO, fases, consolidado"
+    files_tracked:
+      - TEMPLATE_CIERRE_PM_HANDOFF_PJM_V1.0.md
+      - TEMPLATE_TASK_INDEX_SEED_V1.0.md
+      - TEMPLATE_HO_PJM_CARGA_VTT_V1.0.md
+      - TEMPLATE_FASES_APLICABLES_V1.0.md
+      - TEMPLATE_PRE_HANDOFF_INICIACION_V1.0.md
+      - TEMPLATE_CONSOLIDADO_V1.0.md
+      - TEMPLATE_ADR_ESTRATEGIA_REPOSITORIOS_V1.0.md
+      - TEMPLATE_WORKFLOW_OPERATIVO_MULTIREPO_V1.0.md
+      - TEMPLATE_ESTRUCTURA_REPO_V2.0.md
+      - TEMPLATE_create_vtt_script_V1.0.py
+      - INDEX_TEMPLATES_CIERRE_PM_HANDOFF_PJM.md
+
+  # ── TEMPLATES · SETUP · TL ─────────────────────────────────────────────────
+  - id: templates-setup-tl
+    remote: "vtt-backend://templates/SETUP/TL/"
+    local: ".vtt/templates/setup/tl/"
+    version: "1.0"
+    sync_mode: pull_only
+    description: "Templates del proceso TL: HANDOFF_TL, BRIEF_TAREA, ASSIGNMENT"
+    files_tracked:
+      - TEMPLATE_HANDOFF_TL_SPRINT.md
+      - TEMPLATE_BRIEF_TAREA.md
+      - TEMPLATE_ASSIGNMENT.md
+
+  # ── TEMPLATES · EXEC ───────────────────────────────────────────────────────
+  - id: templates-exec
+    remote: "vtt-backend://templates/EXEC/"
+    local: ".vtt/templates/exec/"
+    version: "1.0"
+    sync_mode: pull_only
+    description: "Templates de ejecución de tareas: devlog, code-logic, issue"
+    files_tracked:
+      - TEMPLATE_DEVELOPMENT_LOG.md
+      - TEMPLATE_CODE_LOGIC.md
+      - TEMPLATE_ISSUE_DATOS_FALTANTES.md
+
+  # ── TEMPLATES · CLOSURE ────────────────────────────────────────────────────
+  - id: templates-closure
+    remote: "vtt-backend://templates/CLOSURE/"
+    local: ".vtt/templates/closure/"
+    version: "1.0"
+    sync_mode: pull_only
+    description: "Templates de cierre de release: retrospectiva, release notes"
+    files_tracked:
+      - TEMPLATE_RETROSPECTIVA.md
+      - TEMPLATE_RELEASE_NOTES.md
+
+  # ── PROCESS ────────────────────────────────────────────────────────────────
+  - id: process-roles
+    remote: "vtt-backend://process/roles/"
+    local: ".vtt/process/"
+    version: "1.0"
+    sync_mode: pull_only
+    description: "SOPs por rol: flujo completo de trabajo de cada agente"
+    files_tracked:
+      - FLUJO_PM.md
+      - FLUJO_TL.md
+      - FLUJO_PJM.md
+      - FLUJO_BE.md
+      - FLUJO_DB.md
+      - FLUJO_FE.md
+      - FLUJO_QA.md
+      - FLUJO_DO.md
+
+  # ── SKILLS ─────────────────────────────────────────────────────────────────
+  - id: skills
+    remote: "vtt-backend://skills/"
+    local: ".vtt/skills/"
+    version: "1.0"
+    sync_mode: pull_only
+    description: "Skills invocables con /nombre — comandos slash para agentes"
+    files_tracked:
+      - iniciar-tarea.md
+      - entregar-tarea.md
+      - verificar-sprint.md
+      - analizar-spec.md
+      - filtrar-fases.md
+      - generar-seed.md
+
+  # ── MEMORY ─────────────────────────────────────────────────────────────────
+  - id: memory-project
+    remote: "vtt-backend://memory/projects/memory-service/"
+    local: ".vtt/memory/"
+    version: "1.0"
+    sync_mode: push_pull
+    description: "Memoria del proyecto: índice vivo + memoria por agente"
+    files_tracked:
+      - project_index.md
+      - PM_memory.md
+      - TL_memory.md
+      - PJM_memory.md
+      - BE_memory.md
+      - DB_memory.md
+      - FE_memory.md
+      - QA_memory.md
+      - DO_memory.md
+
+# ── TEAMS ──────────────────────────────────────────────────────────────────
+# Composición de equipos por repositorio (ver .vtt/teams.md para detalle)
+teams:
+  - id: team-be
+    repos:
+      write: [memory-service-backend]
+      read: [memory-service-api, memory-service-project]
+    roles: [BE, DB, DO, TL]
+
+  - id: team-fe
+    repos:
+      write: [memory-service-frontend]
+      read: [memory-service-api, memory-service-project]
+    roles: [FE, DL, UX, TL]
+
+  - id: team-qa
+    repos:
+      write: [memory-service-backend, memory-service-frontend]
+      read: [memory-service-api, memory-service-project]
+    roles: [QA]
+    note: "QA tiene write en backend y frontend para poder crear tests en ambos repos"
+
+  - id: team-arch
+    repos:
+      write: [memory-service-api, memory-service-project]
+      read: [memory-service-backend, memory-service-frontend]
+    roles: [PM, PJM, AR, SA, Analyst]

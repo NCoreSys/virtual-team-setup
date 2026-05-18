@@ -1,0 +1,27 @@
+{
+  "folders": [
+    {
+      "name": "🟢 project (write)",
+      "path": "../../../../memory-service-project"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/dist": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true
+    },
+    "git.autofetch": true,
+    "window.title": "Analyst (SA/AR/UX/DL) — Memory Service — ${rootName}${separator}${activeEditorMedium}"
+  },
+  "extensions": {
+    "recommendations": [
+      "anthropic.claude-code",
+      "yzhang.markdown-all-in-one",
+      "bierner.markdown-mermaid"
+    ]
+  }
+}

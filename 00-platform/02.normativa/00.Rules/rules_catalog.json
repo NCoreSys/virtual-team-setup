@@ -1,0 +1,1285 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-05-13",
+  "source_files": [
+    {
+      "path": "04.Process/01.authorizaton/doc_sec_02_politicas_permisos_rbac_abac_bloque_1.md",
+      "version": "1.0",
+      "extracted_sections": ["§7 Reglas ABAC mínimas obligatorias", "§9 Reglas SoD mínimas"]
+    },
+    {
+      "path": "03.standard/09.AGENT_RULES_Rev.md",
+      "version": "1.3",
+      "extracted_sections": ["§1-§11 + §15.1-§15.3"]
+    }
+  ],
+  "rules": [
+    {
+      "id": "RULE-ABAC-001",
+      "title": "DEV-01: Developer solo actualiza tareas asignadas a él",
+      "rule_text": "Un ws_developer solo puede actualizar una tarea si la tarea está asignada a él (task.assigneeId == actor.userId). Aplica a todas las operaciones que requieran tasks.update.",
+      "status": "active",
+      "version": "1.0",
+      "scope": {
+        "level": "ROLE",
+        "role_codes": ["ws_developer"]
+      },
+      "actor_types": ["HUMAN", "AGENT"],
+      "required_capabilities": ["tasks.update"],
+      "markers": {
+        "mandatory": true,
+        "sensitive": false,
+        "human_only": false,
+        "sod_enforcement": false,
+        "blocks_review_gate": false,
+        "auto_detect": true,
+        "agent_default_forbidden": false
+      },
+      "violation": {
+        "severity": "high",
+        "action": "block",
+        "auto_detect_query": "task.assigneeId != actor.userId"
+      },
+      "source_origin": {
+        "file": "04.Process/01.authorizaton/doc_sec_02_politicas_permisos_rbac_abac_bloque_1.md",
+        "section": "§7.3",
+        "rule_label_in_source": "DEV-01"
+      },
+      "examples": {
+        "compliant": "Developer asignado a MS-285 actualiza el estado de MS-285",
+        "violation": "Developer no asignado a MS-285 intenta actualizar MS-285 → 403"
+      },
+      "related_rules": ["RULE-ABAC-002"],
+      "tags": ["abac", "developer", "ownership"]
+    },
+    {
+      "id": "RULE-ABAC-002",
+      "title": "DEV-02: Developer solo ejecuta transiciones permitidas para developer",
+      "rule_text": "Un ws_developer solo puede ejecutar transiciones de estado permitidas para developer (task_pending → task_in_progress → task_in_review). No puede mover a task_completed ni task_approved.",
+      "status": "active",
+      "version": "1.0",
+      "scope": {
+        "level": "ROLE",
+        "role_codes": ["ws_developer"]
+      },
+      "actor_types": ["HUMAN", "AGENT"],
+      "required_capabilities": ["tasks.status"],
+      "markers": {
+        "mandatory": true,
+        "auto_detect": true
+      },
+      "violation": {
+        "severity": "high",
+        "action": "block",
+        "auto_detect_query": "transition.target NOT IN ['task_in_progress', 'task_in_review']"
+      },
+      "source_origin": {
+        "file": "04.Process/01.authorizaton/doc_sec_02_politicas_permisos_rbac_abac_bloque_1.md",
+        "section": "§7.3",
+        "rule_label_in_source": "DEV-02"
+      },
+      "related_rules": ["RULE-ABAC-001"],
+      "tags": ["abac", "developer", "transitions"]
+    },
+    {
+      "id": "RULE-ABAC-003",
+      "title": "REV-01: Reviewer solo modifica tareas dentro de su scope de revisión",
+      "rule_text": "Un ws_reviewer solo puede modificar el estado o revisión de tareas dentro de su scope de revisión asignado.",
+      "status": "active",
+      "scope": {
+        "level": "ROLE",
+        "role_codes": ["ws_reviewer"]
+      },
+      "actor_types": ["HUMAN", "AGENT"],
+      "required_capabilities": ["tasks.update", "tasks.status"],
+      "markers": {
+        "mandatory": true,
+        "auto_detect": true
+      },
+      "violation": {
+        "severity": "high",
+        "action": "block"
+      },
+      "source_origin": {
+        "file": "04.Process/01.authorizaton/doc_sec_02_politicas_permisos_rbac_abac_bloque_1.md",
+        "section": "§7.4",
+        "rule_label_in_source": "REV-01"
+      },
+      "tags": ["abac", "reviewer", "scope"]
+    },
+    {
+      "id": "RULE-ABAC-004",
+      "title": "REV-02: Reviewer NO aprueba",
+      "rule_text": "El reviewer (ws_reviewer) no tiene capability tasks.approve. La aprobación está reservada a org_owner (humano).",
+      "status": "active",
+      "scope": {
+        "level": "ROLE",
+        "role_codes": ["ws_reviewer"]
+      },
+      "actor_types": ["HUMAN", "AGENT"],
+      "markers": {
+        "mandatory": true,
+        "sod_enforcement": true,
+        "agent_default_forbidden": true
+      },
+      "violation": {
+        "severity": "critical",
+        "action": "block_and_escalate"
+      },
+      "source_origin": {
+        "file": "04.Process/01.authorizaton/doc_sec_02_politicas_permisos_rbac_abac_bloque_1.md",
+        "section": "§7.4",
+        "rule_label_in_source": "REV-02"
+      },
+      "related_rules": ["RULE-ABAC-006", "RULE-ABAC-009"],
+      "tags": ["abac", "reviewer", "sod", "approval"]
+    },
+    {
+      "id": "RULE-ABAC-005",
+      "title": "ST-01: TL/Lead pueden hasta task_completed",
+      "rule_text": "ws_tech_lead y ws_lead pueden mover trabajo hasta task_completed. NO pueden pasar a task_approved.",
+      "status": "active",
+      "scope": {
+        "level": "ROLE",
+        "role_codes": ["ws_tech_lead", "ws_lead"]
+      },
+      "actor_types": ["HUMAN", "AGENT"],
+      "required_capabilities": ["tasks.status"],
+      "markers": {
+        "mandatory": true,
+        "auto_detect": true
+      },
+      "violation": {
+        "severity": "high",
+        "action": "block",
+        "auto_detect_query": "transition.target == 'task_approved'"
+      },
+      "source_origin": {
+        "file": "04.Process/01.authorizaton/doc_sec_02_politicas_permisos_rbac_abac_bloque_1.md",
+        "section": "§7.5",
+        "rule_label_in_source": "ST-01"
+      },
+      "tags": ["abac", "transitions", "tech_lead"]
+    },
+    {
+      "id": "RULE-ABAC-006",
+      "title": "ST-02: task_approved requiere capability tasks.approve",
+      "rule_text": "Mover una tarea a task_approved requiere la capability tasks.approve. Esta capability solo la tienen platform_super_admin y org_owner por defecto.",
+      "status": "active",
+      "scope": {
+        "level": "PLATFORM"
+      },
+      "actor_types": ["HUMAN", "AGENT"],
+      "required_capabilities": ["tasks.approve"],
+      "markers": {
+        "mandatory": true,
+        "auto_detect": true
+      },
+      "violation": {
+        "severity": "critical",
+        "action": "block"
+      },
+      "source_origin": {
+        "file": "04.Process/01.authorizaton/doc_sec_02_politicas_permisos_rbac_abac_bloque_1.md",
+        "section": "§7.5",
+        "rule_label_in_source": "ST-02"
+      },
+      "related_rules": ["RULE-ABAC-007"],
+      "tags": ["abac", "approval", "capability"]
+    },
+    {
+      "id": "RULE-ABAC-007",
+      "title": "ST-03: tasks.approve solo por humano autorizado",
+      "rule_text": "La capability tasks.approve solo puede ejercerse por actor HUMAN autorizado. Ningún agente puede aprobar tareas por defecto.",
+      "status": "active",
+      "scope": {
+        "level": "PLATFORM"
+      },
+      "actor_types": ["HUMAN"],
+      "required_capabilities": ["tasks.approve"],
+      "markers": {
+        "mandatory": true,
+        "human_only": true,
+        "sensitive": true,
+        "agent_default_forbidden": true,
+        "auto_detect": true
+      },
+      "violation": {
+        "severity": "critical",
+        "action": "block_and_escalate",
+        "auto_detect_query": "actor.tokenType == 'service' AND action == 'tasks.approve'"
+      },
+      "source_origin": {
+        "file": "04.Process/01.authorizaton/doc_sec_02_politicas_permisos_rbac_abac_bloque_1.md",
+        "section": "§7.5",
+        "rule_label_in_source": "ST-03"
+      },
+      "related_rules": ["RULE-ABAC-009"],
+      "tags": ["abac", "approval", "human_only"]
+    },
+    {
+      "id": "RULE-ABAC-008",
+      "title": "AP-01: No autoaprobación (completedBy != approver)",
+      "rule_text": "El actor que completó una tarea (task.completedBy) no puede autoaprobarla. Se aplica Segregación de Funciones a nivel acción.",
+      "status": "active",
+      "scope": {
+        "level": "PLATFORM"
+      },
+      "actor_types": ["HUMAN", "AGENT"],
+      "markers": {
+        "mandatory": true,
+        "sod_enforcement": true,
+        "sensitive": true,
+        "auto_detect": true
+      },
+      "violation": {
+        "severity": "critical",
+        "action": "block_and_escalate",
+        "auto_detect_query": "task.completedBy == actor.userId AND action == 'tasks.approve'"
+      },
+      "source_origin": {
+        "file": "04.Process/01.authorizaton/doc_sec_02_politicas_permisos_rbac_abac_bloque_1.md",
+        "section": "§7.6",
+        "rule_label_in_source": "AP-01"
+      },
+      "tags": ["abac", "sod", "self_approval"]
+    },
+    {
+      "id": "RULE-ABAC-009",
+      "title": "AG-01: Agente nunca aprueba por defecto",
+      "rule_text": "Un agente (actor_type=AGENT) nunca aprueba por defecto. La aprobación requiere acción humana explícita.",
+      "status": "active",
+      "scope": {
+        "level": "PLATFORM"
+      },
+      "actor_types": ["AGENT"],
+      "markers": {
+        "mandatory": true,
+        "human_only": false,
+        "agent_default_forbidden": true,
+        "sensitive": true,
+        "auto_detect": true
+      },
+      "violation": {
+        "severity": "critical",
+        "action": "block_and_escalate"
+      },
+      "source_origin": {
+        "file": "04.Process/01.authorizaton/doc_sec_02_politicas_permisos_rbac_abac_bloque_1.md",
+        "section": "§7.7",
+        "rule_label_in_source": "AG-01"
+      },
+      "related_rules": ["RULE-ABAC-007", "RULE-ABAC-010"],
+      "tags": ["abac", "agent", "approval"]
+    },
+    {
+      "id": "RULE-ABAC-010",
+      "title": "AG-02: Agente nunca sustituye al org_owner humano",
+      "rule_text": "Un agente nunca sustituye al rol org_owner humano. Las decisiones organizacionales finales requieren actor humano con rol org_owner.",
+      "status": "active",
+      "scope": {
+        "level": "PLATFORM"
+      },
+      "actor_types": ["AGENT"],
+      "markers": {
+        "mandatory": true,
+        "agent_default_forbidden": true,
+        "sensitive": true
+      },
+      "violation": {
+        "severity": "critical",
+        "action": "block_and_escalate"
+      },
+      "source_origin": {
+        "file": "04.Process/01.authorizaton/doc_sec_02_politicas_permisos_rbac_abac_bloque_1.md",
+        "section": "§7.7",
+        "rule_label_in_source": "AG-02"
+      },
+      "tags": ["abac", "agent", "governance"]
+    },
+    {
+      "id": "RULE-ABAC-011",
+      "title": "AG-03: Agente puede ejecutar trabajo y producir evidencia dentro de su scope",
+      "rule_text": "Un agente puede ejecutar trabajo, actualizar estados operativos (task_in_progress, task_in_review) y producir evidencia dentro de su scope. NO puede ejercer poder de gobierno reservado (aprobar, firmar, gestionar usuarios).",
+      "status": "active",
+      "scope": {
+        "level": "PLATFORM"
+      },
+      "actor_types": ["AGENT"],
+      "markers": {
+        "mandatory": true
+      },
+      "violation": {
+        "severity": "high",
+        "action": "block"
+      },
+      "source_origin": {
+        "file": "04.Process/01.authorizaton/doc_sec_02_politicas_permisos_rbac_abac_bloque_1.md",
+        "section": "§7.7",
+        "rule_label_in_source": "AG-03"
+      },
+      "tags": ["abac", "agent", "scope"]
+    },
+    {
+      "id": "RULE-ABAC-012",
+      "title": "CR-01: Change Request no se ejecuta hasta aprobación",
+      "rule_text": "Un Change Request no se ejecuta mientras no esté aprobado. Las tareas vinculadas a un CR pendiente quedan bloqueadas.",
+      "status": "active",
+      "scope": {
+        "level": "PLATFORM"
+      },
+      "actor_types": ["HUMAN", "AGENT"],
+      "markers": {
+        "mandatory": true,
+        "sensitive": true,
+        "auto_detect": true
+      },
+      "violation": {
+        "severity": "critical",
+        "action": "block"
+      },
+      "source_origin": {
+        "file": "04.Process/01.authorizaton/doc_sec_02_politicas_permisos_rbac_abac_bloque_1.md",
+        "section": "§7.8",
+        "rule_label_in_source": "CR-01"
+      },
+      "tags": ["abac", "change_request"]
+    },
+    {
+      "id": "RULE-ABAC-013",
+      "title": "CR-03: Firma electrónica requiere humano + vínculo correcto al flujo",
+      "rule_text": "Las firmas electrónicas requieren actor HUMAN y vínculo correcto con el flujo de aprobación. Ningún agente puede firmar.",
+      "status": "active",
+      "scope": {
+        "level": "PLATFORM"
+      },
+      "actor_types": ["HUMAN"],
+      "markers": {
+        "mandatory": true,
+        "human_only": true,
+        "sensitive": true,
+        "agent_default_forbidden": true
+      },
+      "violation": {
+        "severity": "critical",
+        "action": "block_and_escalate"
+      },
+      "source_origin": {
+        "file": "04.Process/01.authorizaton/doc_sec_02_politicas_permisos_rbac_abac_bloque_1.md",
+        "section": "§7.8",
+        "rule_label_in_source": "CR-03"
+      },
+      "tags": ["abac", "signature", "human_only"]
+    },
+    {
+      "id": "RULE-SOD-001",
+      "title": "SoD: Quien ejecuta no aprueba",
+      "rule_text": "Separación de Funciones (Segregation of Duties): el actor que ejecuta el trabajo no debe ser quien lo aprueba. Quien completa una tarea no puede autoaprobarla.",
+      "status": "active",
+      "scope": {
+        "level": "PLATFORM"
+      },
+      "actor_types": ["HUMAN", "AGENT"],
+      "markers": {
+        "mandatory": true,
+        "sod_enforcement": true,
+        "sensitive": true,
+        "auto_detect": true
+      },
+      "violation": {
+        "severity": "critical",
+        "action": "block_and_escalate"
+      },
+      "source_origin": {
+        "file": "04.Process/01.authorizaton/doc_sec_02_politicas_permisos_rbac_abac_bloque_1.md",
+        "section": "§9.1"
+      },
+      "related_rules": ["RULE-ABAC-008"],
+      "tags": ["sod"]
+    },
+    {
+      "id": "RULE-SOD-002",
+      "title": "SoD: Agente no reemplaza a owner humano",
+      "rule_text": "El PM-agente, TL-agent o cualquier agente técnico no reemplaza al owner humano (org_owner). Las decisiones críticas de negocio requieren actor humano con rol owner.",
+      "status": "active",
+      "scope": {
+        "level": "PLATFORM"
+      },
+      "actor_types": ["AGENT"],
+      "markers": {
+        "mandatory": true,
+        "sod_enforcement": true,
+        "human_only": false,
+        "agent_default_forbidden": true,
+        "sensitive": true
+      },
+      "violation": {
+        "severity": "critical",
+        "action": "block_and_escalate"
+      },
+      "source_origin": {
+        "file": "04.Process/01.authorizaton/doc_sec_02_politicas_permisos_rbac_abac_bloque_1.md",
+        "section": "§9.2"
+      },
+      "related_rules": ["RULE-ABAC-010"],
+      "tags": ["sod", "agent"]
+    },
+    {
+      "id": "RULE-SOD-003",
+      "title": "SoD: Revisión operativa ≠ firma formal",
+      "rule_text": "Una revisión operativa (ej. code review del TL) no equivale automáticamente a una firma de aprobación formal. Son acciones separadas con audit log distinto.",
+      "status": "active",
+      "scope": {
+        "level": "PLATFORM"
+      },
+      "actor_types": ["HUMAN", "AGENT"],
+      "markers": {
+        "mandatory": true,
+        "sod_enforcement": true,
+        "sensitive": true
+      },
+      "violation": {
+        "severity": "high",
+        "action": "warn"
+      },
+      "source_origin": {
+        "file": "04.Process/01.authorizaton/doc_sec_02_politicas_permisos_rbac_abac_bloque_1.md",
+        "section": "§9.3"
+      },
+      "tags": ["sod", "approval"]
+    },
+    {
+      "id": "RULE-SOD-004",
+      "title": "Inmutabilidad de auditoría",
+      "rule_text": "No debe existir capacidad normal de negocio para borrar la traza de aprobación, firma o cambio crítico. AuditLog es append-only.",
+      "status": "active",
+      "scope": {
+        "level": "PLATFORM"
+      },
+      "actor_types": ["HUMAN", "AGENT"],
+      "markers": {
+        "mandatory": true,
+        "sensitive": true
+      },
+      "violation": {
+        "severity": "critical",
+        "action": "block_and_escalate"
+      },
+      "source_origin": {
+        "file": "04.Process/01.authorizaton/doc_sec_02_politicas_permisos_rbac_abac_bloque_1.md",
+        "section": "§9.4"
+      },
+      "tags": ["audit", "immutability"]
+    },
+    {
+      "id": "RULE-WORKFLOW-001",
+      "title": "Leer brief y validar dependencias antes de empezar",
+      "rule_text": "Antes de empezar cualquier tarea, leer brief completo, verificar estado pending (NO blocked), confirmar dependencias en estado approved/completed.",
+      "status": "active",
+      "scope": {
+        "level": "TASK",
+        "task_criteria": {"any": true}
+      },
+      "actor_types": ["AGENT", "HUMAN"],
+      "markers": {
+        "mandatory": true,
+        "blocks_review_gate": false
+      },
+      "violation": {
+        "severity": "high",
+        "action": "warn"
+      },
+      "source_origin": {
+        "file": "03.standard/09.AGENT_RULES_Rev.md",
+        "section": "§1 Antes de Empezar Cualquier Tarea"
+      },
+      "tags": ["workflow", "agent"]
+    },
+    {
+      "id": "RULE-DELIV-001",
+      "title": "5 entregables obligatorios por tarea",
+      "rule_text": "Toda tarea debe entregar: (1) Código, (2) Development Log, (3) Code Logic (.LOGIC.md), (4) Commit + PR, (5) Swagger Docs si hay endpoints. Si falta uno → entrega incompleta.",
+      "status": "active",
+      "scope": {
+        "level": "TASK",
+        "task_criteria": {"has_code_files": true}
+      },
+      "actor_types": ["AGENT", "HUMAN"],
+      "required_role_codes": ["ws_developer", "ws_tech_lead", "ws_lead"],
+      "markers": {
+        "mandatory": true,
+        "blocks_review_gate": true,
+        "auto_detect": true
+      },
+      "violation": {
+        "severity": "high",
+        "action": "block_review_gate"
+      },
+      "source_origin": {
+        "file": "03.standard/09.AGENT_RULES_Rev.md",
+        "section": "§3 Entregables por Cada Tarea"
+      },
+      "tags": ["deliverables", "review_gate"]
+    },
+    {
+      "id": "RULE-CODE-001",
+      "title": "UN archivo .LOGIC.md por archivo de código",
+      "rule_text": "Por cada archivo de código creado/modificado debe existir un archivo .LOGIC.md en ubicación espejo (knowledge/code-logic/[ruta-espejo]/[archivo].LOGIC.md). Si modificas un archivo existente, actualizar su .LOGIC.md (no crear segundo).",
+      "status": "active",
+      "scope": {
+        "level": "TASK",
+        "task_criteria": {"has_code_files": true}
+      },
+      "actor_types": ["AGENT", "HUMAN"],
+      "markers": {
+        "mandatory": true,
+        "blocks_review_gate": true,
+        "auto_detect": true
+      },
+      "violation": {
+        "severity": "high",
+        "action": "block_review_gate",
+        "auto_detect_query": "diff(src_tree, code_logic_tree) != []"
+      },
+      "source_origin": {
+        "file": "03.standard/09.AGENT_RULES_Rev.md",
+        "section": "§4 Reglas de Code Logic"
+      },
+      "examples": {
+        "compliant": "src/controllers/userController.ts + knowledge/code-logic/controllers/userController.LOGIC.md",
+        "violation": "src/controllers/userController.ts sin LOGIC.md correspondiente"
+      },
+      "tags": ["code-logic", "documentation"]
+    },
+    {
+      "id": "RULE-CODE-002",
+      "title": "Sin código fuente en .LOGIC.md",
+      "rule_text": ".LOGIC.md debe contener solo descripciones (qué hace, cómo fluye, dependencias, decisiones). NO incluir código fuente — eso vive en src/.",
+      "status": "active",
+      "scope": {
+        "level": "TASK",
+        "task_criteria": {"has_code_logic_files": true}
+      },
+      "actor_types": ["AGENT", "HUMAN"],
+      "markers": {
+        "mandatory": true,
+        "auto_detect": true
+      },
+      "violation": {
+        "severity": "medium",
+        "action": "warn",
+        "auto_detect_query": "grep '```ts\\|```js\\|```py' on *.LOGIC.md > N lines"
+      },
+      "source_origin": {
+        "file": "03.standard/09.AGENT_RULES_Rev.md",
+        "section": "§4 Reglas de Code Logic"
+      },
+      "tags": ["code-logic", "documentation"]
+    },
+    {
+      "id": "RULE-DOC-001",
+      "title": "Development Log con contenido obligatorio",
+      "rule_text": "Devlog debe incluir: información general, resumen, archivos creados/modificados, decisiones técnicas, dependencias agregadas, cómo probar, pendientes. Nombrado: YYYY-MM-DD_[TASK_ID]_[descripcion-corta].md.",
+      "status": "active",
+      "scope": {
+        "level": "TASK",
+        "task_criteria": {"any": true}
+      },
+      "actor_types": ["AGENT", "HUMAN"],
+      "markers": {
+        "mandatory": true,
+        "blocks_review_gate": true
+      },
+      "violation": {
+        "severity": "medium",
+        "action": "block_review_gate"
+      },
+      "source_origin": {
+        "file": "03.standard/09.AGENT_RULES_Rev.md",
+        "section": "§5 Reglas de Development Log"
+      },
+      "tags": ["devlog", "documentation"]
+    },
+    {
+      "id": "RULE-CODE-003",
+      "title": "Calidad de código: sin console.log debug, sin TODO sin explicación",
+      "rule_text": "Código entregado debe estar funcional (compila/ejecuta), sin console.log de debug (solo logs informativos), sin código comentado innecesario, sin TODOs sin explicación, con manejo de errores try-catch.",
+      "status": "active",
+      "scope": {
+        "level": "TASK",
+        "task_criteria": {"has_code_files": true}
+      },
+      "actor_types": ["AGENT", "HUMAN"],
+      "markers": {
+        "mandatory": true,
+        "auto_detect": true
+      },
+      "violation": {
+        "severity": "medium",
+        "action": "warn",
+        "auto_detect_query": "grep 'console\\.log\\|TODO:' on diff"
+      },
+      "source_origin": {
+        "file": "03.standard/09.AGENT_RULES_Rev.md",
+        "section": "§6 Reglas de Código"
+      },
+      "tags": ["code-quality"]
+    },
+    {
+      "id": "RULE-API-001",
+      "title": "Swagger obligatorio en endpoints (JSDoc inline)",
+      "rule_text": "Todo endpoint nuevo DEBE incluir comentario JSDoc Swagger inline ANTES del route, visible en /api-docs. Sin Swagger → tarea incompleta.",
+      "status": "active",
+      "scope": {
+        "level": "TASK",
+        "task_criteria": {"has_endpoints": true}
+      },
+      "actor_types": ["AGENT", "HUMAN"],
+      "required_role_codes": ["ws_developer", "ws_tech_lead", "ws_lead"],
+      "markers": {
+        "mandatory": true,
+        "blocks_review_gate": true,
+        "auto_detect": true
+      },
+      "violation": {
+        "severity": "high",
+        "action": "block_review_gate"
+      },
+      "source_origin": {
+        "file": "03.standard/09.AGENT_RULES_Rev.md",
+        "section": "§7 Documentación de APIs con Swagger"
+      },
+      "tags": ["api", "documentation", "swagger"]
+    },
+    {
+      "id": "RULE-GIT-001",
+      "title": "Formato obligatorio de commits + Co-Authored-By",
+      "rule_text": "Commits deben seguir formato: '[tipo](repo) [TASK_ID]: Descripción' + bullets de cambios + 'Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>' + 'Refs: #TASK_ID'. Co-Authored-By es OBLIGATORIO.",
+      "status": "active",
+      "scope": {
+        "level": "PLATFORM"
+      },
+      "actor_types": ["AGENT", "HUMAN"],
+      "markers": {
+        "mandatory": true,
+        "auto_detect": true
+      },
+      "violation": {
+        "severity": "medium",
+        "action": "warn",
+        "auto_detect_query": "git log --grep='Co-Authored-By' missing"
+      },
+      "source_origin": {
+        "file": "03.standard/09.AGENT_RULES_Rev.md",
+        "section": "§8 Convenciones de Commits"
+      },
+      "tags": ["git", "commits"]
+    },
+    {
+      "id": "RULE-GIT-002",
+      "title": "Crear branch feature/[TASK_ID] al inicio de tarea",
+      "rule_text": "Toda tarea inicia creando branch 'feature/[TASK_ID]'. NO trabajar en main ni en branches compartidos.",
+      "status": "active",
+      "scope": {
+        "level": "TASK",
+        "task_criteria": {"any": true}
+      },
+      "actor_types": ["AGENT", "HUMAN"],
+      "markers": {
+        "mandatory": true,
+        "auto_detect": true
+      },
+      "violation": {
+        "severity": "high",
+        "action": "block",
+        "auto_detect_query": "git branch == 'main'"
+      },
+      "source_origin": {
+        "file": "03.standard/09.AGENT_RULES_Rev.md",
+        "section": "§15.1.1"
+      },
+      "tags": ["git", "branch"]
+    },
+    {
+      "id": "RULE-GIT-003",
+      "title": "Rebase con main antes de crear PR (max 24h en branch)",
+      "rule_text": "Hacer rebase con origin/main antes de crear PR. Tiempo máximo en branch sin rebase: 24 horas. Si la tarea toma más, rebase diario.",
+      "status": "active",
+      "scope": {
+        "level": "TASK",
+        "task_criteria": {"any": true}
+      },
+      "actor_types": ["AGENT", "HUMAN"],
+      "markers": {
+        "mandatory": true
+      },
+      "violation": {
+        "severity": "medium",
+        "action": "warn"
+      },
+      "source_origin": {
+        "file": "03.standard/09.AGENT_RULES_Rev.md",
+        "section": "§15.1.2-3"
+      },
+      "tags": ["git", "rebase"]
+    },
+    {
+      "id": "RULE-GIT-004",
+      "title": "PROHIBIDO commit directo a main",
+      "rule_text": "PROHIBIDO hacer commit directo a main. Todo cambio pasa por branch feature/[TASK_ID] + PR + review + merge por Coordinador.",
+      "status": "active",
+      "scope": {
+        "level": "PLATFORM"
+      },
+      "actor_types": ["AGENT", "HUMAN"],
+      "markers": {
+        "mandatory": true,
+        "sensitive": true,
+        "auto_detect": true
+      },
+      "violation": {
+        "severity": "critical",
+        "action": "block_and_escalate",
+        "auto_detect_query": "git commit on branch == 'main'"
+      },
+      "source_origin": {
+        "file": "03.standard/09.AGENT_RULES_Rev.md",
+        "section": "§15.2"
+      },
+      "tags": ["git", "branch", "critical"]
+    },
+    {
+      "id": "RULE-GIT-005",
+      "title": "Merge solo por Coordinador (PM)",
+      "rule_text": "Los merges a main los hace ÚNICAMENTE el Coordinador (PM). Ningún agente ni TL hace merge.",
+      "status": "active",
+      "scope": {
+        "level": "PLATFORM"
+      },
+      "actor_types": ["AGENT"],
+      "markers": {
+        "mandatory": true,
+        "agent_default_forbidden": true,
+        "human_only": false,
+        "sensitive": true
+      },
+      "violation": {
+        "severity": "critical",
+        "action": "block_and_escalate"
+      },
+      "source_origin": {
+        "file": "03.standard/09.AGENT_RULES_Rev.md",
+        "section": "§11"
+      },
+      "tags": ["git", "merge", "agent"]
+    },
+    {
+      "id": "RULE-DATA-001",
+      "title": "PROHIBIDO mockear datos — crear ISSUE en su lugar",
+      "rule_text": "Si detectas que faltan datos reales, NUNCA crees/mockees datos. Crea un ISSUE, completa todo lo posible, deja la tarea en on_hold, espera resolución del ISSUE.",
+      "status": "active",
+      "scope": {
+        "level": "TASK",
+        "task_criteria": {"any": true}
+      },
+      "actor_types": ["AGENT", "HUMAN"],
+      "markers": {
+        "mandatory": true,
+        "sensitive": true
+      },
+      "violation": {
+        "severity": "critical",
+        "action": "block_and_escalate"
+      },
+      "source_origin": {
+        "file": "03.standard/09.AGENT_RULES_Rev.md",
+        "section": "§15.3"
+      },
+      "tags": ["data", "mocking", "critical"]
+    },
+    {
+      "id": "RULE-FORBID-001",
+      "title": "NO modificar archivos fuera del alcance",
+      "rule_text": "NO modificar archivos fuera del alcance de la tarea (los listados en brief/assignment). Si necesitas modificar otros archivos, escala al Coordinador primero.",
+      "status": "active",
+      "scope": {
+        "level": "TASK",
+        "task_criteria": {"any": true}
+      },
+      "actor_types": ["AGENT"],
+      "markers": {
+        "mandatory": true,
+        "agent_default_forbidden": false
+      },
+      "violation": {
+        "severity": "high",
+        "action": "block_and_escalate"
+      },
+      "source_origin": {
+        "file": "03.standard/09.AGENT_RULES_Rev.md",
+        "section": "§11"
+      },
+      "tags": ["scope", "forbidden"]
+    },
+    {
+      "id": "RULE-FORBID-002",
+      "title": "NO modificar .env o docker-compose sin instrucción explícita",
+      "rule_text": "NO modificar archivos .env, docker-compose, ni configuración crítica sin instrucción explícita del PM/TL.",
+      "status": "active",
+      "scope": {
+        "level": "TASK",
+        "task_criteria": {"any": true}
+      },
+      "actor_types": ["AGENT", "HUMAN"],
+      "markers": {
+        "mandatory": true,
+        "sensitive": true,
+        "auto_detect": true
+      },
+      "violation": {
+        "severity": "critical",
+        "action": "block_and_escalate",
+        "auto_detect_query": "diff includes .env or docker-compose.yml"
+      },
+      "source_origin": {
+        "file": "03.standard/09.AGENT_RULES_Rev.md",
+        "section": "§11"
+      },
+      "tags": ["security", "forbidden"]
+    },
+    {
+      "id": "RULE-FORBID-003",
+      "title": "NO instalar dependencias sin reportar",
+      "rule_text": "No instalar dependencias nuevas sin reportarlo en el Development Log. Usar versiones específicas (no 'latest').",
+      "status": "active",
+      "scope": {
+        "level": "TASK",
+        "task_criteria": {"installs_dependencies": true}
+      },
+      "actor_types": ["AGENT", "HUMAN"],
+      "markers": {
+        "mandatory": true,
+        "auto_detect": true
+      },
+      "violation": {
+        "severity": "medium",
+        "action": "warn",
+        "auto_detect_query": "diff includes package.json without devlog entry"
+      },
+      "source_origin": {
+        "file": "03.standard/09.AGENT_RULES_Rev.md",
+        "section": "§6 + §11"
+      },
+      "tags": ["dependencies", "documentation"]
+    },
+    {
+      "id": "RULE-VTT-001",
+      "title": "Devlog entries critical/high bloquean Review Gate",
+      "rule_text": "Devlog entries con severity=critical|high y status=pending bloquean el Review Gate (canProceedToReview=false). Resolver antes de mover a task_in_review.",
+      "status": "active",
+      "scope": {
+        "level": "PLATFORM"
+      },
+      "actor_types": ["AGENT", "HUMAN"],
+      "markers": {
+        "mandatory": true,
+        "blocks_review_gate": true,
+        "auto_detect": true
+      },
+      "violation": {
+        "severity": "high",
+        "action": "block_review_gate",
+        "auto_detect_query": "GET /tasks/:id/review-gate returns canProceedToReview=false"
+      },
+      "source_origin": {
+        "file": "00-platform/06.Documentos_soporte/HANDOFF_PJM_ADDENDUM_V4.5.md",
+        "section": "D-41"
+      },
+      "tags": ["vtt", "review_gate", "devlog"]
+    },
+    {
+      "id": "RULE-VTT-002",
+      "title": "Resolver devlog: resolution REQUERIDO si status=resolved/wont_fix",
+      "rule_text": "Al cambiar status de devlog entry a resolved o wont_fix, el campo 'resolution' es OBLIGATORIO. Sin él → 400 VALIDATION_ERROR.",
+      "status": "active",
+      "scope": {
+        "level": "PLATFORM"
+      },
+      "actor_types": ["AGENT", "HUMAN"],
+      "markers": {
+        "mandatory": true,
+        "auto_detect": true
+      },
+      "violation": {
+        "severity": "medium",
+        "action": "block",
+        "auto_detect_query": "PATCH devlog status without resolution"
+      },
+      "source_origin": {
+        "file": "memory-service-project/.claude/projects/.../memory/reference_vtt_endpoints_cheatsheet.md",
+        "section": "Devlog endpoints"
+      },
+      "tags": ["vtt", "devlog", "api"]
+    },
+    {
+      "id": "RULE-VTT-003",
+      "title": "Evidencia con marker [TASK:MS-XXX] [SPRINT:SX]",
+      "rule_text": "Al agregar evidencias a TIs, usar marker estructurado: title='[MS-XXX] [SX] <descripcion>', description='[TASK:MS-XXX] [SPRINT:SX] <full>', url=PR específico (no URL base).",
+      "status": "active",
+      "scope": {
+        "level": "PHASE",
+        "phase_key": "04",
+        "task_criteria": {"creates_evidences": true}
+      },
+      "actor_types": ["AGENT", "HUMAN"],
+      "required_role_codes": ["ws_tech_lead"],
+      "markers": {
+        "mandatory": true
+      },
+      "violation": {
+        "severity": "medium",
+        "action": "warn"
+      },
+      "source_origin": {
+        "file": "00-platform/07.Normativa/06.Templates/VTT.TEMPLATE-APR-001_apr_tl_comment.md",
+        "section": "Evidence pattern"
+      },
+      "tags": ["vtt", "evidence", "modelo_dinamico"]
+    },
+    {
+      "id": "RULE-VTT-004",
+      "title": "Manifest se genera AL FINAL (después de attachments + status + dynamic_model)",
+      "rule_text": "El Task Manifest se genera AL FINAL del workflow. Para v1.0 (agente): después de attachments + status=task_in_review + SKL-REPORT-01 comment. Para v1.5 (TL): después de FASE B modelo dinámico + APR-TL + status=task_completed. Generar antes = campos null en delivery.",
+      "status": "active",
+      "scope": {
+        "level": "PHASE",
+        "phase_key": "04"
+      },
+      "actor_types": ["AGENT", "HUMAN"],
+      "required_role_codes": ["ws_developer", "ws_tech_lead", "ws_lead"],
+      "markers": {
+        "mandatory": true,
+        "auto_detect": true
+      },
+      "violation": {
+        "severity": "high",
+        "action": "warn",
+        "auto_detect_query": "manifest.delivery.skl_report_01_full == null"
+      },
+      "source_origin": {
+        "file": "memory-service-project/.../memory/feedback_manifest_paso_15_al_final.md",
+        "section": "PROC-MANIFEST-01"
+      },
+      "tags": ["manifest", "modelo_dinamico", "PROC-MANIFEST-01"]
+    },
+    {
+      "id": "RULE-VTT-005",
+      "title": "LL-005: Llenar ASSIGNMENT desde código real, no desde handoff",
+      "rule_text": "La sección 'API/RECURSOS DISPONIBLES' del ASSIGNMENT se completa desde el router/schemas REAL del backend (routes/, schema.prisma, App.tsx), NO desde el handoff del PM. El handoff es intención de diseño, no contrato técnico.",
+      "status": "active",
+      "scope": {
+        "level": "TASK",
+        "task_criteria": {"creates_assignment": true}
+      },
+      "actor_types": ["AGENT", "HUMAN"],
+      "required_role_codes": ["ws_tech_lead", "ws_lead"],
+      "markers": {
+        "mandatory": true
+      },
+      "violation": {
+        "severity": "high",
+        "action": "warn"
+      },
+      "source_origin": {
+        "file": "00-platform/06.Documentos_soporte/PROCESO_ASIGNACION_TAREAS.md",
+        "section": "LL-005"
+      },
+      "tags": ["assignment", "tech_lead", "LL-005"]
+    },
+    {
+      "id": "RULE-VTT-006",
+      "title": "Una tarea a la vez por agente (salvo autorización PM)",
+      "rule_text": "Un agente ejecutor trabaja UNA tarea a la vez. No asignar múltiples tareas en paralelo salvo que el PM lo autorice explícitamente.",
+      "status": "active",
+      "scope": {
+        "level": "PLATFORM"
+      },
+      "actor_types": ["AGENT"],
+      "markers": {
+        "mandatory": true
+      },
+      "violation": {
+        "severity": "medium",
+        "action": "warn"
+      },
+      "source_origin": {
+        "file": "00-platform/06.Documentos_soporte/PROCESO_ASIGNACION_TAREAS.md",
+        "section": "Reglas Críticas #1"
+      },
+      "tags": ["workflow", "agent", "LL-001"]
+    },
+    {
+      "id": "RULE-VTT-007",
+      "title": "BRIEF adjunto al crear tarea, ASSIGNMENT adjunto al asignar",
+      "rule_text": "BRIEF se adjunta como attachment fileType=brief al CREAR la tarea (inmutable). ASSIGNMENT se adjunta como fileType=assignment al ASIGNAR la tarea (snapshot del estado).",
+      "status": "active",
+      "scope": {
+        "level": "PHASE",
+        "phase_key": "04"
+      },
+      "actor_types": ["AGENT", "HUMAN"],
+      "required_role_codes": ["ws_tech_lead", "ws_lead"],
+      "markers": {
+        "mandatory": true,
+        "auto_detect": true
+      },
+      "violation": {
+        "severity": "high",
+        "action": "warn"
+      },
+      "source_origin": {
+        "file": "00-platform/06.Documentos_soporte/PROCESO_ASIGNACION_TAREAS.md",
+        "section": "Reglas Críticas #8"
+      },
+      "tags": ["brief", "assignment", "attachments"]
+    },
+    {
+      "id": "RULE-AGENT-001",
+      "title": "Agente trabaja en su worktree por rol (PROC-COORD-01)",
+      "rule_text": "Cada agente ejecutor trabaja en su Git worktree POR ROL ubicado en .vtt/worktrees/<repo>-<rol>/. El worktree es permanente (no por tarea) y se reutiliza para todas las tareas del agente cambiando de branch dentro del mismo worktree. PROHIBIDO: git checkout en clones base, trabajar en worktree de otro rol, clonar de nuevo.",
+      "status": "active",
+      "version": "2.0",
+      "scope": {
+        "level": "PLATFORM"
+      },
+      "actor_types": ["AGENT", "HUMAN"],
+      "markers": {
+        "mandatory": true,
+        "sensitive": true,
+        "auto_detect": true
+      },
+      "violation": {
+        "severity": "critical",
+        "action": "block_and_escalate",
+        "auto_detect_query": "git rev-parse --show-toplevel matches base clone OR matches other role worktree"
+      },
+      "source_origin": {
+        "file": "00-platform/06.Documentos_soporte/GUIA_WORKTREES_MEMORY_SERVICE.md",
+        "section": "v2.1 — Worktree por rol",
+        "rule_label_in_source": "PROC-COORD-01"
+      },
+      "tags": ["worktree", "git", "PROC-COORD-01"]
+    },
+    {
+      "id": "RULE-TL-001",
+      "title": "TL opera en su propio worktree, no en clon base",
+      "rule_text": "El Tech Lead opera en .vtt/worktrees/project-tl/ con su workspace .vtt/workspaces/project-tl.code-workspace. NO usa el clon base memory-service-project/ para tareas activas (crear BRIEFs, ASSIGNMENTs, execution_manifests, code review, manifests v1.5, merge conflicts). El TL no es 'ventana coordinadora' — opera con sus propias ventanas como cualquier otro rol.",
+      "status": "active",
+      "version": "1.0",
+      "scope": {
+        "level": "ROLE",
+        "role_codes": ["ws_tech_lead"]
+      },
+      "actor_types": ["AGENT", "HUMAN"],
+      "markers": {
+        "mandatory": true,
+        "sensitive": false,
+        "auto_detect": true
+      },
+      "violation": {
+        "severity": "high",
+        "action": "block_and_escalate",
+        "auto_detect_query": "TL commits in base clone instead of .vtt/worktrees/project-tl"
+      },
+      "source_origin": {
+        "file": "00-platform/06.Documentos_soporte/GUIA_WORKTREES_MEMORY_SERVICE.md",
+        "section": "v2.1 — El TL también necesita ventana separada"
+      },
+      "tags": ["worktree", "tech_lead", "PROC-COORD-01"]
+    },
+    {
+      "id": "RULE-WT-001",
+      "title": "Worktrees son por rol, no por tarea",
+      "rule_text": "La granularidad correcta de un worktree VTT es POR ROL (.vtt/worktrees/<repo>-<rol>/), no POR TAREA. Un worktree es permanente durante el proyecto. La tarea es una branch (feature/<TASK_ID>) dentro del worktree. No crear worktrees por TASK_ID — eso era el modelo v1.0 obsoleto.",
+      "status": "active",
+      "version": "1.0",
+      "scope": {
+        "level": "PLATFORM"
+      },
+      "actor_types": ["HUMAN", "AGENT"],
+      "required_role_codes": ["ws_tech_lead"],
+      "markers": {
+        "mandatory": true
+      },
+      "violation": {
+        "severity": "high",
+        "action": "warn"
+      },
+      "source_origin": {
+        "file": "00-platform/06.Documentos_soporte/GUIA_WORKTREES_MEMORY_SERVICE.md",
+        "section": "v2.1 — Aspecto Granularidad"
+      },
+      "tags": ["worktree", "policy"]
+    },
+    {
+      "id": "RULE-WT-002",
+      "title": "Agente lee execution_manifest antes de empezar",
+      "rule_text": "El agente DEBE leer su .vtt/manifests/<TASK_ID>.execution.json antes de empezar a trabajar la tarea. Extrae para SU agentId: allowedPaths (qué puede tocar), deniedPaths (qué NO debe tocar), expectedOutputs (qué debe producir), rules.commitPattern. Si toca archivos fuera de allowedPaths durante ejecución → escalar al TL inmediatamente.",
+      "status": "active",
+      "version": "1.0",
+      "scope": {
+        "level": "TASK",
+        "task_criteria": {"any": true}
+      },
+      "actor_types": ["AGENT", "HUMAN"],
+      "markers": {
+        "mandatory": true,
+        "sensitive": true,
+        "auto_detect": true
+      },
+      "violation": {
+        "severity": "high",
+        "action": "block",
+        "auto_detect_query": "git diff includes paths NOT IN execution_manifest.allowedPaths"
+      },
+      "source_origin": {
+        "file": "00-platform/06.Documentos_soporte/PROCESO_CIERRE_TAREA_v2.md",
+        "section": "v2.1 — Paso 4b — Verificar disciplina de worktree"
+      },
+      "tags": ["worktree", "execution_manifest", "allowedPaths"]
+    },
+    {
+      "id": "RULE-WT-003",
+      "title": "Cleanup branch local post-aprobación",
+      "rule_text": "Después de que la tarea esté en task_approved Y los PRs estén mergeados a main, ejecutar cleanup del branch local en el worktree del agente: git checkout main && git pull && git branch -d feature/<TASK_ID>. (Opcional) archivar execution_manifest en .vtt/manifests/archived/. NO se borra el worktree (es por rol, persiste).",
+      "status": "active",
+      "version": "1.0",
+      "scope": {
+        "level": "PLATFORM"
+      },
+      "actor_types": ["HUMAN", "AGENT"],
+      "required_role_codes": ["ws_tech_lead"],
+      "markers": {
+        "mandatory": true
+      },
+      "violation": {
+        "severity": "low",
+        "action": "warn"
+      },
+      "source_origin": {
+        "file": "00-platform/06.Documentos_soporte/PROCESO_CIERRE_TAREA_v2.md",
+        "section": "v2.1 — Paso 9 — Cleanup branch local en worktree"
+      },
+      "tags": ["worktree", "cleanup", "post-approval"]
+    },
+    {
+      "id": "RULE-DOC-002",
+      "title": "Reportar dependencias nuevas en Development Log",
+      "rule_text": "Toda dependencia npm/pip/etc. nueva debe reportarse en la sección 'Dependencias agregadas' del Development Log. Versión específica obligatoria (no 'latest').",
+      "status": "active",
+      "scope": {
+        "level": "TASK",
+        "task_criteria": {"installs_dependencies": true}
+      },
+      "actor_types": ["AGENT", "HUMAN"],
+      "markers": {
+        "mandatory": true
+      },
+      "violation": {
+        "severity": "medium",
+        "action": "warn"
+      },
+      "source_origin": {
+        "file": "03.standard/09.AGENT_RULES_Rev.md",
+        "section": "§6 Dependencias"
+      },
+      "tags": ["dependencies", "devlog"]
+    },
+    {
+      "id": "RULE-VTT-008",
+      "title": "MAPA_DEPENDENCIAS: analizar deps de datos antes de generar ASSIGNMENT",
+      "rule_text": "Antes de generar ASSIGNMENT, completar el análisis de dependencias de DATOS (MAPA_DEPENDENCIAS_ENTREGABLES.md). Sin trazar docs fuente concretos → ASSIGNMENT incompleto. Lección de MS-029..035: ~1M tokens perdidos por suponer datos.",
+      "status": "active",
+      "scope": {
+        "level": "TASK",
+        "task_criteria": {"creates_assignment": true}
+      },
+      "actor_types": ["AGENT", "HUMAN"],
+      "required_role_codes": ["ws_tech_lead", "ws_lead"],
+      "markers": {
+        "mandatory": true,
+        "sensitive": true
+      },
+      "violation": {
+        "severity": "high",
+        "action": "block"
+      },
+      "source_origin": {
+        "file": "memory-service-project/.claude/rules/PROCESO_ANALISIS_DEPENDENCIAS_ASSIGNMENT.md",
+        "section": "Regla absoluta"
+      },
+      "tags": ["dependencies", "assignment", "lecciones"]
+    }
+  ],
+  "summary": {
+    "total_rules": 47,
+    "by_level": {
+      "PLATFORM": 14,
+      "ORGANIZATION": 0,
+      "WORKSPACE": 0,
+      "PROJECT": 0,
+      "PHASE": 3,
+      "TASK": 19,
+      "ROLE": 11,
+      "AGENT": 0
+    },
+    "by_status": {
+      "active": 47,
+      "deprecated": 0,
+      "superseded": 0,
+      "draft": 0
+    },
+    "by_actor_type": {
+      "HUMAN_only": 2,
+      "AGENT_only": 4,
+      "HUMAN_and_AGENT": 41
+    },
+    "by_source": {
+      "doc_sec_02_abac_sod": 17,
+      "AGENT_RULES_Rev": 15,
+      "VTT_operational": 7,
+      "PROC_COORD_PROC_MANIFEST": 1,
+      "GUIA_WORKTREES_v2.1": 5,
+      "PROCESO_CIERRE_v2.1": 2
+    },
+    "by_severity": {
+      "critical": 11,
+      "high": 21,
+      "medium": 11,
+      "low": 4
+    },
+    "mandatory": 47,
+    "human_only": 2,
+    "agent_default_forbidden": 7,
+    "sod_enforcement": 5,
+    "auto_detect": 22
+  },
+  "pending_to_extract": [
+    "REGLAS de TEMPLATE_ASIGNACION_TAREARev.md (workflow 15 pasos, fields obligatorios)",
+    "REGLAS de PROCESO_CIERRE_TAREA_v2.md (FASE B modelo dinamico)",
+    "REGLAS de SOP-LD-01 (Living Documents)",
+    "REGLAS de SOP-TRK-01 (TrackableItems workflow)",
+    "REGLAS de SOP-TRK-02 (dynamic item creation)",
+    "REGLAS de PROCESO_ASIGNACION_TAREAS.md restantes",
+    "REGLAS de Diccionarios de Fases 0-7 (438 deliverables)",
+    "REGLAS de CODE_REVIEW_GUIDE_V1.1.md",
+    "REGLAS de INTEGRATION_AUDIT_CHECKLIST_V1.1.md",
+    "REGLAS de TESTING_GUIDE_V1.1.md"
+  ],
+  "notes": [
+    "Esta es la primera oleada de reglas (~40). Incluye las 17 ABAC/SoD críticas de doc_sec_02 + 15 reglas operativas de AGENT_RULES_Rev + 7 VTT-específicas + 1 PROC-COORD.",
+    "Las reglas de los 438 deliverables del catálogo SDLC se migrarán en oleada 2.",
+    "Las reglas tipo VTT-* aplican policies operativas descubiertas en MS-283/284/285 (manifest al final, marker en evidencias, etc.).",
+    "Validar el catálogo con: python query_rules.py --validate"
+  ]
+}

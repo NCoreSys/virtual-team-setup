@@ -1,0 +1,338 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-05-13",
+  "source": "doc_sec_02_politicas_permisos_rbac_abac §4 + doc_sec_04 §4.2",
+  "description": "Catálogo de las 30 capabilities base de Bloque 1. Cada capability es un permiso atómico que RBAC concede a uno o más roles. ABAC decide si la capability se puede ejercer en el recurso/contexto concreto.",
+  "total_capabilities": 30,
+  "by_group": {
+    "content_execution": 18,
+    "workspace_project": 4,
+    "tracking_lifecycle": 4,
+    "administration": 3,
+    "system_reference": 1
+  },
+  "capabilities": [
+    {
+      "code": "tasks.read",
+      "group": "content_execution",
+      "title": "Leer tareas",
+      "description": "Permite leer información de tareas (detalle, lista, status)",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["scope_workspace"]
+    },
+    {
+      "code": "tasks.create",
+      "group": "content_execution",
+      "title": "Crear tareas",
+      "description": "Permite crear tareas nuevas en el sistema",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["scope_workspace", "phase_active"]
+    },
+    {
+      "code": "tasks.update",
+      "group": "content_execution",
+      "title": "Actualizar tareas",
+      "description": "Permite modificar campos de tareas existentes",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["scope_workspace", "DEV-01", "REV-01"],
+      "notes": "Developer: solo en tareas asignadas. Reviewer: solo en tareas dentro de scope de revisión."
+    },
+    {
+      "code": "tasks.delete",
+      "group": "content_execution",
+      "title": "Eliminar tareas",
+      "description": "Permite eliminar tareas",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["scope_workspace", "no_dependencies"]
+    },
+    {
+      "code": "tasks.status",
+      "group": "content_execution",
+      "title": "Cambiar estado de tarea",
+      "description": "Permite mover tareas entre estados del lifecycle",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["ST-01", "ST-02", "ST-03", "DEV-02"],
+      "notes": "ST-01: TL/Lead pueden hasta completed. ST-02: approved requiere capability separada. ST-03: approved solo humanos."
+    },
+    {
+      "code": "tasks.assign",
+      "group": "content_execution",
+      "title": "Asignar tareas",
+      "description": "Permite cambiar el assignee de una tarea",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["scope_workspace"]
+    },
+    {
+      "code": "tasks.approve",
+      "group": "content_execution",
+      "title": "Aprobar tareas",
+      "description": "Permite mover tarea a task_approved (firma terminal)",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["ST-03", "AP-01", "AG-01", "human_only"],
+      "notes": "Reservada a humanos. AP-01: completedBy != actor (no autoaprobación). AG-01: agente nunca aprueba por defecto.",
+      "human_only": true
+    },
+    {
+      "code": "phases.read",
+      "group": "content_execution",
+      "title": "Leer fases",
+      "description": "Permite leer información de fases del proyecto",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["scope_workspace"]
+    },
+    {
+      "code": "phases.create",
+      "group": "content_execution",
+      "title": "Crear fases",
+      "description": "Permite crear fases nuevas",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["scope_organization"]
+    },
+    {
+      "code": "phases.update",
+      "group": "content_execution",
+      "title": "Actualizar fases",
+      "description": "Permite modificar fases existentes",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["scope_workspace"]
+    },
+    {
+      "code": "phases.delete",
+      "group": "content_execution",
+      "title": "Eliminar fases",
+      "description": "Permite eliminar fases",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["scope_organization", "no_dependencies"]
+    },
+    {
+      "code": "deliveries.read",
+      "group": "content_execution",
+      "title": "Leer deliveries",
+      "description": "Permite leer información de Deliveries (agrupaciones de tareas)",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["scope_workspace"]
+    },
+    {
+      "code": "deliveries.create",
+      "group": "content_execution",
+      "title": "Crear deliveries",
+      "description": "Permite crear Deliveries nuevos",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["scope_workspace"]
+    },
+    {
+      "code": "deliveries.update",
+      "group": "content_execution",
+      "title": "Actualizar deliveries",
+      "description": "Permite modificar Deliveries existentes",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["scope_workspace"]
+    },
+    {
+      "code": "deliveries.delete",
+      "group": "content_execution",
+      "title": "Eliminar deliveries",
+      "description": "Permite eliminar Deliveries",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["scope_workspace", "no_dependencies"]
+    },
+    {
+      "code": "issues.create",
+      "group": "content_execution",
+      "title": "Crear issues",
+      "description": "Permite crear issues (bloqueantes, mejoras, bugs, requirements)",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["scope_workspace"]
+    },
+    {
+      "code": "issues.update",
+      "group": "content_execution",
+      "title": "Actualizar issues",
+      "description": "Permite modificar issues (resolver, vincular a task fix, etc.)",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["scope_workspace"]
+    },
+    {
+      "code": "attachments.manage",
+      "group": "content_execution",
+      "title": "Gestionar attachments",
+      "description": "Permite subir/listar attachments a tareas (briefs, assignments, devlogs, code_logic, manifests)",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["scope_workspace", "DEV-01"],
+      "notes": "Developer: solo en tareas asignadas. Reviewer: solo en su scope."
+    },
+    {
+      "code": "workspaces.read",
+      "group": "workspace_project",
+      "title": "Leer workspaces",
+      "description": "Permite leer información de workspaces",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["scope_organization"]
+    },
+    {
+      "code": "workspaces.create",
+      "group": "workspace_project",
+      "title": "Crear workspaces",
+      "description": "Permite crear workspaces nuevos en una organización",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["scope_organization"]
+    },
+    {
+      "code": "workspaces.update",
+      "group": "workspace_project",
+      "title": "Actualizar workspaces",
+      "description": "Permite modificar workspaces existentes",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["scope_organization"]
+    },
+    {
+      "code": "workspaces.delete",
+      "group": "workspace_project",
+      "title": "Eliminar workspaces",
+      "description": "Permite eliminar workspaces",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["scope_organization", "no_dependencies"]
+    },
+    {
+      "code": "tracking.view_all",
+      "group": "tracking_lifecycle",
+      "title": "Ver tracking completo",
+      "description": "Permite ver el tracking completo del workspace (dashboards, métricas, reportes)",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["scope_workspace"]
+    },
+    {
+      "code": "tracking.manage_workflows",
+      "group": "tracking_lifecycle",
+      "title": "Gestionar workflows de tracking",
+      "description": "Permite definir/modificar workflows de tracking del workspace",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["scope_organization"]
+    },
+    {
+      "code": "lifecycle.read",
+      "group": "tracking_lifecycle",
+      "title": "Leer lifecycle",
+      "description": "Permite leer información de lifecycle (status history, transiciones)",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["scope_workspace"]
+    },
+    {
+      "code": "lifecycle.update",
+      "group": "tracking_lifecycle",
+      "title": "Actualizar lifecycle",
+      "description": "Permite modificar configuración de lifecycle (estados, transiciones permitidas)",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["scope_organization"]
+    },
+    {
+      "code": "users.read",
+      "group": "administration",
+      "title": "Leer usuarios",
+      "description": "Permite leer información de usuarios",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["scope_organization"]
+    },
+    {
+      "code": "users.manage",
+      "group": "administration",
+      "title": "Gestionar usuarios",
+      "description": "Permite crear, modificar, desactivar usuarios y asignar roles",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["scope_organization"],
+      "sensitive": true
+    },
+    {
+      "code": "import.execute",
+      "group": "administration",
+      "title": "Ejecutar imports",
+      "description": "Permite ejecutar operaciones de importación masiva de datos",
+      "abstract": true,
+      "abac_required": true,
+      "abac_rules": ["scope_organization"],
+      "sensitive": true
+    },
+    {
+      "code": "catalogs.read",
+      "group": "system_reference",
+      "title": "Leer catálogos",
+      "description": "Permite leer catálogos del sistema (status, prioridades, tipos)",
+      "abstract": true,
+      "abac_required": false,
+      "abac_rules": []
+    }
+  ],
+  "groups": {
+    "content_execution": {
+      "title": "Contenido y ejecución",
+      "description": "Capabilities operativas sobre los recursos de trabajo (tasks, phases, deliveries, issues, attachments)",
+      "source_section": "doc_sec_02 §4.1"
+    },
+    "workspace_project": {
+      "title": "Workspace / proyecto",
+      "description": "Capabilities sobre la estructura organizacional (workspaces)",
+      "source_section": "doc_sec_02 §4.2"
+    },
+    "tracking_lifecycle": {
+      "title": "Tracking / lifecycle",
+      "description": "Capabilities sobre tracking de progreso y lifecycle de recursos",
+      "source_section": "doc_sec_02 §4.3"
+    },
+    "administration": {
+      "title": "Administración",
+      "description": "Capabilities administrativas (usuarios, imports). Sensitive.",
+      "source_section": "doc_sec_02 §4.4"
+    },
+    "system_reference": {
+      "title": "Sistema / referencia",
+      "description": "Capabilities de lectura de catálogos del sistema",
+      "source_section": "doc_sec_02 §4.5"
+    }
+  },
+  "future_capabilities_pending": [
+    "comment.create",
+    "comment.read",
+    "devlog.create",
+    "devlog.resolve",
+    "trackable_items.create",
+    "trackable_items.link",
+    "evidence.create",
+    "manifest.generate",
+    "living_documents.update",
+    "rules.create",
+    "rules.read"
+  ],
+  "notes": [
+    "Esta es la base de Bloque 1. Las capabilities VTT-específicas (devlog, trackable_items, evidence, manifest, rules) se documentan en IMPROVE-005.",
+    "abac_rules referencia las reglas ABAC mínimas de doc_sec_02 §7. Ver rules_catalog.json para las reglas concretas (DEV-01, REV-01, ST-01..03, AP-01..02, AG-01..03, CR-01..03).",
+    "sensitive=true significa que la operación debe quedar registrada en AuditLog (doc_sec_01 §11)."
+  ]
+}

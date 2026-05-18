@@ -1,0 +1,40 @@
+{
+  "folders": [
+    {
+      "name": "🟢 backend (write)",
+      "path": "../../../../memory-service-backend"
+    },
+    {
+      "name": "🟢 project (write — devlogs)",
+      "path": "../../../../memory-service-project"
+    },
+    {
+      "name": "🟡 api (read-only)",
+      "path": "../../../../memory-service-api"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/build": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true
+    },
+    "editor.formatOnSave": true,
+    "[typescript]": { "editor.defaultFormatter": "dbaeumer.vscode-eslint" },
+    "git.autofetch": true,
+    "window.title": "BE (Memory Service) — ${rootName}${separator}${activeEditorMedium}"
+  },
+  "extensions": {
+    "recommendations": [
+      "anthropic.claude-code",
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "Prisma.prisma",
+      "yzhang.markdown-all-in-one"
+    ]
+  }
+}

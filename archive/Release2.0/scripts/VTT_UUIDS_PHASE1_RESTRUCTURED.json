@@ -1,0 +1,230 @@
+{
+  "projectId": "d0fc276d-e764-4a83-96e9-d65f086ed803",
+  "phaseId": "52c37a8b-70de-48e6-80fb-30032805025e",
+  "deliveries": {
+    "A": "98a0be7a-c703-4bd3-a905-63b070e389d3",
+    "B": "8fcb05ab-1604-4156-9d3d-cec5be7a4731",
+    "C": "8e3772c0-145c-47e3-b462-3bf950f49467",
+    "D": "7452f020-aa8c-4798-b230-6c5f7b262166",
+    "E": "5941633a-0a2a-4f5c-8a44-7a0dbe9b976f",
+    "F": "ca09793e-d9fa-4a59-93aa-5e04884c8003",
+    "G": "40386afd-45e2-4b66-a7da-1c69407b8ef4"
+  },
+  "tasks": {
+    "INIT-A-01": {
+      "uuid": "MS-117",
+      "vttCode": "MS-117",
+      "deliveryId": "98a0be7a-c703-4bd3-a905-63b070e389d3",
+      "role": "PJM",
+      "hours": 1,
+      "status": "completed"
+    },
+    "INIT-A-02": {
+      "uuid": "MS-118",
+      "vttCode": "MS-118",
+      "deliveryId": "98a0be7a-c703-4bd3-a905-63b070e389d3",
+      "role": "PJM",
+      "hours": 1,
+      "status": "completed"
+    },
+    "INIT-A-03": {
+      "uuid": "MS-119",
+      "vttCode": "MS-119",
+      "deliveryId": "98a0be7a-c703-4bd3-a905-63b070e389d3",
+      "role": "PJM",
+      "hours": 1,
+      "status": "completed"
+    },
+    "INIT-A-04": {
+      "uuid": "MS-120",
+      "vttCode": "MS-120",
+      "deliveryId": "98a0be7a-c703-4bd3-a905-63b070e389d3",
+      "role": "PJM",
+      "hours": 2,
+      "status": "pending"
+    },
+    "INIT-A-05": {
+      "uuid": "MS-121",
+      "vttCode": "MS-121",
+      "deliveryId": "98a0be7a-c703-4bd3-a905-63b070e389d3",
+      "role": "PJM",
+      "hours": 3,
+      "status": "pending"
+    },
+    "INIT-B-01": {
+      "uuid": "MS-122",
+      "vttCode": "MS-122",
+      "deliveryId": "8fcb05ab-1604-4156-9d3d-cec5be7a4731",
+      "role": "DO",
+      "hours": 1,
+      "status": "blocked"
+    },
+    "INIT-B-02": {
+      "uuid": "MS-123",
+      "vttCode": "MS-123",
+      "deliveryId": "8fcb05ab-1604-4156-9d3d-cec5be7a4731",
+      "role": "PJM",
+      "hours": 1,
+      "status": "pending"
+    },
+    "INIT-B-03": {
+      "uuid": "MS-124",
+      "vttCode": "MS-124",
+      "deliveryId": "8fcb05ab-1604-4156-9d3d-cec5be7a4731",
+      "role": "PJM",
+      "hours": 1,
+      "status": "pending"
+    },
+    "INIT-B-04": {
+      "uuid": "MS-125",
+      "vttCode": "MS-125",
+      "deliveryId": "8fcb05ab-1604-4156-9d3d-cec5be7a4731",
+      "role": "DO",
+      "hours": 1,
+      "status": "pending"
+    },
+    "INIT-B-05": {
+      "uuid": "MS-126",
+      "vttCode": "MS-126",
+      "deliveryId": "8fcb05ab-1604-4156-9d3d-cec5be7a4731",
+      "role": "PJM",
+      "hours": 1,
+      "status": "pending"
+    },
+    "INIT-C-01": {
+      "uuid": "MS-127",
+      "vttCode": "MS-127",
+      "deliveryId": "8e3772c0-145c-47e3-b462-3bf950f49467",
+      "role": "DO",
+      "hours": 1,
+      "status": "completed"
+    },
+    "INIT-C-02": {
+      "uuid": "MS-128",
+      "vttCode": "MS-128",
+      "deliveryId": "8e3772c0-145c-47e3-b462-3bf950f49467",
+      "role": "DO",
+      "hours": 1,
+      "status": "pending"
+    },
+    "INIT-C-03": {
+      "uuid": "MS-129",
+      "vttCode": "MS-129",
+      "deliveryId": "8e3772c0-145c-47e3-b462-3bf950f49467",
+      "role": "DO",
+      "hours": 1,
+      "status": "pending"
+    },
+    "INIT-C-04": {
+      "uuid": "MS-130",
+      "vttCode": "MS-130",
+      "deliveryId": "8e3772c0-145c-47e3-b462-3bf950f49467",
+      "role": "DO",
+      "hours": 1,
+      "status": "pending"
+    },
+    "INIT-D-01": {
+      "uuid": "MS-131",
+      "vttCode": "MS-131",
+      "deliveryId": "7452f020-aa8c-4798-b230-6c5f7b262166",
+      "role": "PM",
+      "hours": 3,
+      "status": "in_progress"
+    },
+    "INIT-D-02": {
+      "uuid": "MS-132",
+      "vttCode": "MS-132",
+      "deliveryId": "7452f020-aa8c-4798-b230-6c5f7b262166",
+      "role": "PM",
+      "hours": 1,
+      "status": "completed"
+    },
+    "INIT-D-03": {
+      "uuid": "MS-133",
+      "vttCode": "MS-133",
+      "deliveryId": "7452f020-aa8c-4798-b230-6c5f7b262166",
+      "role": "PJM",
+      "hours": 1,
+      "status": "in_progress"
+    },
+    "INIT-D-04": {
+      "uuid": "MS-134",
+      "vttCode": "MS-134",
+      "deliveryId": "7452f020-aa8c-4798-b230-6c5f7b262166",
+      "role": "PJM",
+      "hours": 1,
+      "status": "pending"
+    },
+    "INIT-D-05": {
+      "uuid": "MS-135",
+      "vttCode": "MS-135",
+      "deliveryId": "7452f020-aa8c-4798-b230-6c5f7b262166",
+      "role": "PM",
+      "hours": 3,
+      "status": "pending"
+    },
+    "INIT-E-01": {
+      "uuid": "MS-136",
+      "vttCode": "MS-136",
+      "deliveryId": "5941633a-0a2a-4f5c-8a44-7a0dbe9b976f",
+      "role": "DO",
+      "hours": 2,
+      "status": "pending"
+    },
+    "INIT-E-02": {
+      "uuid": "MS-137",
+      "vttCode": "MS-137",
+      "deliveryId": "5941633a-0a2a-4f5c-8a44-7a0dbe9b976f",
+      "role": "DO",
+      "hours": 1,
+      "status": "pending"
+    },
+    "INIT-E-03": {
+      "uuid": "MS-138",
+      "vttCode": "MS-138",
+      "deliveryId": "5941633a-0a2a-4f5c-8a44-7a0dbe9b976f",
+      "role": "DO",
+      "hours": 1,
+      "status": "pending"
+    },
+    "INIT-F-01": {
+      "uuid": "MS-139",
+      "vttCode": "MS-139",
+      "deliveryId": "ca09793e-d9fa-4a59-93aa-5e04884c8003",
+      "role": "PM",
+      "hours": 1,
+      "status": "pending"
+    },
+    "INIT-F-02": {
+      "uuid": "MS-140",
+      "vttCode": "MS-140",
+      "deliveryId": "ca09793e-d9fa-4a59-93aa-5e04884c8003",
+      "role": "TL",
+      "hours": 1,
+      "status": "pending"
+    },
+    "INIT-G-01": {
+      "uuid": "MS-141",
+      "vttCode": "MS-141",
+      "deliveryId": "40386afd-45e2-4b66-a7da-1c69407b8ef4",
+      "role": "PM",
+      "hours": 2,
+      "status": "pending"
+    },
+    "INIT-G-02": {
+      "uuid": "MS-142",
+      "vttCode": "MS-142",
+      "deliveryId": "40386afd-45e2-4b66-a7da-1c69407b8ef4",
+      "role": "PM",
+      "hours": 1,
+      "status": "pending"
+    }
+  },
+  "cancelled_umbrella": [
+    "MS-001",
+    "MS-002",
+    "MS-003",
+    "MS-004",
+    "MS-005"
+  ]
+}

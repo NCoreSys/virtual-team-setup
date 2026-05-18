@@ -1,0 +1,40 @@
+{
+  "folders": [
+    {
+      "name": "🟢 project (write — devlogs)",
+      "path": "../../../../memory-service-project"
+    },
+    {
+      "name": "🟢 backend (write — solo tests/)",
+      "path": "../../../../memory-service-backend"
+    },
+    {
+      "name": "🟢 frontend (write — solo tests/)",
+      "path": "../../../../memory-service-frontend"
+    },
+    {
+      "name": "🟡 api (read-only)",
+      "path": "../../../../memory-service-api"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/dist": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true
+    },
+    "editor.formatOnSave": true,
+    "git.autofetch": true,
+    "window.title": "QA (Memory Service) — ${rootName}${separator}${activeEditorMedium}"
+  },
+  "extensions": {
+    "recommendations": [
+      "anthropic.claude-code",
+      "ms-playwright.playwright",
+      "yzhang.markdown-all-in-one"
+    ]
+  }
+}

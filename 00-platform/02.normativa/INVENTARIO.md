@@ -272,14 +272,21 @@ $VTT_NORMATIVA/06.Skills/  (path actual — se moverá a 07.Normativa/03.Skills/
 | `SKL-ATTACH-01` | Subir archivo | `06.Skills/vtt-attach/SKL-ATTACH-01_subir-archivo.md` | ✅ Activo |
 | `SKL-ATTACH-02` | Subir devlog | `06.Skills/vtt-attach/SKL-ATTACH-02_subir-devlog.md` | ✅ Activo |
 
-#### Categoría GIT-OPS
+#### Categoría GIT (formato VTT — genéricas, parametrizables)
+
+| Código | Título | Path canónico | Estado |
+|---|---|---|---|
+| `VTT.SKILL-GIT-001` | Crear branch estructurado verificable contra un patrón | `02.normativa/03.Skills/git/VTT.SKILL-GIT-001_crear_branch_estructurado.md` | ✅ Nuevo (2026-05-17) |
+| `VTT.SKILL-GIT-002` | Commit estructurado verificable contra un schema de mensaje | `02.normativa/03.Skills/git/VTT.SKILL-GIT-002_commit_estructurado.md` | ✅ Nuevo (2026-05-17) |
+
+#### Categoría GIT-OPS (legacy Memory Service — pending migration)
 
 | Código | Título | Path | Estado |
 |---|---|---|---|
-| `SKL-GIT-01` | Crear branch | `06.Skills/git-ops/SKL-GIT-01_crear-branch.md` | ✅ Activo |
-| `SKL-GIT-02` | Rebase main | `06.Skills/git-ops/SKL-GIT-02_rebase-main.md` | ✅ Activo |
-| `SKL-GIT-03` | Commit formato | `06.Skills/git-ops/SKL-GIT-03_commit-formato.md` | ✅ Activo |
-| `SKL-GIT-04` | Crear PR | `06.Skills/git-ops/SKL-GIT-04_crear-pr.md` | ✅ Activo |
+| `SKL-GIT-01` | Crear branch | `06.Skills/git-ops/SKL-GIT-01_crear-branch.md` | ✅ Activo (legacy) |
+| `SKL-GIT-02` | Rebase main | `06.Skills/git-ops/SKL-GIT-02_rebase-main.md` | ✅ Activo (legacy) |
+| `SKL-GIT-03` | Commit formato | `06.Skills/git-ops/SKL-GIT-03_commit-formato.md` | ✅ Activo (legacy — superseded por `VTT.SKILL-GIT-002`) |
+| `SKL-GIT-04` | Crear PR | `06.Skills/git-ops/SKL-GIT-04_crear-pr.md` | ✅ Activo (legacy) |
 
 #### Categoría REPORT
 
@@ -341,9 +348,27 @@ $VTT_NORMATIVA/06.Skills/  (path actual — se moverá a 07.Normativa/03.Skills/
 
 | Código | Título | Path canónico | Estado |
 |---|---|---|---|
-| `VTT.TEMPLATE-CLO-001` | CLOSURE_S[N] (cierre de sprint) | `07.Normativa/06.Templates/VTT.TEMPLATE-CLO-001_closure_sprint.md` | ✅ Nuevo (2026-05-13) |
-| `VTT.TEMPLATE-CFL-001` | Criteria Fulfillment (agente reporta CAs) | `07.Normativa/06.Templates/VTT.TEMPLATE-CFL-001_criteria_fulfillment.md` | ✅ Nuevo (2026-05-13) |
-| `VTT.TEMPLATE-APR-001` | APR-TL Comment | `07.Normativa/06.Templates/VTT.TEMPLATE-APR-001_apr_tl_comment.md` | ✅ Nuevo (2026-05-13) |
+| `VTT.TEMPLATE-CLO-001` | CLOSURE_S[N] (cierre de sprint) | `03.templates/normativa/VTT.TEMPLATE-CLO-001_closure_sprint.md` | ✅ Nuevo (2026-05-13) |
+| `VTT.TEMPLATE-CFL-001` | Criteria Fulfillment (agente reporta CAs) | `03.templates/normativa/VTT.TEMPLATE-CFL-001_criteria_fulfillment.md` | ✅ Nuevo (2026-05-13) |
+| `VTT.TEMPLATE-APR-001` | APR-TL Comment | `03.templates/normativa/VTT.TEMPLATE-APR-001_apr_tl_comment.md` | ✅ Nuevo (2026-05-13) |
+
+### Templates de autoría (moldes para crear normativa)
+
+> Carpeta `03.templates/normativa/_autoria/` — usados por autores (PM/TL) cuando crean nuevos Protocols/Workflows/Skills/Scripts.
+
+| Template | Para crear | Path canónico | Estado |
+|---|---|---|---|
+| `TEMPLATE_PROTOCOL.md` | Protocol nuevo (Nivel 4) | `03.templates/normativa/_autoria/TEMPLATE_PROTOCOL.md` | ✅ Nuevo (2026-05-17) |
+| `TEMPLATE_WORKFLOW.md` | Workflow nuevo (Nivel 3) | `03.templates/normativa/_autoria/TEMPLATE_WORKFLOW.md` | ✅ Nuevo (2026-05-17) |
+| `TEMPLATE_SKILL.md` | Skill nueva (Nivel 2) | `03.templates/normativa/_autoria/TEMPLATE_SKILL.md` | ✅ Nuevo (2026-05-17) |
+| `TEMPLATE_SCRIPT.py` | Script nuevo (Nivel 1) | `03.templates/normativa/_autoria/TEMPLATE_SCRIPT.py` | ✅ Nuevo (2026-05-17) |
+| `README.md` | Guía de uso de los 4 templates | `03.templates/normativa/_autoria/README.md` | ✅ Nuevo (2026-05-17) |
+
+### Guía de autor (narrativa con anti-patterns)
+
+| Documento | Path canónico | Propósito | Estado |
+|---|---|---|---|
+| `GUIA_AUTOR.md` | `02.normativa/GUIA_AUTOR.md` | Guía narrativa de 12 secciones: checklist previo, decisión de nivel, asignación de código, checklists por nivel, 8 anti-patterns con ejemplos, workflow del autor (10 pasos), Reglas Nivel 0, versionado, FAQ | ✅ Nuevo (2026-05-17) |
 
 ### Templates pre-VTT (legacy en `05.Templates/`)
 
@@ -646,7 +671,9 @@ docs/
 | Workflows VTT | 24 catalogados | 0 escritos | 0 | 24 pendientes (todos del ASG-001 v1.2) |
 | Skills | 31 | 31 | 0 | 3 nuevas a migrar |
 | Scripts | 7 visibles | 7 | 0 | Pendiente refactor |
-| Templates (VTT.) | 3 | 3 | 0 | — |
+| Templates (VTT.) operativos | 3 | 3 | 0 | — |
+| Templates de autoría (`_autoria/`) | 4 + README | 4 + README | 0 | — |
+| Guía de autor | 1 | 1 (GUIA_AUTOR.md) | 0 | — |
 | Templates legacy | 50+ | 47 | 3 (HANDOFF_FE/DL/QA) | Migración progresiva |
 | Metodologías | 6 | 6 | 0 | — |
 | Operativos plantilla | 13 | 13 | 0 | — |
@@ -709,6 +736,8 @@ docs/
 | 21 | Migrar 5 nuevas reglas (TL-001, WT-001/002/003) + actualizar AGENT-001 | — | ✅ Completado (2026-05-14) |
 | 22 | Deprecar GUIA_GIT_WORKTREES_TL_BACKEND.md (v2.0 legacy) | Próxima sesión | ⚪ Pendiente |
 | 23 | Deprecar PROCESO_ASIGNACION_TAREAS.md v1.6 (reemplazado por v3.1) | Próxima sesión | ⚪ Pendiente |
+| 24 | Crear 4 templates de autoría (_autoria/ + README) | — | ✅ Completado (2026-05-17) |
+| 25 | Crear GUIA_AUTOR.md (narrativa con 8 anti-patterns + FAQ) | — | ✅ Completado (2026-05-17) |
 
 ---
 
@@ -725,3 +754,4 @@ docs/
 | Versión | Fecha | Cambio |
 |---|---|---|
 | 1.0 | 2026-05-13 | Versión inicial — escaneo de los 3 repos (virtual-teams-setup + memory-service-project + memory-service-backend). 80+ documentos catalogados. |
+| 1.1 | 2026-05-17 | Registro de templates de autoría (`_autoria/`) + `GUIA_AUTOR.md`. Actualización de paths VTT.TEMPLATE-* a `03.templates/normativa/` (post-reorganización). |

@@ -142,6 +142,7 @@ Los operativos y scripts referencian:
 | Código | Título | Path canónico | Estado |
 |---|---|---|---|
 | `VTT.PROTOCOL-GOV-001` | Guía Normativa VTT (4 niveles) | `07.Normativa/00_GUIA_NORMATIVA_VTT.md` | ✅ Activo |
+| `VTT.PROTOCOL-GOV-002` | Gobierno editorial de `virtual-teams-setup` (Fase de Desarrollo) | `02.normativa/01.Protocols/VTT.PROTOCOL-GOV-002_gobierno_edicion_vtt_setup_fase_desarrollo.md` | ✅ Nuevo (2026-05-17) |
 | `VTT.PROTOCOL-ASG-001` | Ciclo de asignación y cierre de tarea | `07.Normativa/01.Protocols/VTT.PROTOCOL-ASG-001_ciclo_asignacion_tarea.md` | ✅ Activo (2026-05-13) |
 | `VTT.PROTOCOL-ISS-001` | Proceso de Issue y on_hold | `07.Normativa/01.Protocols/VTT.PROTOCOL-ISS-001_*.md` | ⚪ Pendiente |
 
@@ -323,7 +324,9 @@ $VTT_NORMATIVA/06.Skills/  (path actual — se moverá a 07.Normativa/03.Skills/
 
 | Código | Título | Path canónico | Estado |
 |---|---|---|---|
-| `VTT.SCRIPT-*` | Scripts ejecutables | `07.Normativa/04.Scripts/` | ⚪ Carpeta vacía — pendiente de generar al ejecutar Protocols |
+| `VTT.SCRIPT-GIT-001` | Validar branch y mensaje de commit contra config de gobernanza | `02.normativa/04.Scripts/git/VTT.SCRIPT-GIT-001_validate_branch_and_commit.py` | ✅ Nuevo (2026-05-17) |
+
+> Config asociada: `02.normativa/04.Scripts/git/vtt_governance.example.json` (template a copiar en `.git/hooks/vtt_governance.json` por cada clone — ver `VTT.PROTOCOL-GOV-002` §5.0).
 
 ### Scripts existentes (sin nomenclatura VTT aún)
 

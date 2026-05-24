@@ -1,5 +1,9 @@
 # SKL-QUERY-05: Estado de fase activa — qué tareas se pueden asignar
 
+> 🟤 **DEPRECADA (2026-05-19) — ver `VTT.SKILL-QUERY-005_estado_fase_asignable.md`** en `02.normativa/03.Skills/query/`.
+> Migración 1:1, contrato sin cambios.
+
+
 **Categoría:** VTT-QUERY  
 **Aplica a:** TL, SA Reviewer, PM  
 **Tokens estimados:** ~120  

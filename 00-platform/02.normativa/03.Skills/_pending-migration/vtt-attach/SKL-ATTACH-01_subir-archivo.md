@@ -1,5 +1,9 @@
 # SKL-ATTACH-01: Subir archivo como attachment
 
+> 🟤 **DEPRECADA (2026-05-19) — ver `VTT.SKILL-ATTACH-001_subir_archivo.md`** en `02.normativa/03.Skills/attach/`.
+> Migración 1:1, contrato sin cambios.
+
+
 **Categoría:** VTT-ATTACH  
 **Aplica a:** Todos  
 **Tokens estimados:** ~85  

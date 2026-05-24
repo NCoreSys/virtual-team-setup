@@ -10,7 +10,7 @@ Cheatsheet completo del `PROCESO_CIERRE_TAREA_v2.md` aterrizado a pasos concreto
 **Changelog v1.0 → v2.1:**
 - Paso 5b NUEVO: verificar que el agente trabajó en su worktree (no en clon base)
 - Paso 16 NUEVO: cleanup branch local en worktree del agente tras merge
-- Referencias a `GUIA_WORKTREES_MEMORY_SERVICE.md` (antes `GUIA_GIT_WORKTREES_TL_BACKEND.md`)
+- Referencias a `VTT.PROTOCOL-WT-001` (antes `GUIA_GIT_WORKTREES_TL_BACKEND.md`)
 
 ---
 
@@ -82,14 +82,14 @@ curl -s "$BASE/api/tasks/$TASK_ID/attachments" -H "Authorization: Bearer $TOKEN"
 
 ### Paso 5b — Verificar que el agente trabajó en su worktree (NUEVO v2.1)
 
-> Aplica desde la adopción de worktrees por rol (`GUIA_WORKTREES_MEMORY_SERVICE.md`).
+> Aplica desde la adopción de worktrees por rol (`VTT.PROTOCOL-WT-001`).
 
 ```bash
 # Obtener el rol del agente que entregó
 AGENT_ROLE=$(curl -s "$BASE/api/tasks/$TASK_ID" -H "Authorization: Bearer $TOKEN" | \
   python -c "import sys,json; d=json.load(sys.stdin)['data']; print(d.get('assignedTo',{}).get('role','?'))")
 
-# Mapear rol → worktree (ver tabla en GUIA_WORKTREES_MEMORY_SERVICE.md §Regla 1)
+# Mapear rol → worktree (ver tabla en VTT.PROTOCOL-WT-001 §Regla 1)
 # Ejemplo BE → .vtt/worktrees/backend-be/
 
 # 1. Verificar que el agente trabajó en su worktree (no en el clon base)

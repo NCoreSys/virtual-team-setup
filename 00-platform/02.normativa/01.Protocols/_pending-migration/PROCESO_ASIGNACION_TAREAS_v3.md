@@ -181,7 +181,7 @@ curl -s -X POST "$BASE/api/trackable-items/<TI_UUID>/tasks" \
 
 #### Paso 7b — Crear execution_manifest de la tarea (NUEVO v3.1)
 
-> Aplica desde adopción de worktrees por rol (`GUIA_WORKTREES_MEMORY_SERVICE.md`).
+> Aplica desde adopción de worktrees por rol (`VTT.PROTOCOL-WT-001`).
 > Declara qué agente, qué worktree, qué archivos puede tocar. El agente lo lee al arrancar.
 
 ```bash
@@ -485,4 +485,4 @@ PM hace aprobación terminal: `status → task_approved`.
 |---|---|---|
 | 2.0 | 2026-05-01 | Customización Memory Service. Modelo Dinámico V4: review-gate, devlog, CAs fulfill, TrackableItems |
 | 3.0 | 2026-05-13 | Ciclo completo 16 pasos: FASE 1 + FASE 2 + FASE 3 (cierre). Modelo dinámico al cerrar (Paso 12, SKL-DYNAMIC-MODEL-01). Mensaje automatizado con `scripts/gen_mensaje.py`. Manifest al FINAL (Paso 15, SKL-MANIFEST-01). 18 gotchas de VTT documentados. Lecciones MS-283/284/285. |
-| **3.1** | **2026-05-14** | **Paso 7b NUEVO: crear execution_manifest. Worktrees por rol (cierra PROC-COORD-01). Renumeración: Paso 8 (mensaje) era 8, ahora consolida 7→8. Referencias a `GUIA_WORKTREES_MEMORY_SERVICE.md`.** |
+| **3.1** | **2026-05-14** | **Paso 7b NUEVO: crear execution_manifest. Worktrees por rol (cierra PROC-COORD-01). Renumeración: Paso 8 (mensaje) era 8, ahora consolida 7→8. Referencias a `VTT.PROTOCOL-WT-001`.** |

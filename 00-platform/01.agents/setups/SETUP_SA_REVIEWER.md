@@ -54,7 +54,7 @@ test -d c:/Users/Martin/Documents/virtual-teams/memory-service/.vtt/worktrees/pr
 | 1 | `c:/Users/Martin/.claude/rules/rules_agents.instructions.md` | Reglas globales de agentes VTT |
 | 2 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/08.projects/memory-service/Proyect_data.md` | UUIDs del equipo, SERVICE_KEY, emails |
 | 3 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/01.operativos/OPERATIVO_SA_REVIEWER.md` | Tu OPERATIVO específico del proyecto |
-| 4 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/06.Documentos_soporte/GUIA_WORKTREES_MEMORY_SERVICE.md` | Cómo funcionan los worktrees |
+| 4 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/02.normativa/01.Protocols/VTT.PROTOCOL-WT-001_gobernanza_worktrees.md` | Cómo funcionan los worktrees |
 | 5 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/06.Documentos_soporte/PROCESO_CIERRE_TAREA_v2.md` | Proceso de cierre |
 
 ---
@@ -101,7 +101,7 @@ Los comandos exactos están en tu `OPERATIVO_SA_REVIEWER.md` (PASO 1, archivo 3)
 - ❌ Si necesitás tocar `.vtt/manifests/` o `.vtt/workspaces/` → ir a la raíz `memory-service/` y volver al worktree
 
 > **Origen de estas reglas:** incidente PROC-COORD-01 (MS-286) — 5 archivos perdidos por `git checkout` en clon base mientras otro agente tenía cambios sin commitear. Los worktrees lo hacen técnicamente imposible.
-> Ver `GUIA_WORKTREES_MEMORY_SERVICE.md`.
+> Ver `VTT.PROTOCOL-WT-001_gobernanza_worktreees.md`.
 
 ---
 

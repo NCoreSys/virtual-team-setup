@@ -1064,7 +1064,7 @@
         "auto_detect_query": "git rev-parse --show-toplevel matches base clone OR matches other role worktree"
       },
       "source_origin": {
-        "file": "00-platform/06.Documentos_soporte/GUIA_WORKTREES_MEMORY_SERVICE.md",
+        "file": "00-platform/02.normativa/01.Protocols/VTT.PROTOCOL-WT-001_gobernanza_worktrees.md",
         "section": "v2.1 — Worktree por rol",
         "rule_label_in_source": "PROC-COORD-01"
       },
@@ -1092,7 +1092,7 @@
         "auto_detect_query": "TL commits in base clone instead of .vtt/worktrees/project-tl"
       },
       "source_origin": {
-        "file": "00-platform/06.Documentos_soporte/GUIA_WORKTREES_MEMORY_SERVICE.md",
+        "file": "00-platform/02.normativa/01.Protocols/VTT.PROTOCOL-WT-001_gobernanza_worktrees.md",
         "section": "v2.1 — El TL también necesita ventana separada"
       },
       "tags": ["worktree", "tech_lead", "PROC-COORD-01"]
@@ -1116,7 +1116,7 @@
         "action": "warn"
       },
       "source_origin": {
-        "file": "00-platform/06.Documentos_soporte/GUIA_WORKTREES_MEMORY_SERVICE.md",
+        "file": "00-platform/02.normativa/01.Protocols/VTT.PROTOCOL-WT-001_gobernanza_worktrees.md",
         "section": "v2.1 — Aspecto Granularidad"
       },
       "tags": ["worktree", "policy"]
@@ -1219,12 +1219,84 @@
         "section": "Regla absoluta"
       },
       "tags": ["dependencies", "assignment", "lecciones"]
+    },
+    {
+      "id": "RULE-SCRIPT-001",
+      "title": "Scripts de normativa SOLO se invocan desde $VTT_SETUP — prohibido copiar al worktree",
+      "rule_text": "Todo script registrado en $VTT_SETUP/02.normativa/04.Scripts/ se invoca con su path canónico (ej. `python $VTT_SETUP/02.normativa/04.Scripts/manifest/VTT.SCRIPT-MAN-001_gen_task_manifest.py`). Prohibido copiar el script al worktree del proyecto y ejecutarlo desde ahí. Razón: cada copia local diverge de la versión central y genera drift silencioso. Lección de campo: 5 copias de gen_mensaje.py en memory-service generaron mensajes incompatibles entre MS-290 y MS-333 (endpoint devlog incorrecto, fulfill CAs incorrecto, sección execution_manifest faltante).",
+      "status": "active",
+      "version": "1.0",
+      "scope": {
+        "level": "PLATFORM"
+      },
+      "actor_types": ["HUMAN", "AGENT"],
+      "required_capabilities": [],
+      "markers": {
+        "mandatory": true,
+        "sensitive": false,
+        "human_only": false,
+        "sod_enforcement": false,
+        "blocks_review_gate": false,
+        "auto_detect": true,
+        "agent_default_forbidden": false
+      },
+      "violation": {
+        "severity": "high",
+        "action": "block",
+        "auto_detect_query": "command matches 'scripts/VTT.SCRIPT-.*\\.py' AND NOT command starts_with '$VTT_SETUP/02.normativa/04.Scripts/'"
+      },
+      "source_origin": {
+        "file": "memory-service incidente MS-290 vs MS-333",
+        "section": "Auditoría de 5 copias de gen_mensaje.py"
+      },
+      "examples": {
+        "compliant": "python $VTT_SETUP/02.normativa/04.Scripts/manifest/VTT.SCRIPT-MAN-001_gen_task_manifest.py --task-id MS-XXX",
+        "violation": "python scripts/manifest/VTT.SCRIPT-MAN-001_gen_task_manifest.py --task-id MS-XXX (copia local en worktree)"
+      },
+      "related_rules": ["RULE-TEMPLATE-001", "RULE-AGENT-001"],
+      "tags": ["normativa", "scripts", "single-source-of-truth", "lecciones"]
+    },
+    {
+      "id": "RULE-TEMPLATE-001",
+      "title": "Templates de normativa se leen desde $VTT_SETUP — prohibido hardcodear formato en scripts",
+      "rule_text": "Los templates de $VTT_SETUP/03.templates/ son la fuente única de verdad del formato. Los scripts que generan documentos (mensajes, briefs, assignments, manifests) deben LEER el template desde disco con `open()` o equivalente, NO tener el formato escrito como f-string en el código Python. Razón: si el template cambia y el script tiene el formato hardcodeado, el script genera outputs obsoletos. Esta regla garantiza que actualizar el template propaga automáticamente a todos los scripts.",
+      "status": "active",
+      "version": "1.0",
+      "scope": {
+        "level": "PLATFORM"
+      },
+      "actor_types": ["HUMAN", "AGENT"],
+      "required_capabilities": [],
+      "markers": {
+        "mandatory": true,
+        "sensitive": false,
+        "human_only": false,
+        "sod_enforcement": false,
+        "blocks_review_gate": false,
+        "auto_detect": true,
+        "agent_default_forbidden": false
+      },
+      "violation": {
+        "severity": "high",
+        "action": "block",
+        "auto_detect_query": "script contains f-string with markdown heading patterns (###|---|##) without reading from templates/ directory"
+      },
+      "source_origin": {
+        "file": "VTT.PROTOCOL-ASG-001 §5.2.13",
+        "section": "Pendiente normativo del legacy gen_mensaje.py"
+      },
+      "examples": {
+        "compliant": "template = open(f'{VTT_SETUP}/03.templates/tarea/TEMPLATE_MENSAJE_ASIGNACION.md').read(); return template.replace('{{TASK_ID}}', task_id)",
+        "violation": "return f'Hola {role},\\nTienes tarea: **{task_id}**\\n### Working directory\\n...' (formato hardcoded en Python)"
+      },
+      "related_rules": ["RULE-SCRIPT-001"],
+      "tags": ["normativa", "templates", "single-source-of-truth", "drift"]
     }
   ],
   "summary": {
-    "total_rules": 47,
+    "total_rules": 49,
     "by_level": {
-      "PLATFORM": 14,
+      "PLATFORM": 16,
       "ORGANIZATION": 0,
       "WORKSPACE": 0,
       "PROJECT": 0,
@@ -1234,7 +1306,7 @@
       "AGENT": 0
     },
     "by_status": {
-      "active": 47,
+      "active": 49,
       "deprecated": 0,
       "superseded": 0,
       "draft": 0
@@ -1242,7 +1314,7 @@
     "by_actor_type": {
       "HUMAN_only": 2,
       "AGENT_only": 4,
-      "HUMAN_and_AGENT": 41
+      "HUMAN_and_AGENT": 43
     },
     "by_source": {
       "doc_sec_02_abac_sod": 17,
@@ -1250,19 +1322,20 @@
       "VTT_operational": 7,
       "PROC_COORD_PROC_MANIFEST": 1,
       "GUIA_WORKTREES_v2.1": 5,
-      "PROCESO_CIERRE_v2.1": 2
+      "PROCESO_CIERRE_v2.1": 2,
+      "MS-290_vs_MS-333_lesson": 2
     },
     "by_severity": {
       "critical": 11,
-      "high": 21,
+      "high": 23,
       "medium": 11,
       "low": 4
     },
-    "mandatory": 47,
+    "mandatory": 49,
     "human_only": 2,
     "agent_default_forbidden": 7,
     "sod_enforcement": 5,
-    "auto_detect": 22
+    "auto_detect": 24
   },
   "pending_to_extract": [
     "REGLAS de TEMPLATE_ASIGNACION_TAREARev.md (workflow 15 pasos, fields obligatorios)",

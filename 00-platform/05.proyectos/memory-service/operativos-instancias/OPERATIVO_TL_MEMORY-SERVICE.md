@@ -3,7 +3,10 @@
 **Proyecto:** Memory Service (independiente de VTT)
 **Rol:** Tech Lead (TL)
 **Repo:** `c:\Users\Martin\Documents\virtual-teams\memory-service\`
-**Última actualización:** 2026-04-21
+**Última actualización:** 2026-05-22
+**Versión:** 2.0
+**Reglas Nivel 0 aplicables:** `RULE-SCRIPT-001`, `RULE-TEMPLATE-001`, `RULE-AGENT-001`
+**Skills referenciadas:** `VTT.SKILL-PRECHECK-001` (apertura sesión), `VTT.SKILL-MSG-001` (asignación), `VTT.SKILL-REPORT-001` v1.1 (review de reportes del agente)
 
 ---
 
@@ -113,6 +116,93 @@ Guarda el resultado como `$TOKEN` y reúsalo en todos los requests posteriores.
 
 ---
 
+## 4.bis APERTURA DE SESIÓN — pre-condiciones obligatorias
+
+Al iniciar cualquier sesión de trabajo (primera tarea del día o cuando el cwd no tiene `$VTT_SETUP` exportado):
+
+```bash
+# 1. Exportar $VTT_SETUP (Source of Truth de la normativa)
+export VTT_SETUP="c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform"
+
+# 2. Verificar que apunta a un repo válido
+test -d "$VTT_SETUP/02.normativa" || { echo "ABORT: \$VTT_SETUP inválido"; exit 2; }
+
+# 3. Posicionarte en tu worktree TL (RULE-AGENT-001)
+cd c:/Users/Martin/Documents/virtual-teams/memory-service/.vtt/worktrees/project-tl/
+```
+
+### Reglas Nivel 0 que aplican a TODO tu trabajo (TL)
+
+| Regla | Qué significa para vos como TL |
+|---|---|
+| `RULE-SCRIPT-001` | **Scripts de normativa SOLO desde `$VTT_SETUP`**. Cuando uses `VTT.SCRIPT-MSG-001` para generar mensajes o `VTT.SCRIPT-MAN-001` para revisar manifests, invocá con `python $VTT_SETUP/02.normativa/04.Scripts/...`. NUNCA uses copias locales del worktree — los scripts abortan con exit 2 si detectan ejecución desde copia. |
+| `RULE-TEMPLATE-001` | Templates como `TEMPLATE_MENSAJE_ASIGNACION.md` se leen formalmente desde `$VTT_SETUP/03.templates/...`. No hardcodear formato en scripts ad-hoc. |
+| `RULE-AGENT-001` | Tu worktree TL es `.vtt/worktrees/project-tl/`. NUNCA `cd` a worktrees de otros roles para "ayudarles" — el TL coordina, no ejecuta en lugar de los agentes. |
+
+### Paso 0 — Pre-check obligatorio antes de asignar/revisar tareas
+
+Antes de invocar `VTT.SKILL-MSG-001` (asignar) o ejecutar `VTT.SCRIPT-MAN-001` (revisar manifests), ejecutar los 5 checks de `VTT.SKILL-PRECHECK-001`:
+
+```bash
+# Check 1 — $VTT_SETUP existe
+test -d "$VTT_SETUP/02.normativa" || { echo "ABORT"; exit 2; }
+
+# Check 2 — Scripts canónicos están en $VTT_SETUP
+test -f "$VTT_SETUP/02.normativa/04.Scripts/manifest/VTT.SCRIPT-MAN-001_gen_task_manifest.py" \
+  || { echo "ABORT: SCRIPT-MAN-001 ausente — git pull en virtual-teams-setup"; exit 2; }
+test -f "$VTT_SETUP/02.normativa/04.Scripts/msg/VTT.SCRIPT-MSG-001_gen_mensaje.py" \
+  || { echo "ABORT: SCRIPT-MSG-001 ausente — git pull en virtual-teams-setup"; exit 2; }
+
+# Check 3 — NO hay copias locales prohibidas en tu worktree (RULE-SCRIPT-001)
+ROGUE=$(find . -maxdepth 4 -type f \( -name "VTT.SCRIPT-MAN-*.py" -o -name "VTT.SCRIPT-MSG-*.py" -o -name "VTT.SCRIPT-EXM-*.py" -o -name "gen_mensaje*.py" \) 2>/dev/null)
+test -z "$ROGUE" || { echo "ABORT (RULE-SCRIPT-001):\n$ROGUE"; exit 2; }
+
+# Check 4 — Estás en el worktree TL
+[[ "$(pwd)" == *"/.vtt/worktrees/project-tl"* ]] || { echo "ABORT: cwd no es worktree TL"; exit 2; }
+
+# Check 5 — $TOKEN válido (después de §4 AUTH)
+
+echo "✅ Pre-check OK — entorno TL listo"
+```
+
+Si CUALQUIER check falla → **DETENER**, escalar al PM en comment de la tarea afectada. NO intentes arreglar el entorno por tu cuenta — esa es la causa del drift que `VTT.SKILL-PRECHECK-001` busca evitar (caso MS-290 vs MS-333).
+
+### Comandos canónicos del TL (paths obligatorios)
+
+> **Recordatorio operativo:** estos son los **únicos** paths permitidos cuando invocás scripts. Cualquier otra ruta es violación de RULE-SCRIPT-001.
+
+```bash
+# Generar mensaje de asignación al agente (Paso 5.2.13 del PROTOCOL-ASG-001)
+python $VTT_SETUP/02.normativa/04.Scripts/msg/VTT.SCRIPT-MSG-001_gen_mensaje.py \
+  <TASK_ID> --post \
+  --project-root c:/Users/Martin/Documents/virtual-teams/memory-service \
+  --vtt-setup $VTT_SETUP
+
+# Generar execution_manifest (Paso 5.2.11)
+python $VTT_SETUP/02.normativa/04.Scripts/manifest/VTT.SCRIPT-EXM-001_gen_execution_manifest.py \
+  --task-id <TASK_ID> ...
+
+# Generar/revisar task manifest v1.0 (revisión del entregable del agente)
+python $VTT_SETUP/02.normativa/04.Scripts/manifest/VTT.SCRIPT-MAN-001_gen_task_manifest.py \
+  --task-id <TASK_ID> --version 1.0 ...
+
+# Consultar reglas aplicables a una tarea (Paso 5.2.12)
+python $VTT_SETUP/02.normativa/00.Rules/query_rules.py --simulate-task <TASK_ID>
+```
+
+### Política de review del entregable del agente
+
+Cuando el agente cierra su tarea con `task_in_review`, vos como TL revisás:
+
+1. **Reporte del agente** — debe estar en `knowledge/task-manifests/<phase>/<sprint>/<TASK_ID>_REPORT.md` (política I2 v2.1 del template). NO en `knowledge/agent-tasks/reports/` (path deprecado).
+2. **Render del reporte** — el agente debió mostrarte el reporte renderizado en pantalla (política I3 v2.1), NO con `cat`. Si solo te mostró `cat`, devolvele la tarea con feedback.
+3. **Manifest v1.0 commiteado al PR** — debe estar en el mismo PR como 3 archivos: `<TASK_ID>.json`, `<TASK_ID>.manifest.md`, `<TASK_ID>_REPORT.md`.
+4. **Devlog entries** — todos en estado terminal (`resolved` / `wont_fix` / `deferred`) antes del PASS.
+
+Detalle completo del review en `VTT.PROTOCOL-DEV-001 §FASE 3` (procesamiento de devlog en code review).
+
+---
+
 ## 5. COMANDOS DE ARRANQUE (ejecutar al iniciar sesión)
 
 ### 5.1 Listar mis tareas asignadas
@@ -209,9 +299,9 @@ curl -s -X POST "$API_URL/api/phases/{PHASE_UUID}/tasks" \
 
 ## 8. PROCESO DE CODE REVIEW (resumen)
 
-> **Importante:** el code review formal lo ejecuta el **TL Reviewer** (`OPERATIVO_TL_REVIEWER.md v3.2`) siguiendo `PROCESO_CIERRE_TAREA_v2.md` (16 pasos). Si tú estás haciendo el review, sigue ese proceso.
+> **Importante:** el code review formal lo ejecuta el **TL Reviewer** (`OPERATIVO_TL_REVIEWER.md` v5.1) siguiendo **`VTT.PROTOCOL-ASG-001` §5.5** (cierre de tarea con modelo dinámico) + **`VTT.PROTOCOL-DEV-001` §FASE 3** (procesamiento de devlog en review). Si tú estás haciendo el review, sigue esos protocols (path canónico desde `$VTT_SETUP/02.normativa/01.Protocols/`).
 >
-> Resumen del flujo (FASE C de PROCESO_ASIGNACION_TAREAS_v3):
+> Resumen del flujo (PROTOCOL-ASG-001 §5.5 FASE 4 — Cierre con Modelo Dinámico):
 
 Cuando una tarea entra en `task_in_review`:
 
@@ -302,13 +392,16 @@ curl -s -X PATCH "http://77.42.88.106:3000/api/tasks/MS-XXX/criteria/{criteriaId
 
 ### Endpoints validados (Modelo Dinámico V4 + descubrimientos 2026-05-13)
 
-| Endpoint | Uso | Notas |
-|---|---|---|
-| `POST /api/tasks/:taskId/devlog-entries` | Registrar entry | Plural en POST |
-| `GET /api/tasks/:taskId/devlog` | Listar entries | Singular en GET |
-| `PATCH /api/tasks/:taskId/devlog/:eid/status` | Resolver entry | `resolution` REQUERIDO si status=resolved/wont_fix |
-| `GET /api/tasks/:taskId/review-gate` | Verificar gate | canProceedToReview boolean |
-| `PATCH /api/tasks/:taskId/criteria/:cid` | Cumplir CA | NO `/fulfill` |
+| Endpoint | Uso | Notas | Skill canónica |
+|---|---|---|---|
+| `POST /api/tasks/:taskId/devlog` | Registrar 1 entry | Singular en POST (payload directo) | `VTT.SKILL-DEV-001` (decision) / `VTT.SKILL-DEV-002` (observation) |
+| `POST /api/tasks/:taskId/devlog-entries` | Registrar varias en batch | **Requiere wrapper `{"entries":[...]}`** — sin wrapper HTTP 400 (caso MS-333) | `VTT.SKILL-DEV-001`/`002` (opción B batch) |
+| `GET /api/tasks/:taskId/devlog` | Listar entries | Singular en GET | — |
+| `PATCH /api/tasks/:taskId/devlog/:eid/status` | Lifecycle del entry | `resolution` REQUERIDO si status=resolved/wont_fix; `deferredToPhaseId` si status=deferred | `VTT.SKILL-DEV-004` (lifecycle) |
+| `PATCH /api/tasks/:taskId/devlog/:eid` | Editar contenido | Edita title/description/severity sin tocar lifecycle | `VTT.SKILL-DEV-003` (edit) |
+| `DELETE /api/tasks/:taskId/devlog/:eid` | Eliminar entry | Destructivo — comment de trazabilidad ANTES (backend no loggea) | `VTT.SKILL-DEV-005` (delete) |
+| `GET /api/tasks/:taskId/review-gate` | Verificar gate | canProceedToReview boolean | — |
+| `PATCH /api/tasks/:taskId/criteria/:cid` | Cumplir CA | NO `/fulfill` (404) | `VTT.SKILL-CRITERIA-001` |
 | `GET /api/tasks/:taskId/criteria` | Listar CAs | criteriaTypeCode (no `type`) |
 | `POST /api/projects/:projectId/trackable-items` | Crear TI scoped | Software acepta solo `tech_debt` para improvements |
 | `POST /api/trackable-items/:tiId/tasks` | Vincular TI a tarea | linkType: implements/related_to |
@@ -328,4 +421,13 @@ Ver `knowledge/platform-feedback/VTT_PLATFORM_GAPS_2026-05-13.md`:
 | `DELETE /trackable-item-evidences/:id` NO existe | Cuidar formato al crear; no se pueden corregir |
 | Campo `taskId` en evidence NO existe | Marker `[TASK:MS-XXX] [SPRINT:SX]` en description |
 | `GET /tasks/:id/trackable-items` NO existe | Iterar TIs del proyecto |
+
+---
+
+## Changelog
+
+| Versión | Fecha | Cambios |
+|---|---|---|
+| 2.0 | 2026-05-22 | **OLA 1 cierre sub-sistema MSG.** (1) Header bumped con reglas Nivel 0 aplicables + skills referenciadas (PRECHECK-001, MSG-001, REPORT-001 v1.1). (2) Nueva §4.bis APERTURA DE SESIÓN con `export VTT_SETUP`, las 3 reglas Nivel 0 (RULE-SCRIPT-001/RULE-TEMPLATE-001/RULE-AGENT-001) y Paso 0 Pre-check con 5 checks bash inline + ref a SKILL-PRECHECK-001. (3) Nueva subsección "Comandos canónicos del TL" — los **únicos** paths permitidos para invocar scripts (MSG-001, EXM-001, MAN-001, query_rules.py) desde `$VTT_SETUP`. (4) Nueva subsección "Política de review del entregable del agente" con las 4 verificaciones del cierre del agente (reporte en path nuevo, render obligatorio, manifest commiteado al PR, devlog terminal). (5) Tabla de endpoints expandida con las 5 skills DEV (DEV-001..005) y la columna "Skill canónica". (6) Wrapper `/devlog-entries` documentado explícitamente para evitar drift MS-333. |
+| 1.0 | 2026-04-21 | Versión inicial del operativo TL Memory Service. |
 

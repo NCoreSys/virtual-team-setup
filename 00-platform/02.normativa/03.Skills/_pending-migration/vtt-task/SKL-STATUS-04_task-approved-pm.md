@@ -1,5 +1,9 @@
 # SKL-STATUS-04: Mover tarea a `task_approved` (solo PM)
 
+> 🟤 **DEPRECADA (2026-05-19) — ver `VTT.SKILL-STATUS-004_task_approved.md`** en `02.normativa/03.Skills/status/`.
+> Migración 1:1, contrato sin cambios.
+
+
 **Categoría:** VTT-STATUS  
 **Aplica a:** PM únicamente  
 **Tokens estimados:** ~75  

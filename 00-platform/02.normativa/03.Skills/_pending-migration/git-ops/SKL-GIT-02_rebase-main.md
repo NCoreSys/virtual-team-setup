@@ -1,5 +1,9 @@
 # SKL-GIT-02: Rebase con main antes de PR
 
+> 🟤 **DEPRECADA (2026-05-19) — ver `VTT.SKILL-GIT-004_rebase_main.md`** en `02.normativa/03.Skills/git/`.
+> Migración 1:1, **renumeración a GIT-003..006** (GIT-001/002 ya estaban tomados por PROTOCOL-GOV-002). Contrato sin cambios.
+
+
 **Categoría:** GIT-OPS  
 **Aplica a:** Todos  
 **Tokens estimados:** ~65  

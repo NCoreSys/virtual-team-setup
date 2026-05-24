@@ -1,4 +1,4 @@
-# Proceso de Asignacion de Tareas - Tech Lead
+.# Proceso de Asignacion de Tareas - Tech Lead
 
 **Fecha:** 2026-03-19
 **Version:** 1.4

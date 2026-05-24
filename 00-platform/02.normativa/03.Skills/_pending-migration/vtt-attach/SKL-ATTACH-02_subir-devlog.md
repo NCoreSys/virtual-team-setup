@@ -1,5 +1,9 @@
 # SKL-ATTACH-02: Subir devlog de tarea
 
+> 🟤 **DEPRECADA (2026-05-19) — ver `VTT.SKILL-ATTACH-002_subir_devlog.md`** en `02.normativa/03.Skills/attach/`.
+> Migración 1:1, contrato sin cambios.
+
+
 **Categoría:** VTT-ATTACH  
 **Aplica a:** BE, DB, FE, QA, DO, DL, UX, AR, SA  
 **Tokens estimados:** ~90  

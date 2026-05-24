@@ -1,5 +1,9 @@
 # SKL-STATUS-05: Poner tarea en `task_on_hold`
 
+> 🟤 **DEPRECADA (2026-05-19) — ver `VTT.SKILL-STATUS-005_task_on_hold.md`** en `02.normativa/03.Skills/status/`.
+> Migración 1:1, contrato sin cambios.
+
+
 **Categoría:** VTT-STATUS  
 **Aplica a:** BE, DB, FE, QA, DO, DL, UX, TL, AR, SA  
 **Tokens estimados:** ~95  

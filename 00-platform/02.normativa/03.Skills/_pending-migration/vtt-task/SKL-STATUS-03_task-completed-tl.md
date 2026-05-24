@@ -1,5 +1,9 @@
 # SKL-STATUS-03: Mover tarea a `task_completed` (solo TL)
 
+> 🟤 **DEPRECADA (2026-05-19) — ver `VTT.SKILL-STATUS-003_task_completed.md`** en `02.normativa/03.Skills/status/`.
+> Migración 1:1, contrato sin cambios.
+
+
 **Categoría:** VTT-STATUS  
 **Aplica a:** TL únicamente  
 **Tokens estimados:** ~75  

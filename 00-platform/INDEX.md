@@ -373,7 +373,7 @@ Pendiente: diagramas mermaid de los Protocols.
 
 | Archivo | Versión | Función |
 |---|---|---|
-| `GUIA_WORKTREES_MEMORY_SERVICE.md` | v2.1 | Worktrees por rol (modelo actual) — TODOS los roles |
+| `VTT.PROTOCOL-WT-001` | v1.0.1 | Worktrees por rol (modelo actual) — TODOS los roles. Vive en `02.normativa/01.Protocols/` |
 | `GUIA_GIT_WORKTREES_TL_BACKEND.md` | v2.0 (LEGACY) | Worktrees por tarea — reemplazado por v2.1 |
 | `GUIA_ASIGNACION_TAREA_TL_EJECUTOR.md` | v2.1 | Cheatsheet del TL al asignar — Paso 8.5 (execution_manifest) |
 | `GUIA_REVISION_TAREA_TL_REVIEWER.md` | v2.1 | Cheatsheet del TL al cerrar — Paso 5b + Paso 16 |
@@ -465,7 +465,7 @@ Vacía. Si Memory Service necesita templates propios (ej. variantes de BRIEF con
 | Estimación técnica de tareas | `02.normativa/01.Protocols/_pending-migration/SOP-EST-01_*.md` |
 | Velocity del equipo | `02.normativa/01.Protocols/_pending-migration/SOP-VEL-01_*.md` |
 | Retrospectiva de fase/sprint | `02.normativa/01.Protocols/_pending-migration/SOP-RET-01_*.md` |
-| Worktrees por rol (operación día a día) | `04.docs-soporte/guias-operativas/GUIA_WORKTREES_MEMORY_SERVICE.md` |
+| Worktrees por rol (operación día a día) | `02.normativa/01.Protocols/VTT.PROTOCOL-WT-001_gobernanza_worktrees.md` |
 | Generar HO PJM → TL | `03.templates/handoff/TEMPLATE_HANDOFF_TL_V2.1.md` |
 | Generar BRIEF de tarea | `03.templates/tarea/TEMPLATE_BRIEF_LARGE.md` |
 | Generar ASSIGNMENT de tarea | `03.templates/tarea/TEMPLATE_ASIGNACION_TAREARev.md` |

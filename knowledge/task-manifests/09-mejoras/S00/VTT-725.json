@@ -1,0 +1,170 @@
+{
+  "schema_version": "1.2",
+  "manifest_id": "VTT-725",
+  "generated_at": "2026-05-22T23:46:23.691825+00:00",
+  "generated_by": "8834830b-578f-46be-933b-0abcbbc5da99",
+  "generation_note": "v1.0 generado por agente al cerrar workflow. TL Reviewer agregara review.tl_review en v1.5.",
+  "last_updated": "2026-05-22T23:46:23.691825+00:00",
+  "last_updated_block": "delivery",
+  "task": {
+    "id": "VTT-725",
+    "title": "[Refactor] gen_mensaje.py -> VTT.SCRIPT-MSG-001 con lectura formal del template + modo validate",
+    "sprint": {
+      "id": null,
+      "name": null
+    },
+    "stage": null,
+    "assignee": {
+      "id": "8834830b-578f-46be-933b-0abcbbc5da99",
+      "role": "backend_dev",
+      "email": "backend.dev@vtt.ai"
+    },
+    "estimated_hours": 6,
+    "actual_hours": 0,
+    "complexity": null,
+    "category": null,
+    "sdlc_catalog_id": null,
+    "current_status": "task_in_review",
+    "dependencies_upstream": []
+  },
+  "brief": {
+    "vtt_attachment_id": null,
+    "file_path": null
+  },
+  "assignment": {
+    "vtt_attachment_id": null,
+    "file_path": null,
+    "criteria_count": 0
+  },
+  "agent_message": {
+    "template_version": "3.0",
+    "agent_role": "backend_dev",
+    "agent_uuid": "8834830b-578f-46be-933b-0abcbbc5da99",
+    "generated_by_script": "scripts/gen_mensaje.py"
+  },
+  "delivery": {
+    "delivered_at": "2026-05-22T23:46:23.691825+00:00",
+    "delivered_by": "8834830b-578f-46be-933b-0abcbbc5da99",
+    "vtt_report_comment_id": "4676f9ef-0b96-43b1-8126-2d11484bce14",
+    "report_file_path": "knowledge/task-manifests/09-mejoras/S00/VTT-725_REPORT.md",
+    "what_was_done": "Migración completa del script legacy `gen_mensaje.py` (5 copias dispersas en memory-service worktrees) al script canónico `VTT.SCRIPT-MSG-001_gen_mensaje.py` ubicado en el path normativo de la plataforma VTT (`$VTT_SETUP/02.normativa/04.Scripts/msg/`).\n\nEl refactor cumple dos reglas operativas nuevas: **RULE-SCRIPT-001** (path canónico único) y **RULE-TEMPLATE-001** (lectura formal del template, no hardcode en f-strings).\n\nEl script implementa 3 modos (`--output`, `--post`, `--validate`) con un sistema de validación de 3 bloques (A=secciones obligatorias, B=coherencia cruzada con VTT, C=higiene) que detecta exactamente el drift entre los mensajes correctos (formato MS-290) y los rotos (formato MS-333 con bug del wrapper `/devlog-entries`).\n\nSe creó la skill `VTT.SKILL-MSG-001` en `03.Skills/msg/` (categoría MSG formalizada) y se marcó `VTT.SKILL-TASK-004` como DEPRECATED con redirect explícito a MSG-001.",
+    "deliverables_actual": [
+      {
+        "path": "00-platform/02.normativa/04.Scripts/msg/VTT.SCRIPT-MSG-001_gen_mensaje.py",
+        "state": "created",
+        "what": "Script canónico nuevo (615 líneas, stdlib pura, 3 modos, 3 bloques de validación)"
+      },
+      {
+        "path": "00-platform/02.normativa/03.Skills/msg/VTT.SKILL-MSG-001_gen_mensaje.md",
+        "state": "created",
+        "what": "Skill nueva del sub-sistema MSG (creado)"
+      },
+      {
+        "path": "00-platform/02.normativa/03.Skills/task/VTT.SKILL-TASK-004_mensaje_agente.md",
+        "state": "modified",
+        "what": "Modificado: marcado DEPRECATED con redirect a MSG-001 + changelog actualizado"
+      }
+    ],
+    "development_log_path": "`knowledge/development-log/2026-05-22_VTT-725_refactor-gen-mensaje.md` (pendiente de generar — el grueso del contexto está en el devlog decision posteado en VTT-725)",
+    "code_logic_files": [
+      "`knowledge/code-logic/02.normativa/04.Scripts/msg/VTT.SCRIPT-MSG-001_gen_mensaje.LOGIC.md` — Documenta funciones principales, decisiones de diseño D1-D7, dependencias, pruebas ejecutadas, diff vs legacy"
+    ],
+    "code_logic_attachment_strategy": {
+      "placeholder_uploaded": false,
+      "placeholder_attachment_id": null,
+      "reason": "Real code logic if files exist"
+    },
+    "vtt_attachments": {
+      "brief_id": null,
+      "assignment_id": null,
+      "devlog_id": "988ea40e-cbe7-4d62-8b65-da8269823460",
+      "code_logic_ids": [
+        "96423c40-f03d-4d16-8987-fafbbcce808a"
+      ]
+    },
+    "criteria_results": [],
+    "criteria_summary": {
+      "total": 0,
+      "met": 0,
+      "not_met": 0,
+      "pending": 0
+    },
+    "devlog_entries": [
+      {
+        "category": "decision",
+        "severity": "low",
+        "title": "Refactor gen_mensaje.py: path legacy -> canonico (VTT.SCRIPT-MSG-001)",
+        "status": "pending"
+      }
+    ],
+    "devlog_summary": {
+      "total": 1,
+      "by_category": {
+        "decision": 1
+      },
+      "all_resolved_by_tl": false
+    },
+    "findings": "**F-01 (low)** — `ROLE_BY_EMAIL` y `PHASE_MAP` viven hardcoded en el script. Para escalabilidad multi-proyecto convendría migrarlos a un catálogo en `$VTT_SETUP/02.normativa/05.Catalogs/` cuando esa carpeta exista. Documentado en code_logic §9 (Migración futura sugerida).\n\n**F-02 (low)** — Modo `--dry-run` (combinaría `--output` + `--validate` en un solo paso) podría agregarse en una iteración futura. Hoy se cubre con dos invocaciones consecutivas.",
+    "adrs_taken": "**ADR-1** — stdlib pura (urllib en vez de `requests`): el script debe correr en cualquier worktree sin `pip install`, mismo patrón que `VTT.SCRIPT-MAN-001`/`SCRIPT-EXM-001`. Sin dependencias externas.\n\n**ADR-2** — `strip_variant` antes de `resolve_placeholders`: si se resuelven los placeholders primero, los markers HTML quedan adentro de bloques expandidos y el regex puede no encontrarlos. Strip first, resolve second.\n\n**ADR-3** — `--post` ejecuta `--validate` interno antes de postear (R4 de la skill): previene postear mensajes con el bug del wrapper `/devlog-entries`. Si validate falla → exit 4 sin postear.\n\n**ADR-4** — Skip Bloque B sin token: permite ejecutar `--validate` offline sobre archivos locales. El skip se reporta como `severity: info` (no error).",
+    "derived_tasks": "N/A (el cleanup de las 5 copias legacy lo ejecuta el TL siguiendo `CLEANUP_COPIAS_LOCALES_SCRIPTS_OLA1.md`)",
+    "notes": "- VTT-725 no tiene `sprint` asignado al momento del cierre — phase `09-mejoras`, sprint placeholder `S00`.\n- VTT-725 no tiene CAs creados en VTT (el PM las puede crear como parte del review). Este reporte documenta los 12 CAs del brief original con su evidencia.\n- El cleanup de las 5 copias legacy (CA-07) NO está hecho por mí — el PM aclaró que es paso operativo del TL con guía dedicada. Lo dejé como `not_met` por transparencia, no por falla.",
+    "hardcode_check": {
+      "executed": true,
+      "findings_total": 0,
+      "findings_critical_high": 0,
+      "false_positives_justified": 0
+    },
+    "tests": {
+      "framework": "N/A",
+      "tests_passing": 0,
+      "coverage_stmts": null,
+      "threshold_met": null
+    },
+    "trackable_items_actual": {
+      "implements": [],
+      "related_to": []
+    },
+    "living_documents_declared_no_change": [],
+    "tech_debt_for_r2": [],
+    "items_detected_for_tl_review": [],
+    "how_to_verify": [],
+    "review_gate": {
+      "canProceedToReview": true,
+      "entries_total": 1,
+      "resolved": 0,
+      "warnings": 0
+    },
+    "git": {
+      "branch": "feature/VTT-725",
+      "base_branch": "main",
+      "pr_number": null,
+      "pr_url": null,
+      "commit_sha": null,
+      "commit_message": null,
+      "note": "PR pendiente — el agente BE no tiene push rights a virtual-teams-setup main. El TL crea el PR en FASE 4.5 del PROTOCOL-ASG-001 con los archivos commiteados de VTT-725."
+    },
+    "metrics": {
+      "actual_hours": 0,
+      "deliverables_count": 3,
+      "tests_passing": 0
+    }
+  },
+  "review": {
+    "tl_review": null,
+    "pm_approval": null
+  },
+  "indexes": {
+    "implements_codes": [],
+    "related_to_codes": [],
+    "deliverables_paths": [
+      "00-platform/02.normativa/04.Scripts/msg/VTT.SCRIPT-MSG-001_gen_mensaje.py",
+      "00-platform/02.normativa/03.Skills/msg/VTT.SKILL-MSG-001_gen_mensaje.md",
+      "00-platform/02.normativa/03.Skills/task/VTT.SKILL-TASK-004_mensaje_agente.md"
+    ],
+    "tech_debt_count": 0,
+    "criteria_met_ratio": "0/0",
+    "devlog_entries_count": 1,
+    "devlog_resolved_count": 0,
+    "files_created_count": 2
+  }
+}

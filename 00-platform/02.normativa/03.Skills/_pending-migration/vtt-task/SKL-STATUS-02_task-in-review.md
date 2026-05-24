@@ -1,5 +1,9 @@
 # SKL-STATUS-02: Mover tarea a `task_in_review`
 
+> 🟤 **DEPRECADA (2026-05-19) — ver `VTT.SKILL-STATUS-002_task_in_review.md`** en `02.normativa/03.Skills/status/`.
+> Migración 1:1, contrato sin cambios.
+
+
 **Categoría:** VTT-STATUS  
 **Aplica a:** BE, DB, FE, QA, DO, DL, UX, TL, AR, SA  
 **Tokens estimados:** ~70  

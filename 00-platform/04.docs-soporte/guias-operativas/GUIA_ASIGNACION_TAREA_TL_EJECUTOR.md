@@ -9,7 +9,7 @@ Cheatsheet completo del `PROCESO_ASIGNACION_TAREAS_v3.md` (FASE 1 + FASE 2) ater
 
 **Changelog v1.0 → v2.1:**
 - Paso 8.5 NUEVO: crear execution_manifest desde template antes de generar mensaje
-- Referencias a `GUIA_WORKTREES_MEMORY_SERVICE.md`
+- Referencias a `VTT.PROTOCOL-WT-001`
 
 ---
 
@@ -257,7 +257,7 @@ curl -s -X POST "$BASE/api/trackable-items/$TI_ID/tasks" \
 
 ### Paso 8.5 — Crear execution_manifest de la tarea (NUEVO v2.1)
 
-> Aplica desde adopción de worktrees por rol (`GUIA_WORKTREES_MEMORY_SERVICE.md`).
+> Aplica desde adopción de worktrees por rol (`VTT.PROTOCOL-WT-001`).
 > El manifest declara qué agente trabaja, en qué worktree, con qué archivos permitidos.
 > El agente lee este manifest al arrancar la tarea.
 

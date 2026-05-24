@@ -1,5 +1,9 @@
 # SKL-COMMENT-01: Agregar comentario en tarea
 
+> 🟤 **DEPRECADA (2026-05-19) — ver `VTT.SKILL-COMMENT-001_comentario_generico.md`** en `02.normativa/03.Skills/comment/`.
+> Migración 1:1, contrato sin cambios.
+
+
 **Categoría:** VTT-COMMENT  
 **Aplica a:** Todos  
 **Tokens estimados:** ~75  

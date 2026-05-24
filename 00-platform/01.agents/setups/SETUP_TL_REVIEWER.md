@@ -54,7 +54,7 @@ test -d c:/Users/Martin/Documents/virtual-teams/memory-service/.vtt/worktrees/pr
 | 1 | `c:/Users/Martin/.claude/rules/rules_agents.instructions.md` | Reglas globales de agentes VTT |
 | 2 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/08.projects/memory-service/Proyect_data.md` | UUIDs del equipo, SERVICE_KEY, emails |
 | 3 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/01.operativos/OPERATIVO_TL_REVIEWER.md` | Tu OPERATIVO específico del proyecto |
-| 4 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/06.Documentos_soporte/GUIA_WORKTREES_MEMORY_SERVICE.md` | Cómo funcionan los worktrees |
+| 4 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/02.normativa/01.Protocols/VTT.PROTOCOL-WT-001_gobernanza_worktrees.md` | Cómo funcionan los worktrees |
 | 5 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/06.Documentos_soporte/PROCESO_ASIGNACION_TAREAS_v3.md` | Proceso de asignación de tareas |
 | 6 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/06.Documentos_soporte/PROCESO_CIERRE_TAREA_v2.md` | Proceso de cierre de tarea (review) |
 
@@ -106,7 +106,7 @@ Tu UUID, email y los del equipo están en `Proyect_data.md` (PASO 1, archivo 2).
 - ❌ Usar `PATCH /status` para on_hold — usar `PUT /on-hold`
 
 > **Origen de estas reglas:** incidente PROC-COORD-01 (MS-286) — 5 archivos perdidos por `git checkout` en clon base mientras otro agente tenía cambios sin commitear. Los worktrees lo hacen técnicamente imposible.
-> Ver `GUIA_WORKTREES_MEMORY_SERVICE.md`.
+> Ver `VTT.PROTOCOL-WT-001_gobernanza_worktreees.md`.
 
 ---
 

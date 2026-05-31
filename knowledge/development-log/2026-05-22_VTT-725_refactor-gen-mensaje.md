@@ -272,6 +272,7 @@ python $VTT_SETUP/02.normativa/04.Scripts/msg/VTT.SCRIPT-MSG-001_gen_mensaje.py 
 
 ---
 
+<<<<<<< HEAD
 ## 10. PR creado + bypass del hook autorizado por PM
 
 ### Bypass del hook commit-msg — autorización temporal del PM
@@ -307,6 +308,19 @@ mv .git/hooks/commit-msg.disabled .git/hooks/commit-msg
 6. Push + `gh pr create`
 7. Re-activar hook al final
 8. Volver al branch del PM + restaurar stash
+=======
+## 10. PR pendiente
+
+**Nota importante**: el agente BE NO tiene push rights al branch `agent/pm/vtt-setup/skills-gobierno-edicion-fase-desarrollo` actual de `virtual-teams-setup` (es trabajo en curso del PM).
+
+Para crear el PR de VTT-725 se requiere:
+1. Crear branch limpio desde `main`: `feature/VTT-725`
+2. Copiar **solo** los 8 archivos listados en §2 (no incluir los archivos del PM)
+3. `git push origin feature/VTT-725`
+4. `gh pr create --base main --title "[VTT-725] Refactor gen_mensaje.py → VTT.SCRIPT-MSG-001"`
+
+**Esto requiere autorización explícita del PM** para asegurar que no se mezcla con su trabajo en curso.
+>>>>>>> agent/pm/vtt-setup/skills-gobierno-edicion-fase-desarrollo
 
 ---
 

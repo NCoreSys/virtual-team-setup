@@ -1,5 +1,9 @@
 # SKL-QUERY-04: Obtener avance por fases del proyecto
 
+> 🟤 **DEPRECADA (2026-05-19) — ver `VTT.SKILL-QUERY-004_avance_fases.md`** en `02.normativa/03.Skills/query/`.
+> Migración 1:1, contrato sin cambios.
+
+
 **Categoría:** VTT-QUERY  
 **Aplica a:** PJM, TL, PM  
 **Tokens estimados:** ~60  

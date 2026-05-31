@@ -16,6 +16,60 @@
 | Repos (read) | `memory-service-api`, `memory-service-project` |
 | Equipo | FE (con DL y UX) |
 
+## Apertura de Sesión — pre-condiciones obligatorias
+
+Al iniciar cualquier sesión de trabajo (primera tarea del día o si el cwd no tiene `$VTT_SETUP` exportado), ejecutar:
+
+```bash
+# 1. Exportar $VTT_SETUP (Source of Truth de la normativa)
+export VTT_SETUP="c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform"
+
+# 2. Verificar que apunta a un repo válido
+test -d "$VTT_SETUP/02.normativa" || { echo "ABORT: \$VTT_SETUP inválido"; exit 2; }
+
+# 3. Posicionarte en el worktree del rol FE
+cd c:/Users/Martin/Documents/virtual-teams/memory-service/.vtt/worktrees/frontend-fe/
+```
+
+### Reglas Nivel 0 que aplican a TODO tu trabajo
+
+| Regla | Qué significa para vos |
+|---|---|
+| `RULE-SCRIPT-001` | **Scripts de normativa SOLO desde `$VTT_SETUP`**. NUNCA copies un script al worktree. Si necesitás `VTT.SCRIPT-MAN-001`, invocalo con `python $VTT_SETUP/02.normativa/04.Scripts/manifest/VTT.SCRIPT-MAN-001_gen_task_manifest.py ...`. Si lo ejecutás desde una copia local, el script aborta con exit 2. |
+| `RULE-TEMPLATE-001` | Templates de normativa se leen desde `$VTT_SETUP/03.templates/...`, no se hardcodean. Solo aplica si escribís scripts que generen documentos. |
+| `RULE-AGENT-001` | Worktree dedicado. Trabajás SIEMPRE en `frontend-fe/`. NUNCA `cd` a otro worktree. |
+
+### Paso 0 — Pre-check obligatorio antes de tocar código
+
+Antes de iniciar **cualquier** tarea, ejecutar los 5 checks de `VTT.SKILL-PRECHECK-001`:
+
+```bash
+# Check 1 — $VTT_SETUP existe
+test -d "$VTT_SETUP/02.normativa" || { echo "ABORT"; exit 2; }
+
+# Check 2 — Script de manifest está en $VTT_SETUP
+test -f "$VTT_SETUP/02.normativa/04.Scripts/manifest/VTT.SCRIPT-MAN-001_gen_task_manifest.py" \
+  || { echo "ABORT: SCRIPT-MAN-001 ausente — git pull en virtual-teams-setup"; exit 2; }
+
+# Check 3 — NO hay copias locales prohibidas en tu worktree
+ROGUE=$(find . -maxdepth 4 -type f \( -name "VTT.SCRIPT-MAN-*.py" -o -name "VTT.SCRIPT-MSG-*.py" -o -name "VTT.SCRIPT-EXM-*.py" \) 2>/dev/null)
+test -z "$ROGUE" || { echo "ABORT (RULE-SCRIPT-001):\n$ROGUE"; exit 2; }
+
+# Check 4 — Estás en el worktree FE
+[[ "$(pwd)" == *"/.vtt/worktrees/frontend-fe"* ]] || { echo "ABORT: cwd no es worktree FE"; exit 2; }
+
+# Check 5 — $TOKEN válido (después de obtener JWT con la sección Auth)
+# curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $TOKEN" "$VTT_BASE_URL/api/auth/me"  → debe retornar 200
+
+echo "✅ Pre-check OK — entorno listo"
+```
+
+Si CUALQUIER check falla → **DETENER la tarea**, postear comment al TL en VTT con el error, y dejar la tarea en `task_on_hold`. NO intentes arreglarlo solo.
+
+Ver detalle completo: `$VTT_SETUP/02.normativa/03.Skills/precheck/VTT.SKILL-PRECHECK-001_validar_entorno_inicio_tarea.md`
+
+---
+
 ## Tu Rol
 
 Implementar la UI del Memory Service en React 18 + Vite + TailwindCSS. Consumir la API del backend siguiendo contratos en `memory-service-api`.
@@ -49,10 +103,13 @@ token = json.loads(urllib.request.urlopen(req).read())['data']['token']
 
 - `GET /api/tasks?assigneeId=d23c9cd9-...` — mis tareas
 - `PATCH /api/tasks/MS-XXX/status`
-- `POST /api/tasks/MS-XXX/devlog-entries`
-- `PATCH /api/tasks/MS-XXX/devlog/{entryId}/status` — resolver entry pendiente
+- **`POST /api/tasks/MS-XXX/devlog`** — registrar 1 devlog entry (singular, payload directo). Ver `VTT.SKILL-DEV-001`/`VTT.SKILL-DEV-002`
+- `POST /api/tasks/MS-XXX/devlog-entries` — registrar VARIAS en batch (plural, **requiere wrapper `{"entries":[...]}`** — sin wrapper retorna HTTP 400)
+- `PATCH /api/tasks/MS-XXX/devlog/{entryId}/status` — resolver entry pendiente (lifecycle estricto, ver `VTT.SKILL-DEV-004`)
+- `PATCH /api/tasks/MS-XXX/devlog/{entryId}` — editar contenido de un entry (ver `VTT.SKILL-DEV-003`)
+- `DELETE /api/tasks/MS-XXX/devlog/{entryId}` — eliminar entry (destructivo, ver `VTT.SKILL-DEV-005`)
 - `GET /api/tasks/MS-XXX/review-gate` — verificar gate antes de in_review
-- `POST /api/tasks/MS-XXX/criteria/{criteriaId}/fulfill` — reportar cumplimiento de CA
+- **`PATCH /api/tasks/MS-XXX/criteria/{criteriaId}`** — reportar cumplimiento de CA con `{status:"met", evidence:"..."}` (NO usar `POST /fulfill` — retorna 404)
 - `POST /api/tasks/MS-XXX/attachments`
 
 ## Cambios de Status
@@ -254,3 +311,12 @@ curl -s -X PATCH "http://77.42.88.106:3000/api/tasks/MS-XXX/devlog/{entryId}/sta
 ## Workspace
 
 `.vtt/workspaces/fe.code-workspace`
+
+---
+
+## Changelog
+
+| Versión | Fecha | Cambios |
+|---|---|---|
+| 1.1 | 2026-05-22 | **OLA 1 cierre sub-sistema MSG.** (1) Nueva sección "Apertura de Sesión" con `export VTT_SETUP` + las 2 reglas Nivel 0 (RULE-SCRIPT-001, RULE-TEMPLATE-001). (2) Nuevo "Paso 0 — Pre-check obligatorio" invocando `VTT.SKILL-PRECHECK-001` (5 checks: VTT_SETUP, scripts canónicos, NO copias locales, worktree, TOKEN). (3) **Fix endpoints VTT**: devlog `/devlog` singular (sin wrapper) o `/devlog-entries` plural (con wrapper `{entries:[]}`) — el endpoint sin wrapper retornaba HTTP 400 (caso MS-333). (4) Fix endpoint fulfill: `PATCH /criteria/<cid>` (NO `POST /fulfill` que retorna 404). (5) Cross-ref a las skills DEV-001..005 (decision/observation/edit/lifecycle/delete). |
+| 1.0 | (previa) | Versión inicial (sin versión declarada en header). |

@@ -4,14 +4,14 @@
 |---|---|
 | **Código** | `VTT.PROTOCOL-ASG-001` |
 | **Título** | Ciclo de Asignación y Cierre de Tarea |
-| **Versión** | 1.2.0 |
-| **Fecha** | 2026-05-14 |
+| **Versión** | 1.5.0 |
+| **Fecha** | 2026-05-22 |
 | **Autor** | PM Martin Rivas |
 | **Aplica a** | TL (ejecutor principal), PJM (proveedor de inputs), Agentes ejecutores, PM (aprobación terminal), SA (reviewer opcional) |
 | **Estado** | Aprobado para uso |
 | **Tipo** | Genérico VTT — aplica a cualquier proyecto y cualquier fase del SDLC |
 | **Reglas aplicables (Nivel 0)** | Ver `00.Rules/rules_catalog.json` — `query_rules.py --simulate-task <TASK_ID>` |
-| **Modelo de worktrees** | Por rol (no por tarea). Cada rol incluido TL tiene worktree dedicado + workspace VSCode. Ver `GUIA_WORKTREES_MEMORY_SERVICE.md` v2.1 |
+| **Modelo de worktrees** | Por rol (no por tarea). Cada rol incluido TL tiene worktree dedicado + workspace VSCode. Ver `VTT.PROTOCOL-WT-001` |
 
 ---
 
@@ -28,6 +28,7 @@
    - 5.3 [FASE 3 — Ejecución del agente](#53-fase-3--ejecución-del-agente)
    - 5.4 [FASE 3.5 — Sub-ciclo de Issue](#54-fase-35--sub-ciclo-de-issue)
    - 5.5 [FASE 4 — Cierre con Modelo Dinámico](#55-fase-4--cierre-con-modelo-dinámico)
+   - 5.5.bis [FASE 4.5 — Commit del TL post-aprobación](#55bis-fase-45--commit-del-tl-post-aprobación)
    - 5.6 [FASE 5 — Cierre del Sprint](#56-fase-5--cierre-del-sprint)
 6. [Referencias Cruzadas](#6-referencias-cruzadas)
 7. [Resumen de Revisiones](#7-resumen-de-revisiones)
@@ -126,6 +127,64 @@ No aplica a:
 
 **PROC-MANIFEST-01:** lección aprendida — el manifest debe generarse AL FINAL del workflow para evitar campos null.
 
+**CONTEXTO_SX.md:** archivo `knowledge/agent-tasks/CONTEXTO_SX.md` que el TL genera al cerrar el SETUP del sprint. Contiene los IDs reales de VTT (Release, Sprint, Phase, tareas cross-sprint) que el siguiente sprint consultará. Se sube como attachment `fileType=brief` a la tarea SETUP-SX.
+
+**SPRINT_STATUS_SX.md:** dashboard operativo del TL en `knowledge/agent-tasks/SPRINT_STATUS_SX.md` con tareas, blockers, PRs pendientes y métricas parciales. Se actualiza cada vez que el TL revisa una tarea o resuelve un blocker. NO reemplaza al CLOSURE — alimenta el §6 del CLOSURE al cerrar el sprint.
+
+---
+
+### 4.bis Modelo de datos VTT — Jerarquía
+
+```
+Project
+  └── Release          (ej: MVP, R1)
+        └── Sprint     (ej: S1, S2, S3)
+              └── Delivery   (agrupador de tareas dentro del sprint)
+                    └── Task (unidad de trabajo, código MS-XXX)
+```
+
+| Relación | Endpoint | Notas |
+|---|---|---|
+| Sprint pertenece a Release | `POST /api/releases/{releaseId}/sprints` | Al crear el sprint |
+| Delivery pertenece a Phase | `POST /api/deliveries` con `phaseId` | Al crear el delivery |
+| Delivery vinculado a Sprint | `POST /api/deliveries` con `sprintId` en el body | **OBLIGATORIO al crear** — no existe PATCH posterior |
+| Delivery reordenado | `PUT /api/deliveries/{deliveryId}` con `{"order": N}` | `PATCH` no funciona |
+| Task pertenece a Phase | `POST /api/phases/{phaseId}/tasks` | Al crear la tarea |
+| Task vinculada a Delivery | `POST /api/deliveries/{deliveryId}/tasks/{taskId}` | Paso posterior |
+| Task con dependencia | `POST /api/tasks/{taskId}/dependencies` con `{"dependsOnTaskId": "..."}` | Paso posterior |
+
+### 4.ter Nomenclatura estándar de Deliveries
+
+```
+{SX}-{ROL}: {Descripción corta}
+```
+
+| Patrón | Ejemplo | Order |
+|---|---|---:|
+| `SX-SETUP: Setup Sprint X` | `S3-SETUP: Setup Sprint 3` | **1 — siempre primero** |
+| `SX-DB: <descripción>` | `S2-DB: Seeds + Indexes + Migration Docs` | 2+ |
+| `SX-BE: <descripción>` | `S3-BE: Endpoints + Integrations + Worker` | 2+ |
+| `SX-FE: <descripción>` | `S3-FE: Foundation` | 2+ |
+| `SX-TL: <descripción>` | `S3-TL: Reviews + SLA Check` | penúltimo |
+| `SX-REV: <descripción>` | `S3-REV: Validación + Cierre` | último |
+
+> La descripción viene del HO — resume el contenido del delivery en ≤6 palabras.
+
+### 4.quater Cadena de dependencias del sprint
+
+```
+SETUP-SX              → depende de → SETUP-S1                    ← anchor fijo (primer setup del proyecto)
+PRIMERA_TAREA_OP_SX   → depende de → SETUP-SX                    ← sprint configurado antes de arrancar
+PRIMERA_TAREA_OP_SX   → depende de → ULTIMA_TAREA_OP_S(X-1)      ← sprint anterior terminado antes de arrancar
+Demás tareas sin dep  → depende de → SETUP-SX                    ← ningún agente arranca antes
+Tareas con dep téc.   → depende de → su tarea bloqueante técnica  ← cadena técnica la controla
+```
+
+**Reglas:**
+- `SETUP-S1` no tiene dependencia previa — es el **anchor fijo** del proyecto
+- `SETUP-S2` en adelante dependen de `SETUP-S1` (no del SETUP anterior, sino siempre del primero)
+- La "última tarea operativa del sprint anterior" se obtiene del `CONTEXTO_S(X-1).md` — NO es el CIERRE ni el APR
+
 ## 5. Procedimiento
 
 El ciclo completo tiene **47 pasos** organizados en **6 fases secuenciales** + **1 sub-ciclo opcional** (Issue).
@@ -207,47 +266,64 @@ requis.  cación       ción       ción        tarea       Sprint
 
 5.2.9 TL asigna la tarea al agente (PATCH `assignedToId`) → **[ACTIVIDAD]** → invoca `SKL-TASK-03`
 
-5.2.10 **TL verifica worktree del rol del agente** (PROC-COORD-01) → **[ACTIVIDAD]**
-   - Los worktrees son **por rol, no por tarea** — pre-creados una vez por proyecto
+5.2.10 **TL verifica/crea worktree del rol del agente** (PROC-COORD-01) → **[PROCESO]** → ver `VTT.PROTOCOL-WT-001` §5.2 / §5.3
+   - Los worktrees son **por rol, no por tarea** — pre-creados una vez por proyecto en FASE 1 del PROTOCOL-WT-001
    - Ubicación estándar: `.vtt/worktrees/<repo>-<rol>/`
-     - `.vtt/worktrees/backend-be/`, `.vtt/worktrees/backend-do/`, `.vtt/worktrees/backend-db/`, ...
-     - `.vtt/worktrees/project-tl/`, `.vtt/worktrees/project-pm/`, ...
-   - Si el worktree del rol del agente NO existe (rol nuevo en el proyecto) → crear:
-     ```
-     git worktree add ../.vtt/worktrees/<repo>-<rol> -b <stem>/<rol>
-     ```
-   - El agente reutilizará este worktree para todas sus tareas (cambia de branch dentro del mismo worktree)
+   - **Si el worktree del rol YA existe** → continuar al 5.2.11
+   - **Si el worktree NO existe** (rol nuevo en el proyecto) → invocar `VTT.WORKFLOW-WT-001.003_agregar_rol` ANTES de continuar
    - **Razón:** evitar pérdida de código por `git checkout` cross-agente (incidente MS-286)
-   - Ver `GUIA_WORKTREES_MEMORY_SERVICE.md` v2.1 para detalle
 
-5.2.11 **TL genera execution_manifest.json para la tarea** → **[ACTIVIDAD]**
-   - Path: `.vtt/manifests/[TASK_ID].execution.json` (copia del template `_template.execution.json`)
-   - Contenido clave que el TL llena:
-     - `taskId`, `title`, `sprint`, `phase`
-     - `repos[]` — qué repos toca la tarea (backend, project, frontend, api)
-     - `agents[]` — un objeto por agente involucrado con:
-       - `agentId`, `agentUuid`, `role`
-       - `repoId`, `branch: feature/<TASK_ID>`, `assignedWorkdir: .vtt/worktrees/<repo>-<rol>`
-       - **`allowedPaths`** (paths del repo que el agente PUEDE tocar)
-       - **`deniedPaths`** (paths que el agente NO debe tocar: `.env`, `.vtt/**`, `node_modules/**`, etc.)
-       - `expectedOutputs` (reports, diffs, manifests esperados)
-     - `rules` — `commitPattern`, `noDirectMergeToMain`, etc.
-     - `integration` — estrategia (`pr_per_agent`, `consolidated_by: TL`)
-   - **Output:** archivo JSON local en `.vtt/manifests/<TASK_ID>.execution.json`
-   - El agente lo lee antes de empezar para conocer sus límites operativos
+> **Sub-sistema WT cubre todo lo de worktrees.** Este paso solo verifica/crea el worktree del agente al que se le va a asignar la tarea actual. Para detalle ver `VTT.PROTOCOL-WT-001`.
 
-5.2.12 **TL consulta Reglas aplicables** (Nivel 0) → **[ACTIVIDAD]** → ejecuta `python 00.Rules/query_rules.py --simulate-task [TASK_ID]`
-   - Lista las reglas activas que el agente debe respetar
-   - Filtra por: scope, phase, role, task_criteria, capabilities
+5.2.11 **TL genera execution_manifest** → **[PROCESO]** → ver `VTT.WORKFLOW-MAN-001.001_generar_execution_manifest`
+   - Invoca: `VTT.SKILL-EXM-001` (que orquesta `VTT.SCRIPT-EXM-001`)
+   - Output: `.vtt/manifests/<TASK_ID>.execution.json`
+   - **Vínculo crítico con PROTOCOL-WT-001:** el campo `worktreePath` del manifest apunta al worktree creado/verificado en 5.2.10. Sin el worktree no hay dónde anclar el manifest.
+   - Campos clave: `agent.uuid`, `worktreePath`, `branchExpected=feature/<TASK_ID>`, `allowedPaths[]`, `expectedOutputs[]`
+
+5.2.12 **TL consulta Reglas aplicables** (Nivel 0) → **[ACTIVIDAD]** → ejecuta `python 00.Rules/query_rules.py --simulate-task <TASK_ID>`
+   - Lista las reglas activas que el agente debe respetar (filtra por scope, phase, role, task_criteria, capabilities)
    - Output va embebido en el mensaje al agente (paso siguiente)
 
-5.2.13 TL genera mensaje al agente y lo postea como comment → **[ACTIVIDAD]** → invoca `SKL-MESSAGE-01` (auto vía `scripts/gen_mensaje.py --post`)
-   - Incluye:
-     - **Worktree asignado**: `.vtt/worktrees/<repo>-<rol>/` (no por tarea)
+5.2.13 **TL genera mensaje al agente y lo postea como comment en VTT** → **[ACTIVIDAD]** → invoca `VTT.SKILL-MSG-001` (en migración desde legacy `SKL-MESSAGE-01`) — auto vía script oficial:
+
+   ```bash
+   python $VTT_SETUP/02.normativa/04.Scripts/msg/VTT.SCRIPT-MSG-001_gen_mensaje.py MS-XXX --post
+   ```
+
+   > **Path canónico obligatorio (RULE-SCRIPT-001):** el script se invoca SIEMPRE desde `$VTT_SETUP/02.normativa/04.Scripts/msg/`. Prohibido copiarlo al worktree del proyecto. Mientras dure la migración del legacy `scripts/gen_mensaje.py`, el TL puede usar la copia local del worktree `project-tl/` pero debe migrar al path canónico apenas el refactor (CA-01..CA-12 del refactor task) esté completado.
+
+   - **Usa template:** `$VTT_SETUP/03.templates/tarea/TEMPLATE_MENSAJE_ASIGNACION.md` v2.1 (con sección Working Directory condicional WT/no-WT)
+   - **RULE-TEMPLATE-001:** el script DEBE leer el template desde `$VTT_SETUP/03.templates/...` (no hardcoded). Si el script genera el mensaje con f-string en Python en lugar de leer el `.md`, viola la regla y queda como deuda técnica bloqueante.
+   - **Contenido obligatorio del mensaje:**
+     - **Worktree asignado** (referencia al PROTOCOL-WT-001): `.vtt/worktrees/<repo>-<rol>/`
      - **Branch a crear**: `feature/<TASK_ID>` desde `origin/main`
-     - **execution_manifest path**: `.vtt/manifests/<TASK_ID>.execution.json` (debe leerse antes de empezar)
+     - **Execution manifest path** (referencia al PROTOCOL-MAN-001 §5.2): `.vtt/manifests/<TASK_ID>.execution.json` — agente DEBE leerlo antes de tocar código
      - **Workspace VSCode**: `.vtt/workspaces/<repo>-<rol>.code-workspace` (abrir esta ventana)
      - **Lista de Reglas aplicables** del paso 5.2.12
+     - **Comando del script `VTT.SCRIPT-MAN-001`** invocado desde `$VTT_SETUP/02.normativa/04.Scripts/manifest/` (NO copia local) — flags pre-rellenados para que el agente solo copy-paste
+     - **Paso 12 commit del manifest** al PR del agente (ver `VTT.WORKFLOW-MAN-001.003` §Paso 12)
+     - **Referencia a `VTT.SKILL-REPORT-001`** (`$VTT_SETUP/02.normativa/03.Skills/report/VTT.SKILL-REPORT-001_entrega_tarea.md`) — el agente DEBE leerla antes de generar el reporte
+     - **Ubicación del reporte:** `knowledge/task-manifests/<phase>/<sprint>/MS-XXX_REPORT.md` (misma carpeta que el JSON del manifest — política template v2.1)
+     - **Render obligatorio del reporte:** el agente muestra el reporte renderizado en pantalla (NO `cat`) — política template v2.1
+
+> **Vínculo de los 3 sub-sistemas en este paso final:**
+>
+> | Sub-sistema | Provee al mensaje | Referenciado en template |
+> |---|---|---|
+> | `PROTOCOL-WT-001` (worktree) | `worktreePath`, `workspace.code-workspace` | §Working Directory variante A |
+> | `PROTOCOL-MAN-001` (manifest) | `execution_manifest_path`, comando del script | §Entregables al cerrar |
+> | `PROTOCOL-ASG-001` (este) | `task_id`, `brief_path`, `assignment_path`, CAs | §Tarea asignada + §CAs |
+>
+> El mensaje es el **artefacto que une los 3 sub-sistemas** y se entrega al agente. Sin este paso, el agente no sabe que tiene tarea ni cómo arrancarla.
+
+> **Estado de migración del sub-sistema MSG (2026-05-22):**
+>
+> 1. ✅ Reglas declaradas: `RULE-SCRIPT-001` (path canónico) + `RULE-TEMPLATE-001` (no hardcoded)
+> 2. ✅ Path canónico de invocación documentado en este §5.2.13
+> 3. ✅ Template `TEMPLATE_MENSAJE_ASIGNACION.md` bumped a v2.1 con I1/I2/I3 (skill REPORT-001, reporte en carpeta del manifest, render obligatorio)
+> 4. 🟡 **PENDIENTE (tarea de refactor en backlog):** promover `scripts/gen_mensaje.py` legacy → `$VTT_SETUP/02.normativa/04.Scripts/msg/VTT.SCRIPT-MSG-001_gen_mensaje.py` con (a) lectura formal del template, (b) modo `--validate`, (c) eliminación de las 5 copias locales del proyecto. Lección de campo: drift visible entre `MENSAJE_MS-290.md` (correcto) y `MENSAJE_MS-333.md` (desactualizado).
+> 5. 🟡 **PENDIENTE:** crear `VTT.SKILL-MSG-001` + `VTT.WORKFLOW-MSG-001.001` para reemplazar legacy `SKL-MESSAGE-01` y `VTT.SKILL-TASK-004`.
 
 > **Nota operativa:** Cuando hay N agentes activos en paralelo, el equipo abre N ventanas VSCode simultáneamente (una por workspace de rol). El TL también opera en su propia ventana con su workspace `.vtt/workspaces/project-tl.code-workspace`. No hay "ventana coordinadora central".
 
@@ -397,7 +473,14 @@ requis.  cación       ción       ción        tarea       Sprint
 5.5.8 TL verifica contenido técnico contra SPEC + ASSIGNMENT (curl real a endpoints BE, grep en repo, etc.) → **[PROCESO]** → ver `VTT.WORKFLOW-ASG-001.012_code_review_tecnico`
 
 5.5.9 ¿Code review aprobado? → **[DECISIÓN]**
-- **NO** → devolver con feedback (`task_rejected`) — registrar findings
+- **NO** → 2 caminos según la naturaleza de la falla:
+  - **Falla menor o feedback simple** (typo en comentarios, ajustes cosméticos, aclaración de docs) → devolver con `task_rejected` + razón en comment — el agente corrige in-place en la misma tarea
+  - **Bug propiamente dicho** (CI failing, scope mezclado, error funcional, falta de docs, violación de política I2/I3 v1.1, etc.) → **[PROCESO]** → ver `VTT.WORKFLOW-ASG-001.030_manejo_bugs_en_review`
+    - Crear tarea hija consecutiva `MS-XXX` con `[BUG] MS-padre <desc>` (NO acrónimos `MS-XXXfix`)
+    - Mover padre a `task_on_hold` (`PUT /on-hold`, NO `PATCH /status`)
+    - Crear bug entry + dependency `blocks` + assignment + CAs
+    - Notificar al agente con mensaje generado por `VTT.SCRIPT-MSG-001`
+    - El agente corrige en la hija; cuando cierra, padre se libera (`PUT /release-hold`) y vuelve a este paso 5.5.9
 - **SÍ** → continuar a aplicar modelo dinámico
 
 5.5.10 TL aplica **Modelo Dinámico** (las 4 acciones de cierre) → **[PROCESO]** → ver `VTT.WORKFLOW-ASG-001.013_aplicar_modelo_dinamico`
@@ -443,6 +526,80 @@ requis.  cación       ción       ción        tarea       Sprint
      ```
    - **NO se borra el worktree** (es por rol, persiste entre tareas)
    - El agente reutiliza el mismo worktree para su siguiente tarea
+
+---
+
+### 5.5.bis FASE 4.5 — Commit del TL post-aprobación
+
+> **Trigger:** tarea en `task_approved`. El TL tiene archivos modificados sin commitear en su worktree (`project-tl` o equivalente): manifest v1.5, BRIEF/ASSIGNMENT editados durante el review, devlog del TL, etc.
+>
+> **Quién ejecuta:** TL Reviewer.
+>
+> **Por qué existe:** los Workflows del TL (revisión, modelo dinámico, generación de v1.5) producen cambios en archivos locales. Sin esta FASE, esos cambios quedan como untracked/modified en el worktree del TL — `git status` sucio que se acumula entre tareas. Esta FASE garantiza un `git status` limpio después de cada cierre.
+
+5.5.bis.1 TL verifica `git status` del worktree TL → **[ACTIVIDAD]**
+   ```
+   cd .vtt/worktrees/<repo>-tl
+   git status
+   ```
+   - Si está limpio → saltar al cierre de tarea siguiente
+   - Si tiene archivos modificados → continuar con los siguientes pasos
+
+5.5.bis.2 TL identifica archivos modificados durante el review → **[ACTIVIDAD]**
+   - **Obligatorios** (si fueron generados/modificados):
+     - `knowledge/task-manifests/<phase>/<sprint>/<TASK_ID>.json` (manifest v1.5)
+     - `knowledge/task-manifests/<phase>/<sprint>/<TASK_ID>.manifest.md` (wrapper v1.5)
+   - **Si el TL los modificó durante el review**:
+     - `knowledge/agent-tasks/briefs/<phase>/<sprint>/BRIEF_<TASK_ID>_*.md`
+     - `knowledge/agent-tasks/assignments/<phase>/<sprint>/ASSIGNMENT_<TASK_ID>_*.md`
+     - Cualquier otro archivo de análisis local del TL relacionado a la tarea
+   - **Excluidos**: archivos NO relacionados con `<TASK_ID>` → quedan para otro PR
+
+5.5.bis.3 TL crea branch `tl/<TASK_ID>-close` → **[ACTIVIDAD]**
+   ```
+   git checkout main
+   git pull origin main
+   git checkout -b tl/<TASK_ID>-close
+   ```
+   - Naming obligatorio: `tl/<TASK_ID>-close` — ver registro `00_REGISTRO_ACRONIMOS.md` §3.bis Convenciones de branch
+   - **NO** se hace commit directo a main
+
+5.5.bis.4 TL hace commit con mensaje formal → **[ACTIVIDAD]**
+   ```
+   git add <archivos identificados en 5.5.bis.2>
+   git commit -m "[<TASK_ID>] manifest v1.5 + cierre review — TL approved
+
+   - Manifest v1.5 con review.tl_review + dynamic_model_actions
+   - <otros cambios relevantes>
+
+   Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+   Refs: #<TASK_ID>"
+   git push origin tl/<TASK_ID>-close
+   ```
+
+5.5.bis.5 TL crea PR a main → **[ACTIVIDAD]** → invoca `SKL-GIT-04`
+   ```
+   gh pr create \
+     --title "[<TASK_ID>] Manifest v1.5 + cierre review" \
+     --body "..." \
+     --base main
+   ```
+
+5.5.bis.6 PM aprueba PR del TL → **[ACTIVIDAD]** (fuera de este Protocol — acción del PM)
+   - Hoy: aprobación manual
+   - **Futuro (no bloqueante):** auto-merge si CI pasa (mejora documentada como IMPROVE pendiente)
+
+5.5.bis.7 TL verifica `git status` limpio post-merge → **[ACTIVIDAD]**
+   ```
+   cd .vtt/worktrees/<repo>-tl
+   git checkout main
+   git pull
+   git status
+   # Esperado: working tree clean
+   ```
+   - Si quedan archivos modificados → revisar si pertenecen a otra tarea (separar) o si faltaron en el PR (re-commitear)
+
+> **Regla operativa:** el TL **NO inicia la revisión de la siguiente tarea** hasta que `git status` esté limpio. Esto evita arrastre de archivos entre tareas.
 
 ### 5.6 FASE 5 — Cierre del Sprint
 
@@ -500,6 +657,11 @@ requis.  cación       ción       ción        tarea       Sprint
 | `VTT.WORKFLOW-ASG-001.022` | Agente lee execution_manifest y verifica allowedPaths | 5.3.2.b |
 | `VTT.WORKFLOW-ASG-001.023` | Verificar disciplina de worktree (TL Reviewer) | 5.5.5.b |
 | `VTT.WORKFLOW-ASG-001.024` | Cleanup branch local post-aprobación | 5.5.18 |
+| `VTT.WORKFLOW-ASG-001.025` | Vincular Trackable Items a tareas (consultar 200+ TIs del proyecto + mapear por dominio) | 5.1.9.bis (post-creación de tareas, durante setup del sprint) |
+| `VTT.WORKFLOW-ASG-001.026` | Generar y subir CONTEXTO_SX.md a la tarea SETUP-SX | 5.1.10 (cierre del setup, antes de mover SETUP-SX a completed) |
+| `VTT.WORKFLOW-ASG-001.027` | Cerrar SETUP-SX (devlog + code_logic + comment + in_review → completed) | 5.1.11 (desbloquea las tareas del sprint) |
+| `VTT.WORKFLOW-ASG-001.028` | Mantener SPRINT_STATUS_SX.md durante ejecución (dashboard operativo del TL) | 5.3.bis (durante FASE 3 — TL actualiza cada vez que revisa o resuelve blocker) |
+| `VTT.WORKFLOW-ASG-001.030` | **Manejo de Bugs detectados en Code Review** — crear tarea hija consecutiva `MS-XXX`, mover padre a `task_on_hold`, ciclo bug-fix-release | 5.5.9 (cuando el TL detecta bug que requiere corrección antes de aprobar — alternativa al `task_rejected` simple) |
 
 ### Skills referenciadas (Nivel 2)
 
@@ -550,7 +712,7 @@ requis.  cación       ción       ción        tarea       Sprint
 | `VTT_PLATFORM_GAPS_2026-05-13.md` | Workarounds aplicados en 5.5.10 |
 | `SOP-LD-01_living_documents.md` | Detalle del 5.3.5 (Living Documents) |
 | `LIVING_DOCUMENTS_[PROYECTO].md` | Catálogo de LDs del proyecto (5.3.5) |
-| `GUIA_WORKTREES_MEMORY_SERVICE.md` v2.1 | Modelo de worktrees por rol + 7 workspaces VSCode |
+| `VTT.PROTOCOL-WT-001` v1.0.1 | Modelo normativo de worktrees por rol + workspaces VSCode (reemplaza la guía legacy) |
 | `GUIA_ASIGNACION_TAREA_TL_EJECUTOR.md` v2.1 | Cheatsheet del TL al asignar (Paso 8.5) |
 | `GUIA_REVISION_TAREA_TL_REVIEWER.md` v2.1 | Cheatsheet del TL al cerrar (Paso 5b + Paso 16) |
 | `PROCESO_ASIGNACION_TAREAS_v3.md` v3.1 | Paso 7b (execution_manifest) |
@@ -567,6 +729,14 @@ requis.  cación       ción       ción        tarea       Sprint
 | Catálogo de roles | `00.Rules/roles_catalog.json` | RBAC base de doc_sec_02 |
 | Motor de filtros | `00.Rules/query_rules.py` | Ejecutar en 5.2.11 y 5.5.15 |
 | Documentación | `00.Rules/README.md` | Modelo de 8 niveles + 4 actor types + 7 markers |
+
+### Convenciones operativas (meta-índices)
+
+| Recurso | Path | Uso |
+|---|---|---|
+| Convenciones de filesystem | `02.normativa/00_CONVENCIONES_FILESYSTEM.md` | Estructura obligatoria de carpetas del proyecto (`knowledge/agent-tasks/{briefs,assignments,messages,reports}/<phase>/<sprint>/`, `task-manifests/`, etc.). **Verificación al iniciar tarea** (5.3.1) y al iniciar proyecto (5.0). Define `$VTT_SETUP`. |
+| Registro de acrónimos + branches | `02.normativa/00_REGISTRO_ACRONIMOS.md` | §3 categorías de normativa (`<CAT>` de codings VTT). §3.bis convenciones de branch Git (`feature/<TASK_ID>`, `tl/<TASK_ID>-close`, etc.) aplicadas en 5.2.10, 5.5.bis.3, 5.5.18 |
+| Template del mensaje al agente | `03.templates/tarea/TEMPLATE_MENSAJE_ASIGNACION.md` v2.0 | Plantilla única con sección Working Directory condicional (WT/no-WT). Usada por el TL en 5.2.9 al notificar al agente |
 
 ### Reglas
 
@@ -605,6 +775,12 @@ Lista completa: ejecutar `query_rules.py --simulate-task <TASK_ID>` (35-40 regla
 | 1.0.0 | 2026-05-13 | PM Martin Rivas | Versión inicial. Consolida 16 pasos del ciclo completo (asignación + cierre) con modelo dinámico aplicado. Reemplaza secciones cierre de `PROCESO_ASIGNACION_TAREAS.md` v1.6 (legacy). Integra lecciones MS-283/284/285. |
 | 1.1.0 | 2026-05-13 | PM Martin Rivas | Agregadas 7 features faltantes: (1) Living Documents en 5.3.5 + 5.5.6, (2) Document Impacts en 5.3.6, (3) Hardcode Check en 5.3.7 + 5.5.7, (4) Status devlog completo (6 status) en 5.3.4 + 5.5.10.d, (5) Worktree PROC-COORD-01 en 5.2.10 + 5.3.2, (6) Reglas aplicables (Nivel 0) en 5.2.11 + 5.5.15, (7) Anexo H apuntando a deliverables_catalog.json. +4 Workflows nuevos (017-020). |
 | 1.2.0 | 2026-05-14 | PM Martin Rivas | **Cambio de modelo de worktrees**: de "por tarea" a "**por rol**". Cada rol (incluido TL) tiene worktree fijo + workspace VSCode dedicado. N ventanas VSCode una por rol activo. **Nuevo artefacto: `execution_manifest.json`** generado por TL al asignar (define allowedPaths, deniedPaths, expectedOutputs por agente). Pasos nuevos: 5.2.11 (TL genera manifest), 5.3.2.b (agente lee manifest), 5.5.5.b (TL verifica disciplina worktree — Paso 4b PROC-CIERRE v2.1), 5.5.18 (cleanup branch post-aprobación — Paso 9 PROC-CIERRE v2.1). +4 Workflows (021-024). |
+| 1.3.0 | 2026-05-18 | PM Martin Rivas | **Nueva FASE 4.5 — Commit del TL post-aprobación.** Después de cada `task_approved`, el TL crea branch `tl/<TASK_ID>-close`, commitea el manifest v1.5 (`<TASK_ID>.json` + `<TASK_ID>.manifest.md`) más cualquier archivo modificado durante el review (BRIEF, ASSIGNMENT, etc.), crea PR a main y espera aprobación del PM. **NO se permite commit directo a main.** Garantiza `git status` limpio en worktree TL entre tareas. Origen: el TL acumulaba untracked files al modificar archivos durante reviews sin commitearlos. Coordina con `WORKFLOW-MAN-001.004` v1.1.0 (commit del manifest) y `SCRIPT-MAN-001` v1.2 (un solo par de archivos local). |
+| 1.3.1 | 2026-05-18 | PM Martin Rivas | Referencias §6 actualizadas. Nueva sub-sección **"Convenciones operativas (meta-índices)"** con 3 documentos: `00_CONVENCIONES_FILESYSTEM.md` (estructura obligatoria del proyecto + `$VTT_SETUP`), `00_REGISTRO_ACRONIMOS.md` §3.bis (branches Git aplicadas en 5.2.10/5.5.bis.3/5.5.18) y `TEMPLATE_MENSAJE_ASIGNACION.md` v2.0 (mensaje al agente en 5.2.9). Sin cambios en procedimiento — solo gobernanza de referencias. |
+| 1.3.2 | 2026-05-18 | PM Martin Rivas | **Clarificación del flujo de asignación §5.2.10-5.2.13.** Tres sub-sistemas (WT, MAN, ASG) se enlazan operativamente en este punto pero antes no estaba explícito en el Protocol. Cambios: (1) §5.2.10 ahora invoca `PROTOCOL-WT-001 §5.2/§5.3` directamente (verificar/crear worktree) en lugar de tener instrucciones inline. (2) §5.2.11 invoca `WORKFLOW-MAN-001.001` (antes solo describía el JSON) y declara el vínculo `worktreePath` ↔ PROTOCOL-WT-001. (3) §5.2.13 referencia explícitamente `TEMPLATE_MENSAJE_ASIGNACION.md v2.0` + tabla de "Vínculo de los 3 sub-sistemas" mostrando qué provee cada uno al mensaje. (4) Nota de pendiente normativo: `SKL-MESSAGE-01` legacy debe migrarse a `VTT.SKILL-MSG-001` + refactor de `gen_mensaje.py` para que lea el template formal. Sin cambios en procedimiento — solo clarificación del enlace entre los 3 Protocols. |
+| 1.3.3 | 2026-05-20 | PM Martin Rivas | **Gaps detectados al revisar `PROCESO_ANALISIS_HO_GENERACION_BRIEFS.md` v1.5.** (1) Nuevo §4.bis Modelo de datos VTT (Project→Release→Sprint→Delivery→Task) con tabla de endpoints + gotchas (sprintId obligatorio en body, PUT no PATCH para reordenar, assignedToId no assigneeId). (2) Nuevo §4.ter Nomenclatura estándar de Deliveries (SETUP/DB/BE/FE/TL/REV) con order convention. (3) Nuevo §4.quater Cadena de dependencias del sprint con SETUP-S1 anchor fijo + regla de primera tarea operativa con 2 deps. (4) Nuevas definiciones CONTEXTO_SX.md y SPRINT_STATUS_SX.md. (5) **4 Workflows nuevos en §6.1**: `.025` vincular Trackable Items, `.026` generar CONTEXTO_SX.md, `.027` cerrar SETUP-SX, `.028` mantener SPRINT_STATUS_SX.md. Sin cambios en pasos del procedimiento — el `PROCESO_ANALISIS_HO_GENERACION_BRIEFS.md` legacy se migrará a los Workflows correspondientes en el siguiente bump. |
+| 1.4.0 | 2026-05-22 | PM Martin Rivas | **OLA 1 de cierre del sub-sistema MSG.** Origen: drift visible entre `MENSAJE_MS-290.md` (correcto) y `MENSAJE_MS-333.md` (desactualizado — endpoint devlog malo, fulfill CAs malo, sin sección execution_manifest) generados por **5 copias** distintas de `gen_mensaje.py` en worktrees del proyecto memory-service. Cambios: (1) §5.2.13 ahora exige path canónico `$VTT_SETUP/02.normativa/04.Scripts/msg/VTT.SCRIPT-MSG-001_gen_mensaje.py` (NO copias locales). (2) Referencia explícita a las 2 Reglas Nivel 0 nuevas: `RULE-SCRIPT-001` (invocación desde $VTT_SETUP) y `RULE-TEMPLATE-001` (templates leídos de disco, no hardcoded). (3) Mensaje ahora debe referenciar `VTT.SKILL-REPORT-001` + ubicación canónica del reporte (`knowledge/task-manifests/<phase>/<sprint>/`) + render obligatorio del reporte (NO `cat`) — bumped del template a v2.1. (4) Nota de estado de migración del sub-sistema MSG (5 ítems con ✅/🟡). Pendientes (no en esta versión): refactor del script + creación de `VTT.SKILL-MSG-001` + `VTT.WORKFLOW-MSG-001.001`. |
+| 1.5.0 | 2026-05-22 | PM Martin Rivas | **Formalización del workflow de manejo de bugs en review.** Origen: `00-agent-setup/06.Documentos_soporte/GUIA_MANEJO_BUGS_TL.md` v1.1 (legacy memory-service) transformada al modelo de 4 niveles VTT. Cambios: (1) §5.5.9 ahora bifurca la decisión "code review NO aprobado" en 2 caminos: feedback simple (`task_rejected` en la misma tarea) o **bug propiamente dicho** (invoca `VTT.WORKFLOW-ASG-001.030_manejo_bugs_en_review` que crea tarea hija consecutiva + mueve padre a `task_on_hold` + ciclo bug-fix-release). (2) Workflow nuevo agregado en §6 Referencias Cruzadas: `VTT.WORKFLOW-ASG-001.030`. (3) Lección aprendida MS-322 → MS-375 (2026-05-21) consolidada como proceso normativo. Pendiente: promover script `crear_tarea_bug.py` a `VTT.SCRIPT-ASG-001` siguiendo RULE-SCRIPT-001 (mismo refactor que `gen_mensaje.py` → `VTT.SCRIPT-MSG-001`). |
 
 ---
 
@@ -833,7 +1009,7 @@ git worktree add ../.vtt/worktrees/project-tl -b stem/tl origin/main
 # ... etc
 ```
 
-Ver `GUIA_WORKTREES_MEMORY_SERVICE.md` v2.1 para setup completo.
+Ver `VTT.PROTOCOL-WT-001` §5.1 (Setup inicial) para procedimiento completo.
 
 ---
 

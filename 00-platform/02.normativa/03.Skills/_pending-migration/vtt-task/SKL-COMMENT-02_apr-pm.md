@@ -1,5 +1,9 @@
 # SKL-COMMENT-02: Comentario de aprobación APR-PM
 
+> 🟤 **DEPRECADA (2026-05-19) — ver `VTT.SKILL-COMMENT-002_apr_pm.md`** en `02.normativa/03.Skills/comment/`.
+> Migración 1:1, contrato sin cambios.
+
+
 **Categoría:** VTT-COMMENT  
 **Aplica a:** PM únicamente  
 **Tokens estimados:** ~85  

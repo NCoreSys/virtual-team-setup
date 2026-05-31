@@ -1,5 +1,8 @@
 # SKL-AUTH-01: Obtener JWT de Sesión
 
+> 🟤 **DEPRECADA (2026-05-19) — ver `VTT.SKILL-AUTH-001_obtener_jwt.md`** en `02.normativa/03.Skills/auth/`.
+> Migración 1:1, contrato sin cambios. Esta versión se conserva como referencia histórica.
+
 **Categoría:** AUTH  
 **Aplica a:** Todos los agentes  
 **Tokens estimados:** ~80  

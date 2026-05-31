@@ -1,5 +1,9 @@
 # SKL-STRUCTURE-01: Ubicar entregable en estructura del proyecto
 
+> 🟤 **DEPRECADA (2026-05-19) — ver `VTT.SKILL-FILE-001_ubicar_entregable.md`** en `02.normativa/03.Skills/file/`.
+> Migración 1:1, contrato sin cambios.
+
+
 **Categoría:** FILE-STRUCTURE  
 **Aplica a:** SA, DL, UX, AR, TL, BE, DB, FE, QA, DO, SA Reviewer, PJM  
 **Tokens estimados:** ~120  

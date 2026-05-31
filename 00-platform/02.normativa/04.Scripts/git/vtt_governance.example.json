@@ -1,0 +1,19 @@
+{
+  "_comment": "Config de gobernanza para virtual-teams-setup (Fase de Desarrollo). Ver VTT.PROTOCOL-GOV-002 §5.0. Copiar a .git/hooks/vtt_governance.json en cada clone.",
+  "_protocol": "VTT.PROTOCOL-GOV-002",
+  "_version": "1.0.0",
+
+  "branch_pattern_regex": "^agent/(tl|pm|pjm|be|db|fe|do|qa|ux|dl|sa|ar|sec|setup)/[a-z0-9-]{3,30}/[a-z0-9-]{3,50}$",
+
+  "header_regex": "^\\[agente:(tl|pm|pjm|be|db|fe|do|qa|ux|dl|sa|ar|sec|setup)\\] \\[proyecto:[a-z0-9-]+\\] \\[scope:[^]]+\\] \\[type:(editorial|functional|structural|breaking)\\]",
+
+  "required_trailers": [
+    "Motivo:",
+    "Origen:",
+    "Consumidores:"
+  ],
+
+  "block_branches": [
+    "main"
+  ]
+}

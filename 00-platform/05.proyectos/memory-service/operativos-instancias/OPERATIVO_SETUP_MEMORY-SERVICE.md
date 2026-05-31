@@ -414,7 +414,7 @@ NO ENTREGAR SI:
 | Template del rol Setup | `virtual-teams-setup/00-platform/02.roles/templates/TEMPLATE_BASE_PJM_PM_SETUP.md` |
 | Templates de roles a instanciar | `virtual-teams-setup/00-platform/02.roles/templates/TEMPLATE_BASE_*.md` |
 | ADR-001 (estrategia 4 repos) | `Release2.0/01-PM/ADR-001_estrategia_repositorios.md` |
-| Guía de worktrees | `virtual-teams-setup/00-platform/06.Documentos_soporte/GUIA_WORKTREES_MEMORY_SERVICE.md` |
+| Guía de worktrees | `virtual-teams-setup/00-platform/02.normativa/01.Protocols/VTT.PROTOCOL-WT-001_gobernanza_worktrees.md` |
 | Reglas de ubicación de docs | `memory-service-project/00-platform/06.Documentos_soporte/REGLAS_UBICACION_DOCUMENTOS.md` |
 | Skills | `virtual-teams-setup/00-platform/06.Skills/` |
 

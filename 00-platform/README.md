@@ -174,7 +174,7 @@ Los proyectos consumidores (memory-service-project, memory-service-backend, futu
 2. 02.normativa/01.Protocols/VTT.PROTOCOL-ASG-001_ciclo_asignacion_tarea.md
 3. 04.docs-soporte/guias-operativas/GUIA_ASIGNACION_TAREA_TL_EJECUTOR.md
 4. 04.docs-soporte/guias-operativas/GUIA_REVISION_TAREA_TL_REVIEWER.md
-5. 04.docs-soporte/guias-operativas/GUIA_WORKTREES_MEMORY_SERVICE.md
+5. 02.normativa/01.Protocols/VTT.PROTOCOL-WT-001_gobernanza_worktrees.md
 6. 02.normativa/01.Protocols/_pending-migration/PROCESO_CIERRE_TAREA_v2.md
 7. 02.normativa/01.Protocols/_pending-migration/PROCESO_ASIGNACION_TAREAS_v3.md
 ```

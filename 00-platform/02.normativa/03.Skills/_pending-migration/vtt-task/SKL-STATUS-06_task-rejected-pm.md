@@ -1,5 +1,9 @@
 # SKL-STATUS-06: Rechazar tarea (solo PM)
 
+> 🟤 **DEPRECADA (2026-05-19) — ver `VTT.SKILL-STATUS-006_task_rejected.md`** en `02.normativa/03.Skills/status/`.
+> Migración 1:1, contrato sin cambios.
+
+
 **Categoría:** VTT-STATUS  
 **Aplica a:** PM únicamente  
 **Tokens estimados:** ~70  

@@ -1,5 +1,9 @@
 # SKL-GIT-04: Crear PR con gh CLI
 
+> 🟤 **DEPRECADA (2026-05-19) — ver `VTT.SKILL-GIT-006_crear_pr.md`** en `02.normativa/03.Skills/git/`.
+> Migración 1:1, **renumeración a GIT-003..006** (GIT-001/002 ya estaban tomados por PROTOCOL-GOV-002). Contrato sin cambios.
+
+
 **Categoría:** GIT-OPS  
 **Aplica a:** Todos  
 **Tokens estimados:** ~70  

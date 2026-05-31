@@ -1,5 +1,9 @@
 # SKL-TASK-02: Generar ASSIGNMENT
 
+> 🟤 **DEPRECADA (2026-05-19) — ver `VTT.SKILL-TASK-002_generar_assignment.md`** en `02.normativa/03.Skills/task/`.
+> Migración 1:1, contrato sin cambios. Esta versión se conserva como referencia histórica.
+
+
 **Categoría:** VTT-TASK  
 **Aplica a:** TL  
 **Tokens estimados:** ~200  

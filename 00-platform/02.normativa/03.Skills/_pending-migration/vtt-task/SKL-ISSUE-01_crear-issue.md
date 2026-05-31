@@ -1,5 +1,9 @@
 # SKL-ISSUE-01: Crear issue/blocker en tarea
 
+> 🟤 **DEPRECADA (2026-05-19) — ver `VTT.SKILL-ISS-001_crear_issue.md`** en `02.normativa/03.Skills/iss/`.
+> Migración 1:1, contrato sin cambios.
+
+
 **Categoría:** VTT-ISSUE  
 **Aplica a:** Todos  
 **Tokens estimados:** ~90  

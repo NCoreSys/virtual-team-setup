@@ -56,9 +56,18 @@ ls VTT.<NIVEL>-<CAT>-*.md | sort
 
 **Categorías estándar (`<CAT>`):**
 
-`GOV, ASG, ISS, TRK, LD, EVD, DEV, MAN, EST, VEL, RET, AUTH, TASK, ATTACH, STATUS, COMMENT, PB, QA, DB, GIT, FILE`
+Ver el registro maestro en `02.normativa/00_REGISTRO_ACRONIMOS.md` §3.
 
-Si necesitas categoría nueva, agregar a `02.normativa/README.md` §4.2.
+> **Antes de elegir `<CAT>`:**
+> 1. Abrir `02.normativa/00_REGISTRO_ACRONIMOS.md`
+> 2. Confirmar que el acrónimo existe en §3.1 (Activas)
+> 3. Si no existe → seguir el procedimiento §5 del registro para agregarlo PRIMERO
+> 4. **NO uses un acrónimo no registrado** — el review lo rechazará
+
+Checklist de paso 2:
+- [ ] Verifiqué que `<CAT>` está en `00_REGISTRO_ACRONIMOS.md` §3.1 (Activas)
+- [ ] Si fue necesario, lo agregué siguiendo §5 del registro
+- [ ] Verifiqué que `<NNN>` siguiente disponible no choca con archivos existentes
 
 ### Paso 3 — Copiar y rellenar
 

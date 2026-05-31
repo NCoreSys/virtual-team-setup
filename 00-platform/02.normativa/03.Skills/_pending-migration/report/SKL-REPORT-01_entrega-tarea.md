@@ -1,5 +1,9 @@
 # SKL-REPORT-01: Reporte de entrega de tarea
 
+> 🟤 **DEPRECADA (2026-05-19) — ver `VTT.SKILL-REPORT-001_entrega_tarea.md`** en `02.normativa/03.Skills/report/`.
+> Migración 1:1, contrato sin cambios.
+
+
 **Categoría:** REPORT  
 **Aplica a:** BE, DB, FE, QA, DO, DL, UX, AR, SA  
 **Tokens estimados:** ~220  

@@ -2,7 +2,9 @@
 
 **Rol:** `backend_engineer`
 **Proyecto:** Memory Service (ID: `d0fc276d-e764-4a83-96e9-d65f086ed803`)
-**Versión:** 3.0 | **Fecha:** 2026-05-11
+**Versión:** 3.1 | **Fecha:** 2026-05-22
+**Reglas Nivel 0 aplicables:** `RULE-SCRIPT-001`, `RULE-TEMPLATE-001`, `RULE-AGENT-001`
+**Skills referenciadas:** `VTT.SKILL-PRECHECK-001` (Paso 0), `VTT.SKILL-REPORT-001` v1.1 (Paso 20 al cerrar)
 
 ---
 
@@ -58,9 +60,63 @@ Si encuentro algo ambiguo o faltante, creo un issue (bloqueo real) o un devlog e
 
 ---
 
+## §3.bis APERTURA DE SESIÓN — pre-condiciones obligatorias
+
+Al iniciar cualquier sesión de trabajo (primera tarea del día, o cuando el cwd no tiene `$VTT_SETUP` exportado):
+
+```bash
+# 1. Exportar $VTT_SETUP (Source of Truth de la normativa)
+export VTT_SETUP="c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform"
+
+# 2. Verificar que apunta a un repo válido
+test -d "$VTT_SETUP/02.normativa" || { echo "ABORT: \$VTT_SETUP inválido"; exit 2; }
+
+# 3. Posicionarte en tu worktree (RULE-AGENT-001)
+cd c:/Users/Martin/Documents/virtual-teams/memory-service/.vtt/worktrees/backend-be/
+```
+
+### Reglas Nivel 0 que aplican a TODO tu trabajo
+
+| Regla | Qué significa |
+|---|---|
+| `RULE-SCRIPT-001` | **Scripts de normativa SOLO desde `$VTT_SETUP`**. NUNCA copies un script al worktree. Si necesitás `VTT.SCRIPT-MAN-001`, invocalo con `python $VTT_SETUP/02.normativa/04.Scripts/manifest/VTT.SCRIPT-MAN-001_gen_task_manifest.py ...`. El script aborta con exit 2 si se ejecuta desde copia local. |
+| `RULE-TEMPLATE-001` | Templates de normativa se leen desde `$VTT_SETUP/03.templates/...`, no se hardcodean. Solo aplica si escribís scripts que generen documentos. |
+| `RULE-AGENT-001` | Worktree dedicado. Trabajás SIEMPRE en `.vtt/worktrees/backend-be/`. NUNCA `cd` a otro worktree. |
+
+### Paso 0 — Pre-check obligatorio antes de cada tarea
+
+Antes de iniciar **cualquier** tarea, ejecutar los 5 checks de `VTT.SKILL-PRECHECK-001`:
+
+```bash
+# Check 1 — $VTT_SETUP existe
+test -d "$VTT_SETUP/02.normativa" || { echo "ABORT"; exit 2; }
+
+# Check 2 — Scripts canónicos están en $VTT_SETUP
+test -f "$VTT_SETUP/02.normativa/04.Scripts/manifest/VTT.SCRIPT-MAN-001_gen_task_manifest.py" \
+  || { echo "ABORT: SCRIPT-MAN-001 ausente — git pull en virtual-teams-setup"; exit 2; }
+
+# Check 3 — NO hay copias locales prohibidas en tu worktree (RULE-SCRIPT-001)
+ROGUE=$(find . -maxdepth 4 -type f \( -name "VTT.SCRIPT-MAN-*.py" -o -name "VTT.SCRIPT-MSG-*.py" -o -name "VTT.SCRIPT-EXM-*.py" \) 2>/dev/null)
+test -z "$ROGUE" || { echo "ABORT (RULE-SCRIPT-001):\n$ROGUE"; exit 2; }
+
+# Check 4 — Estás en el worktree BE
+[[ "$(pwd)" == *"/.vtt/worktrees/backend-be"* ]] || { echo "ABORT: cwd no es worktree BE"; exit 2; }
+
+# Check 5 — $TOKEN válido (después de §5 AUTH — verificar GET /auth/me retorna 200)
+
+echo "✅ Pre-check OK — entorno listo"
+```
+
+Si CUALQUIER check falla → **DETENER la tarea**, postear comment al TL en VTT con el error, dejar la tarea en `task_on_hold`. NO intentes arreglar el entorno por tu cuenta — esa es la causa del drift que `VTT.SKILL-PRECHECK-001` busca evitar.
+
+Detalle completo de los 5 checks: `$VTT_SETUP/02.normativa/03.Skills/precheck/VTT.SKILL-PRECHECK-001_validar_entorno_inicio_tarea.md`
+
+---
+
 ## §4 WORKFLOW
 
 ```
+ 0. PRE-CHECK obligatorio              → VTT.SKILL-PRECHECK-001 (ver §3.bis)
  1. Obtener JWT                          → §5 AUTH
  2. Leer ASSIGNMENT + BRIEF
  3. Mostrar primera respuesta en pantalla:
@@ -600,15 +656,31 @@ curl -s -X PATCH "http://77.42.88.106:3000/api/tasks/MS-XXX/devlog/{entryId}/sta
 
 ### Reportar cumplimiento de CA
 ```bash
-curl -s -X POST "http://77.42.88.106:3000/api/tasks/MS-XXX/criteria/{criteriaId}/fulfill"   -H "Authorization: Bearer $TOKEN"   -H "Content-Type: application/json"   -d '{"status":"met","evidence":"PR #N o evidencia concreta","notes":"opcional"}'
+# CORRECTO: PATCH /criteria/<cid> (NO POST /fulfill — retorna 404)
+curl -s -X PATCH "http://77.42.88.106:3000/api/tasks/MS-XXX/criteria/{criteriaId}" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"status":"met","evidence":"PR #N o evidencia concreta","notes":"opcional"}'
 ```
 
 ### Endpoints adicionales (Modelo Dinámico V4)
-- `POST /api/tasks/MS-XXX/devlog-entries` — registrar entries
-- `PATCH /api/tasks/MS-XXX/devlog/{entryId}/status` — resolver entry
+- **`POST /api/tasks/MS-XXX/devlog`** — registrar 1 entry (singular, payload directo). Ver `VTT.SKILL-DEV-001`/`VTT.SKILL-DEV-002`
+- `POST /api/tasks/MS-XXX/devlog-entries` — registrar VARIAS en batch (plural, **requiere wrapper `{"entries":[...]}`** — sin wrapper retorna HTTP 400)
+- `PATCH /api/tasks/MS-XXX/devlog/{entryId}/status` — resolver entry (lifecycle estricto, ver `VTT.SKILL-DEV-004`)
+- `PATCH /api/tasks/MS-XXX/devlog/{entryId}` — editar contenido (ver `VTT.SKILL-DEV-003`)
+- `DELETE /api/tasks/MS-XXX/devlog/{entryId}` — eliminar entry (destructivo, ver `VTT.SKILL-DEV-005`)
 - `GET /api/tasks/MS-XXX/review-gate` — verificar gate
-- `POST /api/tasks/MS-XXX/criteria/{criteriaId}/fulfill` — cumplir CA
+- **`PATCH /api/tasks/MS-XXX/criteria/{criteriaId}`** — cumplir CA con `{status:"met", evidence:"..."}` (NO usar `POST /fulfill` — retorna 404)
 - `GET /api/tasks/MS-XXX/criteria` — listar CAs de la tarea
 - `POST /api/projects/d0fc276d-e764-4a83-96e9-d65f086ed803/trackable-items` — crear ADR/RF
 - `GET /api/projects/d0fc276d-e764-4a83-96e9-d65f086ed803/criteria-coverage` — cobertura CAs
+
+---
+
+## Changelog
+
+| Versión | Fecha | Cambios |
+|---|---|---|
+| 3.1 | 2026-05-22 | **OLA 1 cierre sub-sistema MSG.** (1) Header bumped con reglas Nivel 0 aplicables. (2) Nueva §3.bis APERTURA DE SESIÓN con `export VTT_SETUP`, las 3 reglas Nivel 0 (RULE-SCRIPT-001/RULE-TEMPLATE-001/RULE-AGENT-001) y Paso 0 Pre-check con 5 checks bash inline + ref a SKILL-PRECHECK-001. (3) §4 WORKFLOW agrega Paso 0 antes de obtener JWT. (4) **Fix endpoint fulfill CA**: `PATCH /criteria/<cid>` (NO `POST /fulfill` que retorna 404). (5) **Fix endpoint devlog**: documenta `/devlog` singular (1 entry) y `/devlog-entries` plural con wrapper `{entries:[]}`. (6) Cross-ref a skills DEV-001..005 (decision/observation/edit/lifecycle/delete). |
+| 3.0 | 2026-05-11 | Versión inicial 3.0 — operativo formal con §1-§12 + skills. |
 

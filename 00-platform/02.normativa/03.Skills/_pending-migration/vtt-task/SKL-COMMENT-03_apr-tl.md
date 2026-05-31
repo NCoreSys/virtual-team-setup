@@ -1,5 +1,9 @@
 # SKL-COMMENT-03: Comentario de aprobación APR-TL
 
+> 🟤 **DEPRECADA (2026-05-19) — ver `VTT.SKILL-COMMENT-003_apr_tl.md`** en `02.normativa/03.Skills/comment/`.
+> Migración 1:1, contrato sin cambios.
+
+
 **Categoría:** VTT-COMMENT  
 **Aplica a:** TL únicamente  
 **Tokens estimados:** ~85  

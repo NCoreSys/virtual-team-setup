@@ -1,5 +1,9 @@
 # SKL-MANIFEST-01 — Generar/Actualizar Task Manifest
 
+> 🟤 **DEPRECADA (2026-05-19) — ver `VTT.SKILL-MAN-001_task_manifest.md`** en `02.normativa/03.Skills/manifest/`.
+> Migración 1:1, contrato sin cambios.
+
+
 **Categoría:** MANIFEST
 **Aplica a:** Agente ejecutor (v1.0) + TL Reviewer (v1.5)
 **Versión:** 5.0

@@ -1,5 +1,9 @@
 # SKL-REPORT-02: Reporte ejecutivo PJM al PM
 
+> 🟤 **DEPRECADA (2026-05-19) — ver `VTT.SKILL-REPORT-002_reporte_pjm.md`** en `02.normativa/03.Skills/report/`.
+> Migración 1:1, contrato sin cambios.
+
+
 **Categoría:** REPORT  
 **Aplica a:** PJM  
 **Tokens estimados:** ~115  

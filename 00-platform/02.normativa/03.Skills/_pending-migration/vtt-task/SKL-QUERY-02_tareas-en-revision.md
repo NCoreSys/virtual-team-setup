@@ -1,5 +1,9 @@
 # SKL-QUERY-02: Obtener tareas en revisión del proyecto
 
+> 🟤 **DEPRECADA (2026-05-19) — ver `VTT.SKILL-QUERY-002_tareas_en_revision.md`** en `02.normativa/03.Skills/query/`.
+> Migración 1:1, contrato sin cambios.
+
+
 **Categoría:** VTT-QUERY  
 **Aplica a:** TL, PM  
 **Tokens estimados:** ~60  

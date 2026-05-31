@@ -101,7 +101,7 @@ Los operativos y scripts referencian:
 |---|---|---|---|
 | README del sistema | `07.Normativa/00.Rules/README.md` | Manifiesto + modelo de 8 niveles + alineación doc_sec | ✅ Activo (v1.0) |
 | Schema validador | `07.Normativa/00.Rules/rules_schema.json` | JSON Schema para validar `rules_catalog.json` | ✅ Activo (v1.0) |
-| Catálogo de reglas | `07.Normativa/00.Rules/rules_catalog.json` | 43 reglas iniciales (ABAC doc_sec_02 + AGENT_RULES + VTT-operacionales) | ✅ Activo (v1.0) |
+| Catálogo de reglas | `02.normativa/00.Rules/rules_catalog.json` | 49 reglas activas (ABAC doc_sec_02 + AGENT_RULES + VTT-operacionales + 2 nuevas OLA 1 MSG: `RULE-SCRIPT-001` y `RULE-TEMPLATE-001`) | ✅ v1.0 — actualizado 2026-05-22 |
 | Catálogo de capabilities | `07.Normativa/00.Rules/capabilities_catalog.json` | 30 capabilities base de doc_sec_02 | ✅ Activo |
 | Catálogo de roles | `07.Normativa/00.Rules/roles_catalog.json` | 9 roles + matriz RBAC completa de doc_sec_04 §4.3 | ✅ Activo |
 | Motor de filtros | `07.Normativa/00.Rules/query_rules.py` | Resolución jerárquica (sin BD aún) — `--validate`, `--list`, `--simulate-task`, `--context-json` | ✅ Funcional |
@@ -119,12 +119,19 @@ Los operativos y scripts referencian:
 
 | Métrica | Valor |
 |---|---|
-| Reglas activas | 43 |
+| Reglas activas | 49 |
 | Niveles de scope | 8 (Platform/Org/Workspace/Project/Phase/Task/Role/Agent) |
 | Tipos de actor | 4 (Human/Agent/Service_Account/External) |
 | Markers operativos | 7 (mandatory, sensitive, human_only, sod_enforcement, blocks_review_gate, auto_detect, agent_default_forbidden) |
-| Severidades | critical (12), high (18), medium (11), low (0) |
-| Auto-detect habilitado | 19 reglas |
+| Severidades | critical (11), high (23), medium (11), low (4) |
+| Auto-detect habilitado | 24 reglas |
+
+### Reglas destacadas — OLA 1 cierre sub-sistema MSG (2026-05-22)
+
+| Regla | Scope | Severity | Propósito |
+|---|---|---|---|
+| `RULE-SCRIPT-001` | PLATFORM | high | Scripts de normativa SOLO se invocan desde `$VTT_SETUP/02.normativa/04.Scripts/` — prohibido copiar al worktree. Origen: drift `gen_mensaje.py` 5 copias |
+| `RULE-TEMPLATE-001` | PLATFORM | high | Templates de `$VTT_SETUP/03.templates/` se leen formalmente desde disco — prohibido hardcodear formato en scripts (f-strings con markdown). Origen: drift MS-290 vs MS-333 |
 
 ### Mejoras propuestas relacionadas
 
@@ -142,8 +149,19 @@ Los operativos y scripts referencian:
 | Código | Título | Path canónico | Estado |
 |---|---|---|---|
 | `VTT.PROTOCOL-GOV-001` | Guía Normativa VTT (4 niveles) | `07.Normativa/00_GUIA_NORMATIVA_VTT.md` | ✅ Activo |
-| `VTT.PROTOCOL-ASG-001` | Ciclo de asignación y cierre de tarea | `07.Normativa/01.Protocols/VTT.PROTOCOL-ASG-001_ciclo_asignacion_tarea.md` | ✅ Activo (2026-05-13) |
+| `VTT.PROTOCOL-GOV-002` | Gobierno editorial de `virtual-teams-setup` (Fase de Desarrollo) | `02.normativa/01.Protocols/VTT.PROTOCOL-GOV-002_gobierno_edicion_vtt_setup_fase_desarrollo.md` | ✅ Nuevo (2026-05-17) |
+| `VTT.PROTOCOL-ASG-001` | Ciclo de asignación y cierre de tarea | `02.normativa/01.Protocols/VTT.PROTOCOL-ASG-001_ciclo_asignacion_tarea.md` | ✅ v1.5.0 (2026-05-22) — OLA 1 cierre MSG + §5.5.9 bifurca rechazo en feedback simple vs bug con tarea hija (invoca WORKFLOW-ASG-001.030) |
+| `VTT.PROTOCOL-MAN-001` | Gobernanza del Manifest (Task + Execution) | `02.normativa/01.Protocols/VTT.PROTOCOL-MAN-001_gobernanza_manifest.md` | ✅ Nuevo (2026-05-17) |
+| `VTT.PROTOCOL-WT-001` | Gobernanza de Worktrees por rol | `02.normativa/01.Protocols/VTT.PROTOCOL-WT-001_gobernanza_worktrees.md` | ✅ Nuevo (2026-05-18) v1.0.1 |
+| `VTT.PROTOCOL-DEV-001` | **Ciclo de vida del Devlog Entry** (creación → Review Gate → review → cierre de sprint) | `02.normativa/01.Protocols/VTT.PROTOCOL-DEV-001_ciclo_devlog_entry.md` | ✅ Nuevo (2026-05-22) v1.0.0 — origen feature DEVLOG_LIFECYCLE; orquesta DEV-001..005 |
 | `VTT.PROTOCOL-ISS-001` | Proceso de Issue y on_hold | `07.Normativa/01.Protocols/VTT.PROTOCOL-ISS-001_*.md` | ⚪ Pendiente |
+
+### Meta-índices (gobernanza de nomenclatura + filesystem)
+
+| Documento | Path canónico | Propósito | Estado |
+|---|---|---|---|
+| `00_REGISTRO_ACRONIMOS.md` | `02.normativa/00_REGISTRO_ACRONIMOS.md` | Source of Truth de acrónimos `<CAT>` + convenciones de branch Git §3.bis | ✅ Activo (2026-05-18) v1.2 |
+| `00_CONVENCIONES_FILESYSTEM.md` | `02.normativa/00_CONVENCIONES_FILESYSTEM.md` | Estructura obligatoria de carpetas en todo proyecto VTT (`knowledge/agent-tasks/...`, `task-manifests/`, etc.) + variable `$VTT_SETUP` | ✅ Nuevo (2026-05-18) v1.0 |
 
 ### Documentos pre-VTT.PROTOCOL (legacy con función de Protocol)
 
@@ -179,17 +197,38 @@ Los operativos y scripts referencian:
 | `VTT.WORKFLOW-ASG-001.011` | Analizar Issue y decidir acción | `07.Normativa/02.Workflows/` | ⚪ Pendiente — §5.4.3 |
 | `VTT.WORKFLOW-ASG-001.012` | Code review técnico | `07.Normativa/02.Workflows/` | ⚪ Pendiente — §5.5.6 |
 | `VTT.WORKFLOW-ASG-001.013` | Aplicar Modelo Dinámico al cierre | `07.Normativa/02.Workflows/` | ⚪ Pendiente — §5.5.8 |
-| `VTT.WORKFLOW-ASG-001.014` | Actualizar manifest a v1.5 | `07.Normativa/02.Workflows/` | ⚪ Pendiente — §5.5.11 |
+| `VTT.WORKFLOW-ASG-001.014` | Actualizar manifest a v1.5 | DEPRECADO — reemplazado por `VTT.WORKFLOW-MAN-001.004` | 🟤 Deprecado (2026-05-17) |
 | `VTT.WORKFLOW-ASG-001.015` | Firma de stage development | `07.Normativa/02.Workflows/` | ⚪ Pendiente — §5.6.2 |
 | `VTT.WORKFLOW-ASG-001.016` | Cierre de sprint CLOSURE | `07.Normativa/02.Workflows/` | ⚪ Pendiente — §5.6.5 |
 | `VTT.WORKFLOW-ASG-001.017` | Revisar Living Documents impactados | `07.Normativa/02.Workflows/` | ⚪ Pendiente — §5.3.5 |
 | `VTT.WORKFLOW-ASG-001.018` | Registrar Document Impacts | `07.Normativa/02.Workflows/` | ⚪ Pendiente — §5.3.6 |
 | `VTT.WORKFLOW-ASG-001.019` | Ejecutar Hardcode Check | `07.Normativa/02.Workflows/` | ⚪ Pendiente — §5.3.7 |
 | `VTT.WORKFLOW-ASG-001.020` | Verificar worktree por rol del agente | `07.Normativa/02.Workflows/` | ⚪ Pendiente — §5.2.10 |
-| `VTT.WORKFLOW-ASG-001.021` | Generar execution_manifest.json | `07.Normativa/02.Workflows/` | ⚪ Pendiente — §5.2.11 |
-| `VTT.WORKFLOW-ASG-001.022` | Agente lee execution_manifest y verifica allowedPaths | `07.Normativa/02.Workflows/` | ⚪ Pendiente — §5.3.2.b |
+| `VTT.WORKFLOW-ASG-001.021` | Generar execution_manifest.json | DEPRECADO — reemplazado por `VTT.WORKFLOW-MAN-001.001` | 🟤 Deprecado (2026-05-17) |
+| `VTT.WORKFLOW-ASG-001.022` | Agente lee execution_manifest y verifica allowedPaths | DEPRECADO — reemplazado por `VTT.WORKFLOW-MAN-001.002` | 🟤 Deprecado (2026-05-17) |
 | `VTT.WORKFLOW-ASG-001.023` | Verificar disciplina de worktree (TL Reviewer Paso 4b) | `07.Normativa/02.Workflows/` | ⚪ Pendiente — §5.5.5.b |
 | `VTT.WORKFLOW-ASG-001.024` | Cleanup branch local post-aprobación (Paso 9) | `07.Normativa/02.Workflows/` | ⚪ Pendiente — §5.5.18 |
+| `VTT.WORKFLOW-ASG-001.030` | **Manejo de Bugs detectados en Code Review** — crear tarea hija + padre on_hold + ciclo bug-fix-release | `02.normativa/02.Workflows/VTT.WORKFLOW-ASG-001.030_manejo_bugs_en_review.md` | ✅ v1.0.0 (2026-05-22) — invocado por PROTOCOL-ASG-001 §5.5.9. Origen: `GUIA_MANEJO_BUGS_TL.md` legacy memory-service. Pendiente promover `crear_tarea_bug.py` → `VTT.SCRIPT-ASG-001` |
+
+### Workflows de PROTOCOL-MAN-001 (Gobernanza del Manifest)
+
+| Código | Título | Path canónico | Estado |
+|---|---|---|---|
+| `VTT.WORKFLOW-MAN-001.001` | Generar Execution Manifest (TL al asignar) | `02.normativa/02.Workflows/VTT.WORKFLOW-MAN-001.001_generar_execution_manifest.md` | ✅ Nuevo (2026-05-17) — invocado por PROTOCOL-MAN-001 §5.1.2 (y PROTOCOL-ASG-001 §5.2.11) |
+| `VTT.WORKFLOW-MAN-001.002` | Leer Execution Manifest (agente al iniciar) | `02.normativa/02.Workflows/VTT.WORKFLOW-MAN-001.002_leer_execution_manifest.md` | ✅ Nuevo (2026-05-17) — invocado por PROTOCOL-MAN-001 §5.2.1 (y PROTOCOL-ASG-001 §5.3.2.b) |
+| `VTT.WORKFLOW-MAN-001.003` | Generar Task Manifest v1.0 (agente al cerrar) | `02.normativa/02.Workflows/VTT.WORKFLOW-MAN-001.003_generar_task_manifest_v10.md` | ✅ Activo v1.1.0 (2026-05-18) — Paso 12 commit del manifest al PR. Invocado por PROTOCOL-MAN-001 §5.3.2 |
+| `VTT.WORKFLOW-MAN-001.004` | Actualizar Task Manifest v1.5 (TL al cerrar review) | `02.normativa/02.Workflows/VTT.WORKFLOW-MAN-001.004_actualizar_task_manifest_v15.md` | ✅ Activo v1.1.0 (2026-05-18) — Pasos 12-14 branch TL + PR. Invocado por PROTOCOL-MAN-001 §5.4.3 |
+| `VTT.WORKFLOW-MAN-001.005` | Actualizar Task Manifest v2.0 (PM aprobación terminal) | reservado | ⚪ Pendiente — PROTOCOL-MAN-001 §5.5 futuro |
+
+### Workflows de PROTOCOL-WT-001 (Gobernanza de Worktrees)
+
+| Código | Título | Path canónico | Estado |
+|---|---|---|---|
+| `VTT.WORKFLOW-WT-001.001` | Setup inicial (one-time) — N worktrees + workspaces | `02.normativa/02.Workflows/VTT.WORKFLOW-WT-001.001_setup_inicial.md` | ✅ Nuevo (2026-05-18) — invocado por PROTOCOL-WT-001 §5.1 |
+| `VTT.WORKFLOW-WT-001.002` | Apertura de sesión diaria | `02.normativa/02.Workflows/VTT.WORKFLOW-WT-001.002_apertura_sesion_diaria.md` | ✅ Nuevo (2026-05-18) — invocado por PROTOCOL-WT-001 §5.2 |
+| `VTT.WORKFLOW-WT-001.003` | Agregar worktree de rol nuevo (bajo demanda) | `02.normativa/02.Workflows/VTT.WORKFLOW-WT-001.003_agregar_rol.md` | ✅ Nuevo (2026-05-18) — invocado por PROTOCOL-WT-001 §5.3 |
+| `VTT.WORKFLOW-WT-001.004` | Casos especiales (multi-repo / branch dependiente / pausar / recovery) | `02.normativa/02.Workflows/VTT.WORKFLOW-WT-001.004_casos_especiales.md` | ✅ Nuevo (2026-05-18) — invocado por PROTOCOL-WT-001 §5.4 |
+| `VTT.WORKFLOW-WT-001.005` | Cleanup final del proyecto | `02.normativa/02.Workflows/VTT.WORKFLOW-WT-001.005_cleanup_final.md` | ✅ Nuevo (2026-05-18) — invocado por PROTOCOL-WT-001 §5.5 |
 
 > **Nota:** los Workflows nacen cuando se genera su Protocol padre. No hay Workflows huérfanos.
 
@@ -207,92 +246,112 @@ $VTT_NORMATIVA/06.Skills/  (path actual — se moverá a 07.Normativa/03.Skills/
 
 ### Catálogo completo
 
+#### Categoría MAN (Manifest) — versionadas VTT.SKILL-*
+
+| Código | Título | Path | Estado |
+|---|---|---|---|
+| `VTT.SKILL-MAN-001` | Task Manifest (generar/validar/subir) — v1.0 agente y v1.5 TL | `02.normativa/03.Skills/manifest/VTT.SKILL-MAN-001_task_manifest.md` | ✅ Nuevo (2026-05-17) |
+| `VTT.SKILL-EXM-001` | Execution Manifest (generar/leer) | `02.normativa/03.Skills/manifest/VTT.SKILL-EXM-001_execution_manifest.md` | ✅ Nuevo (2026-05-17) |
+
+#### Categoría WT (Worktree) — versionadas VTT.SKILL-*
+
+| Código | Título | Path | Estado |
+|---|---|---|---|
+| `VTT.SKILL-WT-001` | Operaciones de worktree (add/remove/list/verify_status/close_branch/archive) | `02.normativa/03.Skills/worktree/VTT.SKILL-WT-001_operaciones_worktree.md` | ✅ Nuevo (2026-05-18) |
+| `VTT.SKILL-WT-002` | Generar workspace VSCode | `02.normativa/03.Skills/worktree/VTT.SKILL-WT-002_workspace_vscode.md` | ✅ Nuevo (2026-05-18) |
+
 #### Categoría AUTH
 
 | Código | Título | Path | Estado |
 |---|---|---|---|
-| `SKL-AUTH-01` | Obtener JWT Token | `06.Skills/auth/SKL-AUTH-01_obtener-jwt.md` | ✅ Activo |
+| `VTT.SKILL-AUTH-001` | Obtener JWT de sesión | `02.normativa/03.Skills/auth/VTT.SKILL-AUTH-001_obtener_jwt.md` | ✅ Nuevo (2026-05-19) |
 
-#### Categoría VTT-TASK (gestión de tareas)
-
-| Código | Título | Path | Estado |
-|---|---|---|---|
-| `SKL-TASK-01` | Crear tarea en VTT | `06.Skills/vtt-task/SKL-TASK-01_crear-tarea.md` | ✅ Activo |
-| `SKL-TASK-02` | Generar ASSIGNMENT | `06.Skills/vtt-task/SKL-TASK-02_generar-assignment.md` | ✅ Activo |
-| `SKL-TASK-03` | Asignar tarea a agente | `06.Skills/vtt-task/SKL-TASK-03_asignar-tarea.md` | ✅ Activo |
-| `SKL-TASK-04` | Mensaje al agente | `06.Skills/vtt-task/SKL-TASK-04_mensaje-agente.md` | ✅ Activo |
-| `SKL-TASK-05` | Review de tarea | `06.Skills/vtt-task/SKL-TASK-05_review-tarea.md` | ✅ Activo |
-
-#### Categoría VTT-STATUS
+#### Categoría TASK (gestión de tareas)
 
 | Código | Título | Path | Estado |
 |---|---|---|---|
-| `SKL-STATUS-01` | Mover a task_in_progress | `06.Skills/vtt-task/SKL-STATUS-01_task-in-progress.md` | ✅ Activo |
-| `SKL-STATUS-02` | Mover a task_in_review | `06.Skills/vtt-task/SKL-STATUS-02_task-in-review.md` | ✅ Activo |
-| `SKL-STATUS-03` | Mover a task_completed (TL) | `06.Skills/vtt-task/SKL-STATUS-03_task-completed-tl.md` | ✅ Activo |
-| `SKL-STATUS-04` | Mover a task_approved (PM) | `06.Skills/vtt-task/SKL-STATUS-04_task-approved-pm.md` | ✅ Activo |
-| `SKL-STATUS-05` | Mover a task_on_hold | `06.Skills/vtt-task/SKL-STATUS-05_task-on-hold.md` | ✅ Activo |
-| `SKL-STATUS-06` | Mover a task_rejected | `06.Skills/vtt-task/SKL-STATUS-06_task-rejected-pm.md` | ✅ Activo |
+| `VTT.SKILL-TASK-001` | Crear tarea en VTT | `02.normativa/03.Skills/task/VTT.SKILL-TASK-001_crear_tarea.md` | ✅ Nuevo (2026-05-19) |
+| `VTT.SKILL-TASK-002` | Generar ASSIGNMENT | `02.normativa/03.Skills/task/VTT.SKILL-TASK-002_generar_assignment.md` | ✅ Nuevo (2026-05-19) |
+| `VTT.SKILL-TASK-003` | Asignar tarea a agente | `02.normativa/03.Skills/task/VTT.SKILL-TASK-003_asignar_tarea.md` | ✅ Nuevo (2026-05-19) |
+| `VTT.SKILL-TASK-004` | Mensaje al agente | `02.normativa/03.Skills/task/VTT.SKILL-TASK-004_mensaje_agente.md` | ✅ Nuevo (2026-05-19) |
+| `VTT.SKILL-TASK-005` | Review de tarea | `02.normativa/03.Skills/task/VTT.SKILL-TASK-005_review_tarea.md` | ✅ Nuevo (2026-05-19) |
 
-#### Categoría VTT-QUERY
-
-| Código | Título | Path | Estado |
-|---|---|---|---|
-| `SKL-QUERY-01` | Mis tareas asignadas | `06.Skills/vtt-task/SKL-QUERY-01_mis-tareas.md` | ✅ Activo |
-| `SKL-QUERY-02` | Tareas en revisión | `06.Skills/vtt-task/SKL-QUERY-02_tareas-en-revision.md` | ✅ Activo |
-| `SKL-QUERY-03` | Detalle de tarea | `06.Skills/vtt-task/SKL-QUERY-03_detalle-tarea.md` | ✅ Activo |
-| `SKL-QUERY-04` | Avance de fases | `06.Skills/vtt-task/SKL-QUERY-04_avance-fases.md` | ✅ Activo |
-| `SKL-QUERY-05` | Estado de fase asignable | `06.Skills/vtt-task/SKL-QUERY-05_estado-fase-asignable.md` | ✅ Activo |
-
-#### Categoría VTT-COMMENT
+#### Categoría STATUS (transiciones de estado)
 
 | Código | Título | Path | Estado |
 |---|---|---|---|
-| `SKL-COMMENT-01` | Comment genérico | `06.Skills/vtt-task/SKL-COMMENT-01_comentario-generico.md` | ✅ Activo |
-| `SKL-COMMENT-02` | APR-PM | `06.Skills/vtt-task/SKL-COMMENT-02_apr-pm.md` | ✅ Activo |
-| `SKL-COMMENT-03` | APR-TL | `06.Skills/vtt-task/SKL-COMMENT-03_apr-tl.md` | ✅ Activo |
+| `VTT.SKILL-STATUS-001` | Mover a `task_in_progress` | `02.normativa/03.Skills/status/VTT.SKILL-STATUS-001_task_in_progress.md` | ✅ Nuevo (2026-05-19) |
+| `VTT.SKILL-STATUS-002` | Mover a `task_in_review` | `02.normativa/03.Skills/status/VTT.SKILL-STATUS-002_task_in_review.md` | ✅ Nuevo (2026-05-19) |
+| `VTT.SKILL-STATUS-003` | Mover a `task_completed` (TL) | `02.normativa/03.Skills/status/VTT.SKILL-STATUS-003_task_completed.md` | ✅ Nuevo (2026-05-19) |
+| `VTT.SKILL-STATUS-004` | Mover a `task_approved` (PM) | `02.normativa/03.Skills/status/VTT.SKILL-STATUS-004_task_approved.md` | ✅ Nuevo (2026-05-19) |
+| `VTT.SKILL-STATUS-005` | Mover a `task_on_hold` (endpoint dedicado) | `02.normativa/03.Skills/status/VTT.SKILL-STATUS-005_task_on_hold.md` | ✅ Nuevo (2026-05-19) |
+| `VTT.SKILL-STATUS-006` | Mover a `task_rejected` (PM) | `02.normativa/03.Skills/status/VTT.SKILL-STATUS-006_task_rejected.md` | ✅ Nuevo (2026-05-19) |
 
-#### Categoría VTT-DEVLOG
-
-| Código | Título | Path | Estado |
-|---|---|---|---|
-| `SKL-DEVLOG-01` | Registrar decision | `06.Skills/vtt-task/SKL-DEVLOG-01_decision.md` | ✅ Activo |
-| `SKL-DEVLOG-02` | Registrar observación | `06.Skills/vtt-task/SKL-DEVLOG-02_observacion.md` | ✅ Activo |
-
-#### Categoría VTT-ISSUE
+#### Categoría QUERY (consultas de lectura)
 
 | Código | Título | Path | Estado |
 |---|---|---|---|
-| `SKL-ISSUE-01` | Crear issue | `06.Skills/vtt-task/SKL-ISSUE-01_crear-issue.md` | ✅ Activo |
+| `VTT.SKILL-QUERY-001` | Mis tareas asignadas | `02.normativa/03.Skills/query/VTT.SKILL-QUERY-001_mis_tareas.md` | ✅ Nuevo (2026-05-19) |
+| `VTT.SKILL-QUERY-002` | Tareas en revisión del proyecto | `02.normativa/03.Skills/query/VTT.SKILL-QUERY-002_tareas_en_revision.md` | ✅ Nuevo (2026-05-19) |
+| `VTT.SKILL-QUERY-003` | Detalle completo de una tarea (6 sub-opciones) | `02.normativa/03.Skills/query/VTT.SKILL-QUERY-003_detalle_tarea.md` | ✅ Nuevo (2026-05-19) |
+| `VTT.SKILL-QUERY-004` | Avance por fases del proyecto | `02.normativa/03.Skills/query/VTT.SKILL-QUERY-004_avance_fases.md` | ✅ Nuevo (2026-05-19) |
+| `VTT.SKILL-QUERY-005` | Estado de fase: qué tareas son asignables | `02.normativa/03.Skills/query/VTT.SKILL-QUERY-005_estado_fase_asignable.md` | ✅ Nuevo (2026-05-19) |
 
-#### Categoría VTT-ATTACH
-
-| Código | Título | Path | Estado |
-|---|---|---|---|
-| `SKL-ATTACH-01` | Subir archivo | `06.Skills/vtt-attach/SKL-ATTACH-01_subir-archivo.md` | ✅ Activo |
-| `SKL-ATTACH-02` | Subir devlog | `06.Skills/vtt-attach/SKL-ATTACH-02_subir-devlog.md` | ✅ Activo |
-
-#### Categoría GIT-OPS
+#### Categoría COMMENT
 
 | Código | Título | Path | Estado |
 |---|---|---|---|
-| `SKL-GIT-01` | Crear branch | `06.Skills/git-ops/SKL-GIT-01_crear-branch.md` | ✅ Activo |
-| `SKL-GIT-02` | Rebase main | `06.Skills/git-ops/SKL-GIT-02_rebase-main.md` | ✅ Activo |
-| `SKL-GIT-03` | Commit formato | `06.Skills/git-ops/SKL-GIT-03_commit-formato.md` | ✅ Activo |
-| `SKL-GIT-04` | Crear PR | `06.Skills/git-ops/SKL-GIT-04_crear-pr.md` | ✅ Activo |
+| `VTT.SKILL-COMMENT-001` | Postear comentario genérico | `02.normativa/03.Skills/comment/VTT.SKILL-COMMENT-001_comentario_generico.md` | ✅ Nuevo (2026-05-19) |
+| `VTT.SKILL-COMMENT-002` | APR-PM (aprobación funcional) | `02.normativa/03.Skills/comment/VTT.SKILL-COMMENT-002_apr_pm.md` | ✅ Nuevo (2026-05-19) |
+| `VTT.SKILL-COMMENT-003` | APR-TL (aprobación técnica) | `02.normativa/03.Skills/comment/VTT.SKILL-COMMENT-003_apr_tl.md` | ✅ Nuevo (2026-05-19) |
+
+#### Categoría DEV (Devlog entries)
+
+| Código | Título | Path | Estado |
+|---|---|---|---|
+| `VTT.SKILL-DEV-001` | Registrar decisión en devlog | `02.normativa/03.Skills/dev/VTT.SKILL-DEV-001_decision.md` | ✅ v1.1 (2026-05-22) — fixes BE: wrapper entries[], description obligatorio |
+| `VTT.SKILL-DEV-002` | Registrar observación en devlog | `02.normativa/03.Skills/dev/VTT.SKILL-DEV-002_observacion.md` | ✅ v1.1 (2026-05-20) — mismo fix de wrapper |
+| `VTT.SKILL-DEV-003` | **Editar campos genéricos de un devlog entry** (PATCH `/devlog/:entryId`) | `02.normativa/03.Skills/dev/VTT.SKILL-DEV-003_edit_devlog.md` | ✅ v1.0 (2026-05-22) — spec del BE |
+| `VTT.SKILL-DEV-004` | **Lifecycle del devlog entry** (PATCH `/devlog/:entryId/status` — estados finales irreversibles) | `02.normativa/03.Skills/dev/VTT.SKILL-DEV-004_lifecycle_devlog.md` | ✅ v1.0 (2026-05-22) — spec del BE |
+| `VTT.SKILL-DEV-005` | **Eliminar devlog entry** (DELETE `/devlog/:entryId` — destructivo, irreversible, sin soft-delete ni audit log) | `02.normativa/03.Skills/dev/VTT.SKILL-DEV-005_delete_devlog.md` | ✅ v1.0 (2026-05-22) — spec del BE; incluye receta batch |
+
+#### Categoría ISS (Issues)
+
+| Código | Título | Path | Estado |
+|---|---|---|---|
+| `VTT.SKILL-ISS-001` | Crear issue/blocker en tarea | `02.normativa/03.Skills/iss/VTT.SKILL-ISS-001_crear_issue.md` | ✅ Nuevo (2026-05-19) |
+
+#### Categoría ATTACH
+
+| Código | Título | Path | Estado |
+|---|---|---|---|
+| `VTT.SKILL-ATTACH-001` | Subir archivo (skill base de attachments) | `02.normativa/03.Skills/attach/VTT.SKILL-ATTACH-001_subir_archivo.md` | ✅ Nuevo (2026-05-19) |
+| `VTT.SKILL-ATTACH-002` | Subir devlog del cierre | `02.normativa/03.Skills/attach/VTT.SKILL-ATTACH-002_subir_devlog.md` | ✅ Nuevo (2026-05-19) |
+
+#### Categoría GIT
+
+| Código | Título | Path | Estado |
+|---|---|---|---|
+| `VTT.SKILL-GIT-001` | Crear branch estructurado verificable contra patrón (gobernanza editorial) | `02.normativa/03.Skills/git/VTT.SKILL-GIT-001_crear_branch_estructurado.md` | ✅ Activo (2026-05-17) |
+| `VTT.SKILL-GIT-002` | Commit estructurado verificable contra schema (gobernanza editorial) | `02.normativa/03.Skills/git/VTT.SKILL-GIT-002_commit_estructurado.md` | ✅ Activo (2026-05-17) |
+| `VTT.SKILL-GIT-003` | Crear branch de tarea `feature/<TASK_ID>` (operación PROTOCOL-ASG) | `02.normativa/03.Skills/git/VTT.SKILL-GIT-003_crear_branch_tarea.md` | ✅ Nuevo (2026-05-19) |
+| `VTT.SKILL-GIT-004` | Rebase con main antes de PR | `02.normativa/03.Skills/git/VTT.SKILL-GIT-004_rebase_main.md` | ✅ Nuevo (2026-05-19) |
+| `VTT.SKILL-GIT-005` | Commit con formato del proyecto | `02.normativa/03.Skills/git/VTT.SKILL-GIT-005_commit_tarea.md` | ✅ Nuevo (2026-05-19) |
+| `VTT.SKILL-GIT-006` | Crear PR con gh CLI | `02.normativa/03.Skills/git/VTT.SKILL-GIT-006_crear_pr.md` | ✅ Nuevo (2026-05-19) |
 
 #### Categoría REPORT
 
 | Código | Título | Path | Estado |
 |---|---|---|---|
-| `SKL-REPORT-01` | Reporte de entrega | `06.Skills/report/SKL-REPORT-01_entrega-tarea.md` | ✅ Activo |
-| `SKL-REPORT-02` | Reporte ejecutivo PJM | `06.Skills/report/SKL-REPORT-02_reporte-pjm.md` | ✅ Activo |
+| `VTT.SKILL-REPORT-001` | Reporte de entrega de tarea (SKL-REPORT-01) | `02.normativa/03.Skills/report/VTT.SKILL-REPORT-001_entrega_tarea.md` | ✅ v1.1 (2026-05-22) — OLA 1 cierre MSG: R6 path nuevo `knowledge/task-manifests/` + R7 render obligatorio en pantalla (políticas I2/I3 del template v2.1) |
+| `VTT.SKILL-PRECHECK-001` | **Validar entorno antes de iniciar tarea** (5 checks: $VTT_SETUP, scripts canónicos, NO copias locales, worktree, $TOKEN) | `02.normativa/03.Skills/precheck/VTT.SKILL-PRECHECK-001_validar_entorno_inicio_tarea.md` | ✅ v1.0 (2026-05-22) — invocada como Paso 0 obligatorio antes de tocar código |
+| `VTT.SKILL-REPORT-002` | Reporte ejecutivo PJM al PM | `02.normativa/03.Skills/report/VTT.SKILL-REPORT-002_reporte_pjm.md` | ✅ Nuevo (2026-05-19) |
 
-#### Categoría FILE-STRUCTURE
+#### Categoría FILE
 
 | Código | Título | Path | Estado |
 |---|---|---|---|
-| `SKL-STRUCTURE-01` | Ubicar entregable | `06.Skills/file-structure/SKL-STRUCTURE-01_ubicar-entregable.md` | ✅ Activo |
+| `VTT.SKILL-FILE-001` | Ubicar entregable en estructura del proyecto | `02.normativa/03.Skills/file/VTT.SKILL-FILE-001_ubicar_entregable.md` | ✅ Nuevo (2026-05-19) |
 
 ### Skills nuevas (solo en memory-service-project — pendientes de migrar a VTT setup)
 
@@ -316,7 +375,16 @@ $VTT_NORMATIVA/06.Skills/  (path actual — se moverá a 07.Normativa/03.Skills/
 
 | Código | Título | Path canónico | Estado |
 |---|---|---|---|
-| `VTT.SCRIPT-*` | Scripts ejecutables | `07.Normativa/04.Scripts/` | ⚪ Carpeta vacía — pendiente de generar al ejecutar Protocols |
+| `VTT.SCRIPT-GIT-001` | Validar branch y mensaje de commit contra config de gobernanza | `02.normativa/04.Scripts/git/VTT.SCRIPT-GIT-001_validate_branch_and_commit.py` | ✅ Nuevo (2026-05-17) |
+| `VTT.SCRIPT-MAN-001` | `gen_task_manifest.py` — Task Manifest schema v1.2 (v1.0 agente y v1.5 TL) | `02.normativa/04.Scripts/manifest/VTT.SCRIPT-MAN-001_gen_task_manifest.py` | ✅ v1.3 (2026-05-18) + enforcement RULE-SCRIPT-001 agregado 2026-05-22 (aborta si se ejecuta desde copia local) |
+| `VTT.SCRIPT-MSG-001` | `gen_mensaje.py` refactorizado — Generador del mensaje de asignación, lee template formalmente, 3 modos (`--post` / `--output` / `--validate`) | `02.normativa/04.Scripts/msg/VTT.SCRIPT-MSG-001_gen_mensaje.py` | ✅ v1.0 (2026-05-22) — refactor MS-328. Aplica RULE-SCRIPT-001 (enforcement runtime) y RULE-TEMPLATE-001 (lectura formal). Fixes: regex non-greedy + FP B5 (PM 2026-05-22) |
+| `VTT.SCRIPT-ASG-001` | `crear_tarea_bug.py` — Automatiza pasos 4a-4i del WORKFLOW-ASG-001.030 (crear tarea hija de bug + asignar agente + subir ASSIGNMENT + CAs + bug entry en padre + dependency + on_hold + mensaje) | `02.normativa/04.Scripts/asg/VTT.SCRIPT-ASG-001_crear_tarea_bug.py` | ✅ v1.0 (2026-05-22) — promovido desde memory-service worktree. Aplica RULE-SCRIPT-001 (enforcement runtime). Deuda pendiente: modo `--validate`, lectura formal TEMPLATE_ASSIGNMENT |
+| `VTT.SCRIPT-EXM-001` | `gen_execution_manifest.py` — Execution Manifest v1.0 (generar/leer) | `02.normativa/04.Scripts/manifest/VTT.SCRIPT-EXM-001_gen_execution_manifest.py` | ✅ Nuevo (2026-05-17) |
+| `VTT.SCRIPT-WT-001` | `setup_worktrees.py` — Setup inicial bulk (N worktrees + workspaces) | `02.normativa/04.Scripts/worktree/VTT.SCRIPT-WT-001_setup_worktrees.py` | ✅ Nuevo (2026-05-18) |
+| `VTT.SCRIPT-WT-002` | `add_worktree.py` — Agregar UN worktree + workspace (rol nuevo o aux) | `02.normativa/04.Scripts/worktree/VTT.SCRIPT-WT-002_add_worktree.py` | ✅ Nuevo (2026-05-18) |
+| `VTT.SCRIPT-WT-003` | `cleanup_worktrees.py` — Cleanup final con 3 acciones A/B/C | `02.normativa/04.Scripts/worktree/VTT.SCRIPT-WT-003_cleanup_worktrees.py` | ✅ Nuevo (2026-05-18) |
+
+> Config asociada (GIT-001): `02.normativa/04.Scripts/git/vtt_governance.example.json` (template a copiar en `.git/hooks/vtt_governance.json` por cada clone — ver `VTT.PROTOCOL-GOV-002` §5.0).
 
 ### Scripts existentes (sin nomenclatura VTT aún)
 
@@ -341,9 +409,27 @@ $VTT_NORMATIVA/06.Skills/  (path actual — se moverá a 07.Normativa/03.Skills/
 
 | Código | Título | Path canónico | Estado |
 |---|---|---|---|
-| `VTT.TEMPLATE-CLO-001` | CLOSURE_S[N] (cierre de sprint) | `07.Normativa/06.Templates/VTT.TEMPLATE-CLO-001_closure_sprint.md` | ✅ Nuevo (2026-05-13) |
-| `VTT.TEMPLATE-CFL-001` | Criteria Fulfillment (agente reporta CAs) | `07.Normativa/06.Templates/VTT.TEMPLATE-CFL-001_criteria_fulfillment.md` | ✅ Nuevo (2026-05-13) |
-| `VTT.TEMPLATE-APR-001` | APR-TL Comment | `07.Normativa/06.Templates/VTT.TEMPLATE-APR-001_apr_tl_comment.md` | ✅ Nuevo (2026-05-13) |
+| `VTT.TEMPLATE-CLO-001` | CLOSURE_S[N] (cierre de sprint) | `03.templates/normativa/VTT.TEMPLATE-CLO-001_closure_sprint.md` | ✅ Nuevo (2026-05-13) |
+| `VTT.TEMPLATE-CFL-001` | Criteria Fulfillment (agente reporta CAs) | `03.templates/normativa/VTT.TEMPLATE-CFL-001_criteria_fulfillment.md` | ✅ Nuevo (2026-05-13) |
+| `VTT.TEMPLATE-APR-001` | APR-TL Comment | `03.templates/normativa/VTT.TEMPLATE-APR-001_apr_tl_comment.md` | ✅ Nuevo (2026-05-13) |
+
+### Templates de autoría (moldes para crear normativa)
+
+> Carpeta `03.templates/normativa/_autoria/` — usados por autores (PM/TL) cuando crean nuevos Protocols/Workflows/Skills/Scripts.
+
+| Template | Para crear | Path canónico | Estado |
+|---|---|---|---|
+| `TEMPLATE_PROTOCOL.md` | Protocol nuevo (Nivel 4) | `03.templates/normativa/_autoria/TEMPLATE_PROTOCOL.md` | ✅ Nuevo (2026-05-17) |
+| `TEMPLATE_WORKFLOW.md` | Workflow nuevo (Nivel 3) | `03.templates/normativa/_autoria/TEMPLATE_WORKFLOW.md` | ✅ Nuevo (2026-05-17) |
+| `TEMPLATE_SKILL.md` | Skill nueva (Nivel 2) | `03.templates/normativa/_autoria/TEMPLATE_SKILL.md` | ✅ Nuevo (2026-05-17) |
+| `TEMPLATE_SCRIPT.py` | Script nuevo (Nivel 1) | `03.templates/normativa/_autoria/TEMPLATE_SCRIPT.py` | ✅ Nuevo (2026-05-17) |
+| `README.md` | Guía de uso de los 4 templates | `03.templates/normativa/_autoria/README.md` | ✅ Nuevo (2026-05-17) |
+
+### Guía de autor (narrativa con anti-patterns)
+
+| Documento | Path canónico | Propósito | Estado |
+|---|---|---|---|
+| `GUIA_AUTOR.md` | `02.normativa/GUIA_AUTOR.md` | Guía narrativa de 12 secciones: checklist previo, decisión de nivel, asignación de código, checklists por nivel, 8 anti-patterns con ejemplos, workflow del autor (10 pasos), Reglas Nivel 0, versionado, FAQ | ✅ Nuevo (2026-05-17) |
 
 ### Templates pre-VTT (legacy en `05.Templates/`)
 
@@ -403,7 +489,7 @@ $VTT_NORMATIVA/06.Skills/  (path actual — se moverá a 07.Normativa/03.Skills/
 | `TEMPLATE_CODE_LOGIC_ACTUALIZADO.md` | `05.Templates/05.Proyecto/02.Genericos/` | `.LOGIC.md` por archivo | ✅ Activo |
 | `TEMPLATE_HANDOFF.md` | `05.Templates/05.Proyecto/02.Genericos/` | HO genérico | 🟡 Revisar — posible obsoleto |
 | `TEMPLATE_ISSUE.md` | `05.Templates/05.Proyecto/02.Genericos/` | Issue en VTT | ✅ Activo |
-| `TEMPLATE_MENSAJE_ASIGNACION.md` | `05.Templates/05.Proyecto/02.Genericos/` | Mensaje al agente | 🟡 Reemplazo por `gen_mensaje.py` |
+| `TEMPLATE_MENSAJE_ASIGNACION.md` v2.2 | `03.templates/tarea/` | Mensaje del TL al agente — incluye **Paso 0-A Pre-check obligatorio** (`VTT.SKILL-PRECHECK-001`) + Paso 0-B git + Working Directory condicional + I1/I2/I3 entrega + fix endpoint devlog. Aplica `RULE-SCRIPT-001`, `RULE-TEMPLATE-001`, `RULE-AGENT-001` | ✅ v2.2 (2026-05-22) — OLA 1 cierre MSG |
 | `GUIA_USO_TEMPLATES.md` | `05.Templates/05.Proyecto/02.Genericos/` | Manual de uso | ✅ Activo |
 | `METODOLOGIA_EJECUCION_SPRINTS_V1.md` | `05.Templates/05.Proyecto/02.Genericos/` | Metodología base | ✅ Activo |
 
@@ -525,13 +611,14 @@ Ver §7 `05.Templates/02.Operativos/`.
 
 | Documento | Versión | Path canónico | Cubre |
 |---|---|---|---|
-| `GUIA_WORKTREES_MEMORY_SERVICE.md` | v2.1 | `06.Documentos_soporte/` | Setup de worktrees por rol + 7 workspaces VSCode + reglas operativas |
-| `GUIA_GIT_WORKTREES_TL_BACKEND.md` | v2.0 (LEGACY) | `06.Documentos_soporte/` | Reemplazado por v2.1 — pendiente deprecar |
+| ~~`GUIA_WORKTREES_MEMORY_SERVICE.md`~~ | v2.1 (FANTASMA) | NO existe en disco | 🔴 **Referencia fantasma** — archivo nunca se creó. Reemplazada por `VTT.PROTOCOL-WT-001` v1.0.1 (Protocol normativo). 25 referencias originales actualizadas en 2026-05-18. |
+| `GUIA_GIT_WORKTREES_TL_BACKEND.md` | v2.0 (LEGACY) | `04.docs-soporte/guias-operativas/` | 🟤 **Deprecada** (2026-05-18). Reemplazada por `VTT.PROTOCOL-WT-001` v1.0.1. Se conserva como referencia histórica del incidente PROC-COORD-01. |
 | `GUIA_ASIGNACION_TAREA_TL_EJECUTOR.md` | v2.1 | `06.Documentos_soporte/` | Cheatsheet TL al asignar — Paso 8.5 (execution_manifest) |
 | `GUIA_REVISION_TAREA_TL_REVIEWER.md` | v2.1 | `06.Documentos_soporte/` | Cheatsheet TL al cerrar — Paso 5b + Paso 16 |
 | `PROCESO_CIERRE_TAREA_v2.md` | v2.1 (header dice v2.0) | `06.Documentos_soporte/` | Paso 4b (verificación worktree) + Paso 9 (cleanup) |
 | `PROCESO_ASIGNACION_TAREAS_v3.md` | v3.1 | `06.Documentos_soporte/` | Paso 7b (execution_manifest) |
 | `GUIA_MANIFEST_PARA_AGENTES.md` | v2.0 | `06.Documentos_soporte/` | Manifest v1.0 generado por agente |
+| `CLEANUP_COPIAS_LOCALES_SCRIPTS_OLA1.md` | v1.0 | `04.docs-soporte/guias-operativas/` | ✅ Nuevo (2026-05-22) — checklist one-shot del TL para eliminar las 5 copias divergentes de `gen_mensaje.py` + copias locales de `VTT.SCRIPT-MAN-001`. Aplica `RULE-SCRIPT-001`. Origen: drift MS-290 vs MS-333 |
 
 ### Infraestructura `.vtt/` (NO commiteada — vive en raíz del proyecto)
 
@@ -646,7 +733,9 @@ docs/
 | Workflows VTT | 24 catalogados | 0 escritos | 0 | 24 pendientes (todos del ASG-001 v1.2) |
 | Skills | 31 | 31 | 0 | 3 nuevas a migrar |
 | Scripts | 7 visibles | 7 | 0 | Pendiente refactor |
-| Templates (VTT.) | 3 | 3 | 0 | — |
+| Templates (VTT.) operativos | 3 | 3 | 0 | — |
+| Templates de autoría (`_autoria/`) | 4 + README | 4 + README | 0 | — |
+| Guía de autor | 1 | 1 (GUIA_AUTOR.md) | 0 | — |
 | Templates legacy | 50+ | 47 | 3 (HANDOFF_FE/DL/QA) | Migración progresiva |
 | Metodologías | 6 | 6 | 0 | — |
 | Operativos plantilla | 13 | 13 | 0 | — |
@@ -707,8 +796,10 @@ docs/
 | 19 | Actualizar PROTOCOL-ASG-001 a v1.2.0 (worktrees por rol + execution_manifest) | — | ✅ Completado (2026-05-14) |
 | 20 | Sincronizar Guías v2.x/v3.1 a virtual-teams-setup | — | ✅ Completado por usuario (2026-05-14) |
 | 21 | Migrar 5 nuevas reglas (TL-001, WT-001/002/003) + actualizar AGENT-001 | — | ✅ Completado (2026-05-14) |
-| 22 | Deprecar GUIA_GIT_WORKTREES_TL_BACKEND.md (v2.0 legacy) | Próxima sesión | ⚪ Pendiente |
+| 22 | Deprecar GUIA_GIT_WORKTREES_TL_BACKEND.md (v2.0 legacy) | — | ✅ Completado (2026-05-18) — reemplazada por VTT.PROTOCOL-WT-001 |
 | 23 | Deprecar PROCESO_ASIGNACION_TAREAS.md v1.6 (reemplazado por v3.1) | Próxima sesión | ⚪ Pendiente |
+| 24 | Crear 4 templates de autoría (_autoria/ + README) | — | ✅ Completado (2026-05-17) |
+| 25 | Crear GUIA_AUTOR.md (narrativa con 8 anti-patterns + FAQ) | — | ✅ Completado (2026-05-17) |
 
 ---
 
@@ -725,3 +816,8 @@ docs/
 | Versión | Fecha | Cambio |
 |---|---|---|
 | 1.0 | 2026-05-13 | Versión inicial — escaneo de los 3 repos (virtual-teams-setup + memory-service-project + memory-service-backend). 80+ documentos catalogados. |
+| 1.1 | 2026-05-17 | Registro de templates de autoría (`_autoria/`) + `GUIA_AUTOR.md`. Actualización de paths VTT.TEMPLATE-* a `03.templates/normativa/` (post-reorganización). |
+| 1.2 | 2026-05-17 | Sub-sistema MANIFEST completo: `00_REGISTRO_ACRONIMOS.md` v1.0, `VTT.PROTOCOL-MAN-001`, 4 Workflows `VTT.WORKFLOW-MAN-001.001..004`, 2 Skills `VTT.SKILL-MAN-001` + `VTT.SKILL-EXM-001`, 2 Scripts `VTT.SCRIPT-MAN-001` + `VTT.SCRIPT-EXM-001`. Workflows legacy `ASG-001.014/.021/.022` marcados como `🟤 Deprecado`. GUIA_AUTOR y _autoria/README ahora apuntan al registro maestro. |
+| 1.3 | 2026-05-18 | **Convenciones operativas universales.** Nuevo `00_CONVENCIONES_FILESYSTEM.md` v1.0 (estructura obligatoria de `knowledge/agent-tasks/{briefs,assignments,messages,reports}/<phase>/<sprint>/` + variable `$VTT_SETUP`). `TEMPLATE_MENSAJE_ASIGNACION.md` bumpeado a v2.0 (única plantilla con sección Working Directory condicional WT/no-WT, apunta al setup, incluye Paso 12 commit del manifest). Origen: drift de paths detectado en VTT-718 + necesidad de soportar proyectos con/sin worktrees. Script `VTT.SCRIPT-MAN-001` actualizado a v1.3 (Fix #8: re-indexación de TIs evidenciados). Protocol `VTT.PROTOCOL-ASG-001` v1.3.0 con FASE 4.5 (Commit del TL post-aprobación). |
+| 1.4 | 2026-05-18 | **Sub-sistema WT completo.** Nuevo `VTT.PROTOCOL-WT-001` v1.0.1 (Gobernanza de Worktrees por rol). 5 Workflows derivados (`WT-001.001..005`): setup inicial, apertura diaria, agregar rol, casos especiales, cleanup final. 2 Skills (`SKILL-WT-001` operaciones worktree con 6 acciones, `SKILL-WT-002` workspace VSCode). 3 Scripts (`SCRIPT-WT-001` setup_worktrees.py, `SCRIPT-WT-002` add_worktree.py, `SCRIPT-WT-003` cleanup_worktrees.py). Categoría `WT` registrada como Activa en `00_REGISTRO_ACRONIMOS.md` v1.3. `GUIA_GIT_WORKTREES_TL_BACKEND.md` v2.0 marcada Deprecada — reemplazada por el Protocol. Origen: incidente PROC-COORD-01 (MS-286). |
+| 1.5 | 2026-05-19 | **Migración masiva de skills legacy.** 32 skills `SKL-*` legacy en `_pending-migration/` migradas a formato VTT.SKILL en 11 categorías: AUTH(1), TASK(5), STATUS(6), QUERY(5), COMMENT(3), DEV(2), ISS(1), ATTACH(2), GIT(4 — renumeradas a 003..006), REPORT(2), FILE(1). Categorías activadas en `00_REGISTRO_ACRONIMOS.md` v1.4: AUTH, TASK, STATUS, COMMENT, DEV, ISS, ATTACH, FILE. Nuevas categorías registradas: QUERY, REPORT. **Total skills VTT activas: 38** (32 migradas hoy + 6 que ya existían: GIT-001/002, MAN-001, EXM-001, WT-001, WT-002). Todas las 33 legacies marcadas `🟤 Deprecada` con puntero al reemplazo. Correcciones aplicadas durante migración: bug `categoryCode` vs `type` en devlog, bug `severity null` (debe ser enum), comportamiento de issues + on_hold ahora documentado correctamente (NO automático). |

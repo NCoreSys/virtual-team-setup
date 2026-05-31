@@ -1,5 +1,9 @@
 # SKL-QUERY-01: Obtener mis tareas asignadas
 
+> 🟤 **DEPRECADA (2026-05-19) — ver `VTT.SKILL-QUERY-001_mis_tareas.md`** en `02.normativa/03.Skills/query/`.
+> Migración 1:1, contrato sin cambios.
+
+
 **Categoría:** VTT-QUERY  
 **Aplica a:** Todos  
 **Tokens estimados:** ~60  

@@ -105,7 +105,7 @@ gh pr view $PR_NUMBER --repo NCoreSys/memory-service-backend --json state,mergea
 
 ### Paso 4b — Verificar disciplina de worktree (NUEVO v2.1)
 
-> Aplica desde adopción de worktrees por rol (`GUIA_WORKTREES_MEMORY_SERVICE.md`).
+> Aplica desde adopción de worktrees por rol (`VTT.PROTOCOL-WT-001`).
 
 **Verifica 3 cosas:**
 
@@ -432,4 +432,4 @@ curl -s "$BASE/api/tasks/$TASK_ID/attachments" -H "Authorization: Bearer $TOKEN"
 | 1.0 | 2026-05-08 | Versión inicial (solo verificación + APR-TL + status) |
 | 2.0 | 2026-05-13 | Agregada FASE B (modelo dinámico): TIs + evidencias + devlog resolve. Aplicado a MS-285 como primera prueba; retroactivo a MS-283 y MS-284. |
 | 2.1 | 2026-05-14 | Paso 8 corregido: el TL ACTUALIZA v1.0 → v1.5 (no regenera desde cero). El agente genera v1.0 en su paso 15. Clarificación de cambios entre versiones. |
-| **2.2** | **2026-05-14** | **Worktrees por rol: Paso 4b (verificar disciplina de worktree) + Paso 9 (cleanup branch local). Referencias a `GUIA_WORKTREES_MEMORY_SERVICE.md`. Cierra PROC-COORD-01.** |
+| **2.2** | **2026-05-14** | **Worktrees por rol: Paso 4b (verificar disciplina de worktree) + Paso 9 (cleanup branch local). Referencias a `VTT.PROTOCOL-WT-001`. Cierra PROC-COORD-01.** |

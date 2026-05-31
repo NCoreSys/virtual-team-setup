@@ -1,5 +1,9 @@
 # SKL-TASK-05: Review de Tarea (task_in_review → task_completed)
 
+> 🟤 **DEPRECADA (2026-05-19) — ver `VTT.SKILL-TASK-005_review_tarea.md`** en `02.normativa/03.Skills/task/`.
+> Migración 1:1, contrato sin cambios. Esta versión se conserva como referencia histórica.
+
+
 **Categoría:** VTT-TASK  
 **Aplica a:** TL  
 **Tokens estimados:** ~170  

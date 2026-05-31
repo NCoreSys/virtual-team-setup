@@ -1,5 +1,9 @@
 # SKL-DEVLOG-01: Registrar decisión en devlog VTT
 
+> 🟤 **DEPRECADA (2026-05-19) — ver `VTT.SKILL-DEV-001_decision.md`** en `02.normativa/03.Skills/dev/`.
+> Migración 1:1, contrato sin cambios.
+
+
 **Categoría:** VTT-DEVLOG  
 **Aplica a:** Todos  
 **Tokens estimados:** ~90  

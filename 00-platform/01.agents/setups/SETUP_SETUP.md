@@ -53,7 +53,7 @@ git clone https://github.com/NCoreSys/memory-service-project.git
 | 1 | `c:/Users/Martin/.claude/rules/rules_agents.instructions.md` | Reglas globales de agentes VTT |
 | 2 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/08.projects/memory-service/Proyect_data.md` | UUIDs del equipo, SERVICE_KEY (si ya existen) |
 | 3 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/01.operativos/OPERATIVO_SETUP_MEMORY-SERVICE.md` | Tu OPERATIVO específico |
-| 4 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/06.Documentos_soporte/GUIA_WORKTREES_MEMORY_SERVICE.md` | Política de worktrees a aplicar al crear estructura |
+| 4 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/02.normativa/01.Protocols/VTT.PROTOCOL-WT-001_gobernanza_worktrees.md` | Política de worktrees a aplicar al crear estructura |
 | 5 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/02.roles/templates/` | Carpeta con los 16 templates a instanciar |
 | 6 | Handoff del PM con datos del proyecto | Nombre, equipo, stack, ADR de repos, fases planificadas |
 

@@ -1,0 +1,309 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-05-31",
+  "estimator": "chars/4",
+  "estimator_note": "Estimador canónico VTT. Auxiliar (words×1.33) solo para referencia, no para decisiones de budget.",
+  "consumer": "Prompt Builder (futuro) + TL Reviewer al escribir ASSIGNMENT (hoy)",
+  "applies_when_grammar": {
+    "fields": {
+      "task.phase": ["assignment", "execution_start", "execution", "closing", "review", "approval"],
+      "agent.role": ["BE", "DB", "FE", "DO", "QA", "DL", "UX", "AR", "SA", "TL", "PM", "PJM"],
+      "task.category": ["development", "deployment", "devops", "documentation", "testing", "design", "bugfix"]
+    },
+    "operators": ["=", "IN [...]", "AND", "OR"],
+    "examples": [
+      "task.phase = closing AND agent.role IN [BE,DB,FE,DO,QA,DL,UX,AR,SA]",
+      "task.phase = execution_start AND agent.role IN [BE,DB,FE]",
+      "task.phase = review AND agent.role = TL"
+    ]
+  },
+  "cards": [
+    {
+      "id": "CARD-EXE-001",
+      "title": "Agente lee inputs iniciales (ASSIGNMENT + BRIEF + OPERATIVO)",
+      "category": "exe",
+      "type": "CARD-mini",
+      "tokens_measured": 520,
+      "tokens_measured_at": "2026-05-31",
+      "applies_when": "task.phase = assignment AND agent.role IN [BE,DB,FE,DO,QA,DL,UX,AR,SA]",
+      "requires_prior": [],
+      "consumer": "agent",
+      "trigger": "Agente recibe notificación de asignación de tarea",
+      "output": "Comprensión completa de scope/restricciones/CAs antes de tocar código",
+      "status": "done",
+      "path": "05.Cards/exe/VTT.CARD-EXE-001_agente_lee_inputs_iniciales.md",
+      "references": {
+        "protocol": "PROTOCOL-ASG-001 §5.3.1",
+        "workflow": "WORKFLOW-ASG-001.031",
+        "skill": "SKILL-AUTH-001,SKILL-CFL-001"
+      }
+    },
+    {
+      "id": "CARD-EXE-002",
+      "title": "Agente verifica worktree dedicado del rol (PROC-COORD-01)",
+      "category": "exe",
+      "type": "CARD-mini",
+      "tokens_measured": 580,
+      "tokens_measured_at": "2026-05-31",
+      "applies_when": "task.phase = execution_start AND agent.role IN [BE,DB,FE,DO,QA,DL,UX,AR,SA]",
+      "requires_prior": ["CARD-EXE-001"],
+      "consumer": "agent",
+      "trigger": "Agente leyó inputs iniciales, va a entrar al worktree",
+      "output": "Agente en worktree correcto, main actualizado, working tree limpio",
+      "status": "done",
+      "path": "05.Cards/exe/VTT.CARD-EXE-002_agente_verifica_worktree.md",
+      "references": {
+        "protocol": "PROTOCOL-ASG-001 §5.3.2",
+        "workflow": "WORKFLOW-ASG-001.032",
+        "skill": "SKILL-WT-001",
+        "script": "SCRIPT-WT-001"
+      }
+    },
+    {
+      "id": "CARD-EXE-003",
+      "title": "Agente mueve tarea a task_in_progress",
+      "category": "exe",
+      "type": "CARD-mini",
+      "tokens_measured": 430,
+      "tokens_measured_at": "2026-05-31",
+      "applies_when": "task.phase = execution_start AND agent.role IN [BE,DB,FE,DO,QA,DL,UX,AR,SA]",
+      "requires_prior": ["CARD-EXE-002", "CARD-MAN-004"],
+      "consumer": "agent",
+      "trigger": "Agente verificó worktree + leyó execution_manifest",
+      "output": "Tarea en task_in_progress, auditoría con changedBy=agent_id",
+      "status": "done",
+      "path": "05.Cards/exe/VTT.CARD-EXE-003_agente_mueve_in_progress.md",
+      "references": {
+        "protocol": "PROTOCOL-ASG-001 §5.3.3",
+        "workflow": "WORKFLOW-ASG-001.033",
+        "skill": "SKILL-STATUS-001",
+        "script": "SCRIPT-STATUS-001"
+      }
+    },
+    {
+      "id": "CARD-EXE-004",
+      "title": "Agente ejecuta workflow 13 pasos del ASSIGNMENT",
+      "category": "exe",
+      "type": "CARD-large",
+      "tokens_measured": 2100,
+      "tokens_measured_at": "2026-05-31",
+      "applies_when": "task.phase = execution AND agent.role IN [BE,DB,FE,DO,QA,DL,UX,AR,SA]",
+      "requires_prior": ["CARD-EXE-003", "CARD-MAN-004"],
+      "consumer": "agent",
+      "trigger": "Tarea en task_in_progress, agente listo para implementar",
+      "output": "Tarea en task_in_review, PR creado, manifest v1.0 attachment + committeado",
+      "status": "done",
+      "path": "05.Cards/exe/VTT.CARD-EXE-004_agente_ejecuta_workflow_assignment.md",
+      "references": {
+        "protocol": "PROTOCOL-ASG-001 §5.3.4",
+        "workflow": "WORKFLOW-ASG-001.034",
+        "skill": "SKILL-CODE-001,SKILL-DEV-001,SKILL-CFL-001"
+      }
+    },
+    {
+      "id": "CARD-EXE-005",
+      "title": "Revisar Living Documents impactados",
+      "category": "exe",
+      "type": "CARD-std",
+      "tokens_measured": 950,
+      "tokens_measured_at": "2026-05-31",
+      "applies_when": "task.phase = execution AND agent.role IN [BE,DB,FE,DO,QA,DL,UX,AR,SA]",
+      "requires_prior": ["CARD-EXE-004"],
+      "consumer": "agent",
+      "trigger": "Agente terminó implementación, ANTES del commit final",
+      "output": "Total LDs revisados = catálogo, devlog por LD (sin cambios o modificado), Document Impacts registrados via CARD-EXE-006",
+      "status": "done",
+      "path": "05.Cards/exe/VTT.CARD-EXE-005_revisar_living_documents.md",
+      "references": {
+        "protocol": "PROTOCOL-ASG-001 §5.3.5",
+        "workflow": "WORKFLOW-ASG-001.017",
+        "skill": "SKILL-LD-001,SKILL-DEV-001"
+      }
+    },
+    {
+      "id": "CARD-EXE-006",
+      "title": "Registrar Document Impacts en VTT",
+      "category": "exe",
+      "type": "CARD-mini",
+      "tokens_measured": 640,
+      "tokens_measured_at": "2026-05-31",
+      "applies_when": "task.phase = execution AND agent.role IN [BE,DB,FE,DO,QA,DL,UX,AR,SA]",
+      "requires_prior": ["CARD-EXE-005"],
+      "consumer": "agent",
+      "trigger": "LDs modificados detectados por CARD-EXE-005",
+      "output": "Document Impacts registrados (endpoint) o declarados via devlog fallback (DEBT-INFRA-VTT-01)",
+      "status": "done",
+      "path": "05.Cards/exe/VTT.CARD-EXE-006_registrar_document_impacts.md",
+      "references": {
+        "protocol": "PROTOCOL-ASG-001 §5.3.6",
+        "workflow": "WORKFLOW-ASG-001.018",
+        "skill": "SKILL-DOCIMP-001"
+      }
+    },
+    {
+      "id": "CARD-EXE-007",
+      "title": "Ejecutar Hardcode Check (secretos)",
+      "category": "exe",
+      "type": "CARD-std",
+      "tokens_measured": 1000,
+      "tokens_measured_at": "2026-05-31",
+      "applies_when": "task.phase = execution AND agent.role IN [BE,DB,FE,DO,QA,DL,UX,AR,SA]",
+      "requires_prior": ["CARD-EXE-006"],
+      "consumer": "agent",
+      "trigger": "Document Impacts registrados, ANTES del commit final",
+      "output": "Status PASS (0 findings críticos/altos en producción) + FPs justificados en devlog",
+      "status": "done",
+      "path": "05.Cards/exe/VTT.CARD-EXE-007_ejecutar_hardcode_check.md",
+      "references": {
+        "protocol": "PROTOCOL-ASG-001 §5.3.7",
+        "workflow": "WORKFLOW-ASG-001.019",
+        "skill": "SKILL-HARDCODE-001",
+        "script": "SCRIPT-HARDCODE-001"
+      }
+    },
+    {
+      "id": "CARD-EXE-008",
+      "title": "Entrega final del agente + manifest v1.0 (al FINAL)",
+      "category": "exe",
+      "type": "CARD-std",
+      "tokens_measured": 1250,
+      "tokens_measured_at": "2026-05-31",
+      "applies_when": "task.phase = closing AND agent.role IN [BE,DB,FE,DO,QA,DL,UX,AR,SA]",
+      "requires_prior": ["CARD-EXE-005", "CARD-EXE-006", "CARD-EXE-007", "CARD-MAN-001"],
+      "consumer": "agent",
+      "trigger": "Sub-workflows .017/.018/.019 OK, listo para cierre",
+      "output": "task_in_review + SKL-REPORT-01 comment + manifest v1.0 attachment + committeado al PR + renderizado",
+      "status": "done",
+      "path": "05.Cards/exe/VTT.CARD-EXE-008_entrega_agente.md",
+      "references": {
+        "protocol": "PROTOCOL-ASG-001 §5.3.9",
+        "workflow": "WORKFLOW-ASG-001.010",
+        "skill": "SKILL-REPORT-001,SKILL-STATUS-002,SKILL-MAN-001"
+      }
+    },
+    {
+      "id": "CARD-EXE-009",
+      "title": "TL mantiene SPRINT_STATUS_SX.md (dashboard operativo)",
+      "category": "exe",
+      "type": "CARD-std",
+      "tokens_measured": 950,
+      "tokens_measured_at": "2026-05-31",
+      "applies_when": "task.phase IN [execution, review, closing] AND agent.role = TL",
+      "requires_prior": [],
+      "consumer": "tl",
+      "trigger": "Cualquier trigger_event: task_in_progress_started / task_in_review_received / task_approved / on_hold_authorized / issue_created / blocker_detected / daily_sync / manual_update",
+      "output": "SPRINT_STATUS_SX.md actualizado + commit con mensaje canónico",
+      "status": "done",
+      "path": "05.Cards/exe/VTT.CARD-EXE-009_mantener_sprint_status_tl.md",
+      "references": {
+        "protocol": "PROTOCOL-ASG-001 §5.3.bis",
+        "workflow": "WORKFLOW-ASG-001.028",
+        "skill": "SKILL-STATUS-003",
+        "script": "SCRIPT-STATUS-003"
+      }
+    },
+    {
+      "id": "CARD-ISS-001",
+      "title": "Agente crea Issue en VTT (bloqueante detectado)",
+      "category": "iss",
+      "type": "CARD-mini",
+      "tokens_measured": 690,
+      "tokens_measured_at": "2026-05-31",
+      "applies_when": "task.phase = execution AND agent.role IN [BE,DB,FE,DO,QA,DL,UX,AR,SA]",
+      "requires_prior": ["CARD-EXE-004"],
+      "consumer": "agent",
+      "trigger": "Agente detectó bloqueante durante implementación (datos faltantes / conflicto TI / dependency / tech_error)",
+      "output": "Issue creado con marker [TASK:MS-XXX] + devlog blocker enlazado",
+      "status": "done",
+      "path": "05.Cards/iss/VTT.CARD-ISS-001_crear_issue_vtt.md",
+      "references": {
+        "protocol": "PROTOCOL-ASG-001 §5.4.1",
+        "workflow": "WORKFLOW-ASG-001.035",
+        "skill": "SKILL-ISSUE-001",
+        "script": "SCRIPT-ISSUE-001"
+      }
+    },
+    {
+      "id": "CARD-ISS-002",
+      "title": "Agente solicita task_on_hold con onHoldIssueId",
+      "category": "iss",
+      "type": "CARD-mini",
+      "tokens_measured": 580,
+      "tokens_measured_at": "2026-05-31",
+      "applies_when": "task.phase = execution AND agent.role IN [BE,DB,FE,DO,QA,DL,UX,AR,SA]",
+      "requires_prior": ["CARD-ISS-001"],
+      "consumer": "agent",
+      "trigger": "Issue creado, tarea debe pausarse",
+      "output": "Tarea en task_on_hold con onHoldIssueId habilitando auto-resume + código stashed",
+      "status": "done",
+      "path": "05.Cards/iss/VTT.CARD-ISS-002_solicitar_on_hold.md",
+      "references": {
+        "protocol": "PROTOCOL-ASG-001 §5.4.2",
+        "workflow": "WORKFLOW-ASG-001.036",
+        "skill": "SKILL-STATUS-005",
+        "script": "SCRIPT-STATUS-005"
+      }
+    },
+    {
+      "id": "CARD-ISS-003",
+      "title": "TL analiza Issue y clasifica severidad S1-S4",
+      "category": "iss",
+      "type": "CARD-std",
+      "tokens_measured": 1050,
+      "tokens_measured_at": "2026-05-31",
+      "applies_when": "task.phase = execution AND agent.role = TL",
+      "requires_prior": [],
+      "consumer": "tl",
+      "trigger": "TL recibe notificación de Issue creado por agente",
+      "output": "Clasificación S1-S4 + análisis estructurado + acción decidida (S1/S2 con consulta PM, S3/S4 unilateral)",
+      "status": "done",
+      "path": "05.Cards/iss/VTT.CARD-ISS-003_analizar_issue_tl.md",
+      "references": {
+        "protocol": "PROTOCOL-ASG-001 §5.4.3",
+        "workflow": "WORKFLOW-ASG-001.011",
+        "skill": "SKILL-ISSUE-002"
+      }
+    },
+    {
+      "id": "CARD-ISS-004",
+      "title": "TL decide acción del Issue (correctiva/inline/workaround/reject)",
+      "category": "iss",
+      "type": "CARD-std",
+      "tokens_measured": 1350,
+      "tokens_measured_at": "2026-05-31",
+      "applies_when": "task.phase = execution AND agent.role = TL",
+      "requires_prior": ["CARD-ISS-003"],
+      "consumer": "tl",
+      "trigger": "TL terminó análisis, debe ejecutar acción",
+      "output": "Issue en pending_corrective (A) / resolved (B,C) / wont_fix (D) + auto-resume preparado",
+      "status": "done",
+      "path": "05.Cards/iss/VTT.CARD-ISS-004_decidir_correctiva_o_inline.md",
+      "references": {
+        "protocol": "PROTOCOL-ASG-001 §5.4.4",
+        "workflow": "WORKFLOW-ASG-001.037",
+        "skill": "SKILL-ISSUE-003"
+      }
+    },
+    {
+      "id": "CARD-ISS-005",
+      "title": "Agente retoma tarea tras auto-resume",
+      "category": "iss",
+      "type": "CARD-std",
+      "tokens_measured": 900,
+      "tokens_measured_at": "2026-05-31",
+      "applies_when": "task.phase = execution AND agent.role IN [BE,DB,FE,DO,QA,DL,UX,AR,SA]",
+      "requires_prior": [],
+      "consumer": "agent",
+      "trigger": "Sistema VTT auto-resume la tarea (task_on_hold → task_in_progress)",
+      "output": "Tarea retomada con código recuperado (stash pop) + instrucciones TL aplicadas + ack al TL + devlog resume_from_hold. Continúa con CARD-EXE-004",
+      "status": "done",
+      "path": "05.Cards/iss/VTT.CARD-ISS-005_retomar_post_resume.md",
+      "references": {
+        "protocol": "PROTOCOL-ASG-001 §5.4.7-8",
+        "workflow": "WORKFLOW-ASG-001.038",
+        "skill": "SKILL-RESUME-001",
+        "script": "SCRIPT-RESUME-001"
+      }
+    }
+  ]
+}

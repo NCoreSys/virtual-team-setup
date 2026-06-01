@@ -4,8 +4,8 @@
 |---|---|
 | **Código** | `VTT.SKILL-PRECHECK-001` |
 | **Categoría** | PRECHECK (validación de entorno) |
-| **Versión** | 1.0 |
-| **Fecha** | 2026-05-22 |
+| **Versión** | 1.1 |
+| **Fecha** | 2026-05-31 |
 | **Aplica a** | Todos los agentes ejecutores (BE, FE, DB, DO, QA, DL, UX, AR, SA) + TL (cuando ejecuta tareas) |
 | **Tokens estimados** | ~280 |
 | **Cuándo se usa** | **Paso 0 obligatorio** después de recibir el mensaje de asignación del TL y ANTES de tocar código |
@@ -84,23 +84,66 @@ for script in "${EXPECTED_SCRIPTS[@]}"; do
 done
 ```
 
-### Check 3 — NO existen copias locales de los scripts en el worktree (RULE-SCRIPT-001)
+### Check 3 — NO existen copias locales INTRODUCIDAS POR ESTA BRANCH (RULE-SCRIPT-001) — v1.1
+
+> **Cambio v1.1 (Brechas 1 + 4 — 2026-05-31):** este Check distinguía antes "copia local detectada = ABORT" sin importar el origen, lo que bloqueaba agentes por housekeeping de tareas anteriores que ellos no introdujeron. La v1.1 aplica heurística **preexistente vs introducido por esta branch**:
+>
+> - **Introducido por la branch de tarea actual** → ABORT (es responsabilidad del agente, viola RULE-SCRIPT-001 ahora)
+> - **Preexistente en main / base ref** → WARN + listado al TL para limpieza separada (NO bloquea al agente)
 
 ```bash
-# Detectar copias prohibidas en el worktree del agente
-ROGUE_COPIES=$(find . -type f \( -name "VTT.SCRIPT-MAN-*.py" -o -name "VTT.SCRIPT-EXM-*.py" -o -name "VTT.SCRIPT-MSG-*.py" \) 2>/dev/null)
+# v1.1 — heurística "preexistente vs introducido por esta branch"
 
-if [ -n "$ROGUE_COPIES" ]; then
-  echo "❌ ABORT (RULE-SCRIPT-001 violación): Copias locales de scripts detectadas:"
-  echo "$ROGUE_COPIES"
-  echo ""
-  echo "Acción: borrar las copias y usar los scripts desde \$VTT_SETUP/02.normativa/04.Scripts/."
-  echo "Ver: \$VTT_SETUP/04.docs-soporte/guias-operativas/CLEANUP_COPIAS_LOCALES_SCRIPTS_OLA1.md"
-  exit 2
+# Determinar el base ref para comparar
+BASE_REF="${BASE_REF:-origin/main}"
+
+# 1. Detectar TODAS las copias locales en el worktree
+ALL_ROGUE=$(find . -type f \( -name "VTT.SCRIPT-MAN-*.py" -o -name "VTT.SCRIPT-EXM-*.py" -o -name "VTT.SCRIPT-MSG-*.py" \) 2>/dev/null | sed 's|^\./||')
+
+if [ -z "$ALL_ROGUE" ]; then
+  echo "✅ Check 3 — 0 copias locales detectadas en worktree"
+else
+  # 2. Para cada copia detectada, determinar si fue introducida por esta branch
+  INTRODUCED_BY_BRANCH=""
+  PREEXISTING=""
+
+  for file in $ALL_ROGUE; do
+    # ¿Existe el archivo en el base_ref?
+    if git cat-file -e "$BASE_REF:$file" 2>/dev/null; then
+      # Preexistente — estaba en main / base
+      PREEXISTING="$PREEXISTING\n  - $file"
+    else
+      # No existía en base_ref → fue introducido por esta branch
+      INTRODUCED_BY_BRANCH="$INTRODUCED_BY_BRANCH\n  - $file"
+    fi
+  done
+
+  # 3. Si hay INTRODUCIDOS por esta branch → ABORT (responsabilidad del agente actual)
+  if [ -n "$INTRODUCED_BY_BRANCH" ]; then
+    echo "❌ ABORT (RULE-SCRIPT-001 violación): copias locales INTRODUCIDAS por esta branch:"
+    echo -e "$INTRODUCED_BY_BRANCH"
+    echo ""
+    echo "Estas copias las introdujo la branch actual ($BRANCH_ACTUAL) — son tu responsabilidad."
+    echo "Acción: borrar y usar los scripts desde \$VTT_SETUP/02.normativa/04.Scripts/."
+    exit 2
+  fi
+
+  # 4. Si solo hay PREEXISTENTES → WARN (no bloquea, reporta al TL)
+  if [ -n "$PREEXISTING" ]; then
+    echo "⚠️  Check 3 — copias locales PREEXISTENTES detectadas (no introducidas por esta branch):"
+    echo -e "$PREEXISTING"
+    echo ""
+    echo "Estas copias ya estaban en $BASE_REF antes de tu tarea. NO bloquean."
+    echo "Acción recomendada: reportar al TL para que cree tarea de cleanup separada."
+    echo "Tu tarea continúa normalmente — NO toques estos archivos a menos que tu ASSIGNMENT lo pida."
+    # NOTA: NO se hace exit 2 — el agente sigue
+  fi
 fi
 ```
 
-> **Excepción legítima:** `scripts/gen_mensaje.py` (legacy, del TL) sigue vivo en `project-tl/scripts/` mientras dure la migración OLA 1 — no es violación porque aún no está promovido. Cuando el refactor termine, esa copia también desaparece.
+> **Excepción legítima preservada:** `scripts/gen_mensaje.py` (legacy, del TL) sigue vivo en `project-tl/scripts/` mientras dure la migración OLA 1 — no es violación porque aún no está promovido. Con la heurística v1.1, además, queda automáticamente clasificada como "preexistente" (ya está en main) → WARN, no ABORT.
+
+> **Heurística inversa para el TL:** si el TL quiere ver QUÉ rogue files preexistentes hay en el worktree (sin necesidad de bloquear al agente), puede ejecutar este mismo Check 3 directamente — la lista PREEXISTING le sirve como input para crear la tarea de cleanup.
 
 ### Check 4 — Worktree del rol existe y el agente está en él (RULE-AGENT-001)
 
@@ -231,3 +274,4 @@ Acción correcta cuando falla:
 | Versión | Fecha | Cambios |
 |---|---|---|
 | 1.0 | 2026-05-22 | Versión inicial. 5 checks obligatorios (VTT_SETUP, scripts en setup, no copias locales, worktree, TOKEN). Aplica RULE-SCRIPT-001, RULE-TEMPLATE-001, RULE-AGENT-001. Origen: drift MS-290 vs MS-333 + ola 1 de cierre del sub-sistema MSG. |
+| 1.1 | 2026-05-31 | **Brechas 1+4 (Sprint S00 VTT R2.0).** Check 3 rediseñado con heurística "preexistente vs introducido por esta branch". Antes: cualquier rogue file → ABORT (bloqueaba agentes por housekeeping ajeno de tareas anteriores). Ahora: solo abortar si la branch actual introdujo el rogue file (`git cat-file -e $BASE_REF:$file` para discriminar); preexistentes → WARN + reporte al TL sin bloquear. Origen: TL Reviewer VTT registró brechas en devlogs b428d19d y f9f976e3 de VTT-818. Severity de fix: high (sin esto cada agente del próximo sprint repite el bloqueo). |

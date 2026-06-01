@@ -1,13 +1,37 @@
 #!/usr/bin/env python3
 # =============================================================================
 # VTT.SCRIPT-MAN-001 — gen_task_manifest.py
-# Version: 1.4 (2026-05-31)
+# Version: 1.5 (2026-06-01)
 # =============================================================================
 #
 # Proposito: Generar/actualizar Task Manifest schema v1.2 y subirlo a VTT como
 #            attachment fileType=manifest. Cubre v1.0 (agente) y v1.5 (TL).
 #
 # Changelog:
+#   v1.5 (2026-06-01) — 2 bugs detectados en review de v1.4 por TL Reviewer VTT
+#     en VTS-002 y VTS-003:
+#
+#     [VTS-002] items_detected_for_tl_review hardcoded a [] en build_v10()
+#       linea ~509. El campo IGNORABA report_sections["items_detected"] —
+#       siempre quedaba vacio en el JSON aunque el REPORT lo tuviera con
+#       contenido. Fix: cambiar de "[]" hardcoded a un parser que extrae
+#       lineas con viñeta del REPORT (mismo patron que how_to_verify v1.4
+#       pero AHORA usando la version mejorada de v1.5 — ver VTS-003).
+#
+#     [VTS-003] how_to_verify parser limitado en build_v10() linea ~511.
+#       El parser solo capturaba lineas que empiezan con "-", "*", "+".
+#       Si los pasos del REPORT son NUMERADOS ("1.", "2.") o parrafos
+#       sin viñeta, o subheadings anidados — se perdian. Fix: parser
+#       mas tolerante que captura:
+#         - lineas con viñeta de bullet: -, *, +
+#         - lineas numeradas: "1.", "2)", "1)", etc.
+#         - parrafos no vacios (skip blank lines)
+#       Excluye headings markdown (# ## ###) para no contaminar.
+#
+#     Refactor: extraer la logica de parseo a una funcion helper
+#     _extract_list_items(section_text) reusable por items_detected,
+#     how_to_verify, findings, adrs, derived_tasks, deuda_tecnica.
+#
 #   v1.4 (2026-05-31) — Bug CRITICO detectado por TL Reviewer VTT en VTT-870:
 #     - parse_report_sections() regex line 207 no aceptaba ":" final en headings
 #       Pattern viejo:   rf"(?:^|\n)#{1,3}\s+{alias}\s*\n(.*?)..."
@@ -201,6 +225,54 @@ REPORT_SECTIONS = {
     "commit": ["Commit", "Commit:"],
     "pr": ["PR", "PR:"]
 }
+
+
+def _extract_list_items(section_text):
+    """
+    Extrae items de una seccion narrativa del REPORT como lista de strings.
+
+    v1.5 (VTS-003 fix): parser tolerante que acepta multiples formatos.
+    Reemplaza el patron limitado de v1.4 que solo capturaba "-/*/+".
+
+    Acepta:
+      - lineas con vineta de bullet: "-", "*", "+"
+      - lineas numeradas: "1.", "2.", "1)", "2)"
+      - parrafos no vacios (lineas con texto que no son headings/bullets)
+
+    Excluye:
+      - headings markdown (#, ##, ###)
+      - lineas vacias
+      - lineas con solo espacios
+
+    Idempotente: aplicado a string vacio o None devuelve [].
+
+    Args:
+        section_text: string crudo de la seccion (output de parse_report)
+                      o None si la seccion no se encontro
+
+    Returns:
+        list[str]: items limpios (sin vineta/numero prefix) preservando el texto
+    """
+    if not section_text:
+        return []
+
+    import re as _re
+    items = []
+    for raw in section_text.split("\n"):
+        line = raw.strip()
+        if not line:
+            continue
+        # Excluir headings markdown
+        if line.startswith("#"):
+            continue
+        # Quitar prefijo de vineta o numero al inicio de la linea
+        # Patrones: "- texto", "* texto", "+ texto", "1. texto", "1) texto"
+        cleaned = _re.sub(r"^[-*+]\s+", "", line)
+        cleaned = _re.sub(r"^\d+[.)]\s+", "", cleaned)
+        # Si quedo algo, agregar
+        if cleaned:
+            items.append(cleaned)
+    return items
 
 
 def parse_report(report_path):
@@ -506,9 +578,15 @@ def build_v10(args, token, base_url):
 
             "living_documents_declared_no_change": [],
             "tech_debt_for_r2": [],
-            "items_detected_for_tl_review": [],
 
-            "how_to_verify": [l.strip().lstrip("-*+ ") for l in (report_sections.get("how_to_verify") or "").split("\n") if l.strip().startswith(("-", "*", "+"))],
+            # v1.5 fix VTS-002: items_detected_for_tl_review YA NO esta hardcoded.
+            # Ahora extrae del REPORT con el helper _extract_list_items que tolera
+            # multiples formatos (vinetas, numerados, parrafos).
+            "items_detected_for_tl_review": _extract_list_items(report_sections.get("items_detected")),
+
+            # v1.5 fix VTS-003: how_to_verify usa el helper que acepta bullets,
+            # numerados y parrafos. Antes solo capturaba lineas con "-/*/+".
+            "how_to_verify": _extract_list_items(report_sections.get("how_to_verify")),
 
             "review_gate": {
                 "canProceedToReview": True,

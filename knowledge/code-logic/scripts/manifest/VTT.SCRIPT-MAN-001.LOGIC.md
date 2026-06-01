@@ -3,9 +3,9 @@
 | Campo | Valor |
 |---|---|
 | **Archivo** | `00-platform/02.normativa/04.Scripts/manifest/VTT.SCRIPT-MAN-001_gen_task_manifest.py` |
-| **Versión actual** | v1.4 (2026-05-31) |
-| **Última tarea relacionada** | VTS-001 — fix regex acepta `:` final en headings |
-| **Origen** | Bug VTT-870 reportado por TL Reviewer VTT |
+| **Versión actual** | v1.5 (2026-06-01) |
+| **Últimas tareas relacionadas** | VTS-001 (regex `:`), VTS-002 (items_detected hardcoded), VTS-003 (how_to_verify parser limitado) |
+| **Origen** | VTT-870 + review de v1.4 por TL Reviewer VTT (VTS-002 / VTS-003) |
 
 ---
 
@@ -75,6 +75,38 @@ Construye el JSON v1.0 con:
 
 Si `parse_report_sections` devuelve `None` para una sección, el manifest cae al default (`"N/A"` o `[]` según el campo).
 
+**Bug VTS-002 (resuelto en v1.5):** `items_detected_for_tl_review` estaba **hardcoded a `[]`** en línea ~509:
+```python
+"items_detected_for_tl_review": [],  # IGNORABA report_sections["items_detected"]
+```
+Aunque el REPORT incluyera contenido bajo `### Items detectados para trackeo`, NO se reflejaba en el manifest. Fix v1.5: cambiar a `_extract_list_items(report_sections.get("items_detected"))`.
+
+**Bug VTS-003 (resuelto en v1.5):** `how_to_verify` usaba un **parser limitado** que solo capturaba líneas con viñetas `-/*/+`:
+```python
+"how_to_verify": [l.strip().lstrip("-*+ ") for l in (...).split("\n") if l.strip().startswith(("-", "*", "+"))],
+```
+Si los pasos del REPORT eran **numerados** (`1.`, `2)`) o **párrafos sin viñeta**, se perdían. Fix v1.5: refactor a helper `_extract_list_items` que acepta los 3 formatos.
+
+### 2.2.bis `_extract_list_items(section_text)` — helper v1.5
+
+Nuevo helper introducido en v1.5 para centralizar la extracción de listas desde secciones narrativas. Reemplaza el parser inline limitado.
+
+**Acepta:**
+- Líneas con viñeta: `- texto`, `* texto`, `+ texto`
+- Líneas numeradas: `1. texto`, `2) texto`, `1) texto`
+- Párrafos sin viñeta (líneas con texto que no son headings)
+
+**Excluye:**
+- Headings markdown (`#`, `##`, `###`)
+- Líneas vacías
+- Líneas con solo espacios
+
+**Idempotente:** aplicado a `None` o `""` devuelve `[]` sin error.
+
+**Tests:** 13/13 casos cubiertos (None/empty/whitespace/bullets/numerados/párrafos/mix/headings/líneas vacías intercaladas).
+
+**Candidatos a usar el helper en el futuro:** además de `items_detected` y `how_to_verify`, también podrían refactorizarse a usar este helper: `findings`, `adrs`, `derived_tasks`, `deuda_tecnica`, `tis`. Queda como mejora derivada — por ahora solo se aplica donde había bug confirmado para minimizar superficie de cambio.
+
 ### 2.3 `build_v15(args, v10_doc, dynamic_actions)` — manifest v1.5 del TL
 
 Toma el v1.0 existente y lo enriquece con:
@@ -112,6 +144,9 @@ Toma el v1.0 existente y lo enriquece con:
 | D-MAN-002 | Sin sufijo `.v1.5` en el nombre del archivo — la versión es metadata interna del JSON | v1.2 |
 | D-MAN-003 | `build_v15` consolida `related_to` desde 2 fuentes con dedup (no solo `new_tis_created`) | v1.3 |
 | D-MAN-004 | `parse_report_sections` acepta heading con `:` opcional final (regex `:?`) | v1.4 |
+| D-MAN-005 | `items_detected_for_tl_review` lee del REPORT (antes `[]` hardcoded) | v1.5 |
+| D-MAN-006 | `how_to_verify` usa parser tolerante (bullets + numerados + párrafos) | v1.5 |
+| D-MAN-007 | Helper `_extract_list_items` reusable — centraliza la lógica de extracción de listas | v1.5 |
 
 ---
 
@@ -145,7 +180,8 @@ El pattern v1.4 (`:?` opcional) es **estrictamente más permisivo** que el v1.3.
 | 1.1 | 2026-05-18 | 7 bugs corregidos detectados en producción VTT-721 (parse_deliverables, devlog_entries[].category, indexes en v1.5, task.sprint/stage shape, comment.message vs body, multipart uploadedById, endpoint attachment individual). |
 | 1.2 | 2026-05-18 | save_local sobrescribe el mismo par (`<TASK_ID>.{json,manifest.md}`) — sin sufijo .v1.5. |
 | 1.3 | 2026-05-18 | Bug #8 VTT-718: build_v15 consolida `related_to` desde 2 fuentes con dedup. |
-| **1.4** | **2026-05-31** | **Bug VTT-870 / TL Reviewer VTT: parse_report_sections regex acepta `:` final en headings (`:?` opcional). 6 secciones del REPORT dejan de perderse silenciosamente.** |
+| 1.4 | 2026-05-31 | Bug VTT-870 / TL Reviewer VTT: parse_report_sections regex acepta `:` final en headings (`:?` opcional). 6 secciones del REPORT dejan de perderse silenciosamente. |
+| **1.5** | **2026-06-01** | **VTS-002 + VTS-003 / TL Reviewer VTT (review de v1.4). (a) `items_detected_for_tl_review` dejó de estar hardcoded a `[]` — ahora extrae del REPORT. (b) `how_to_verify` ya no se limita a bullets `-/*/+` — acepta también numerados (`1.`, `2)`) y párrafos. Refactor: helper `_extract_list_items(section_text)` reusable. 13/13 tests OK.** |
 
 ---
 

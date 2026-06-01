@@ -2,11 +2,13 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión** | 1.0 |
-| **Fecha** | 2026-05-17 |
-| **Audiencia** | PM, TL, o cualquier autor que vaya a crear Protocols / Workflows / Skills / Scripts |
+| **Versión** | 1.1 |
+| **Fecha** | 2026-05-31 |
+| **Audiencia** | PM, TL, o cualquier autor que vaya a crear Protocols / Workflows / Skills / Scripts / **CARDs** |
 | **Complementa a** | `README.md` (modelo conceptual) + `_autoria/` (templates concretos) |
 | **Objetivo** | Resolver dudas del autor: ¿qué nivel uso? ¿cómo elijo el código? ¿qué evitar? |
+
+> **v1.1 (2026-05-31):** Agregado tratamiento del Nivel R CARD: §2 árbol de decisión ampliado, §4.5 nueva Checklist CARD, §4.6 nueva Presupuesto tokens canónico (chars/4), anti-patterns CARD-específicos. Ver referencia completa del Nivel R en `README.md` §2.4.bis y §8.bis.
 
 ---
 
@@ -96,7 +98,21 @@ La pregunta más frecuente del autor es: **¿esto es Protocol, Workflow, Skill o
             └── SÍ → SCRIPT (Nivel 1)
                 Ej: "POST /api/tasks/:id/attachments multipart"
                 Tamaño esperado: 50-200 líneas Python con argparse
+
+CASO ESPECIAL → CARD (Nivel R Runtime)
+─────────────────────────────────────────
+¿Necesitas producir una versión comprimida del happy path de
+UN Workflow para inyectar al prompt del agente?
+   │
+   └── SÍ → CARD (1:1 con su Workflow)
+       Ej: "VTT.CARD-EXE-001 — Agente lee inputs iniciales"
+       Tamaño esperado: 200-5000 tokens según tipo (chars/4)
+       Header obligatorio: Aplica cuando + Requiere Cards previas + Tipo
+       Path: 02.normativa/05.Cards/<categoria>/
+       Registrar también en cards_catalog.json
 ```
+
+> **Importante sobre CARD:** Una CARD NO es un quinto nivel paralelo a Protocol/Workflow/Skill/Script. Es una **vista runtime comprimida** del Workflow al que pertenece (1:1). El Workflow tiene el camino completo con ramificaciones y errores; la CARD condensa solo el happy path para el prompt.
 
 ### Tabla decisoria (criterios objetivos)
 
@@ -298,6 +314,64 @@ Antes de publicar un Protocol nuevo, verifica todos estos puntos:
 - [ ] Sin lógica de negocio (solo 1 acción atómica)
 - [ ] Probado con al menos 1 caso real
 - [ ] Manejo de errores no leak información sensible
+
+### 4.5 Checklist CARD (Nivel R)
+
+**Estructura:**
+- [ ] Código `VTT.CARD-<CAT>-<NNN>` siguiendo pattern (CAT del workflow padre típicamente)
+- [ ] Header con `Tipo` (CARD-mini/std/large/pack) declarado y consistente con tokens
+- [ ] Header con `Aplica cuando` máquina-legible (`task.phase`/`agent.role`/`task.category` + operadores)
+- [ ] Header con `Requiere Cards previas` (lista de CARD IDs o `ninguna`)
+- [ ] Header con `Pertenece a` apuntando al Workflow padre (1:1)
+- [ ] Header con `Tokens estimados` medidos con chars/4 (no estimados a ojo)
+- [ ] Cuerpo: solo happy path comprimido (sin ramificaciones complejas — esas viven en el Workflow)
+- [ ] Sección "Si falla" con tabla compacta de errores comunes + acción inmediata
+- [ ] Sección "Output" indica estado consistente al terminar + CARD siguiente si encadenada
+
+**Calidad:**
+- [ ] Tokens medidos dentro del rango del tipo declarado (ver §4.6)
+- [ ] Si supera hard cap → upgrade al siguiente tipo o partir en 2 CARDs (NO se negocia el tope)
+- [ ] Apunta al Workflow padre como referencia documental (no como invocación)
+- [ ] Encadenamiento explícito si aplica ("Listo para `CARD-XYZ-NNN`")
+- [ ] Bash/comandos inline son los del happy path, no exhaustivos
+
+**Catálogo:**
+- [ ] Entrada agregada a `02.normativa/05.Cards/cards_catalog.json` con:
+  - `id`, `title`, `category`, `type`, `tokens_measured`, `tokens_measured_at`
+  - `applies_when`, `requires_prior`, `consumer` (agent/tl/pm/pjm)
+  - `trigger`, `output`, `status: "done"`, `path`
+  - `references` (protocol/workflow/skill/script)
+- [ ] README de la categoría (`05.Cards/<categoria>/README.md`) actualizado
+- [ ] Si categoría es nueva → registrada en `00_REGISTRO_ACRONIMOS.md` §3.1
+
+### 4.6 Presupuesto de tokens canónico (chars/4)
+
+**Estimador canónico VTT:** `chars/4` (conservador). Aplica a CARDs y a budget runtime del Prompt Builder.
+
+> Auxiliar `words×1.33` solo de referencia, NO para decisiones de budget.
+
+**Cómo medir:**
+
+```bash
+# Tokens estimados de un archivo
+python -c "print(open('VTT.CARD-EXE-001_...md').read().__len__() // 4)"
+```
+
+**Tabla de tipos:**
+
+| Tipo | Target | Hard cap | Cuándo usar |
+|---|---|---|---|
+| `CARD-mini` | 200-500 tok | **700** | Pasos atómicos, validaciones simples, transiciones de status |
+| `CARD-std` | 500-1200 tok | **1500** | Procesos con varias decisiones simples (ej. revisar LDs, registrar Document Impacts) |
+| `CARD-large` | 1200-2500 tok | **3000** | Procesos con sub-pasos múltiples (ej. ejecutar workflow del ASSIGNMENT con 13 pasos) |
+| `CARD-pack` | 2500-4500 tok | **5000** | Solo si NO se puede partir; típicamente nunca |
+
+**Reglas:**
+
+1. **Si excede el hard cap del tipo declarado** → upgrade al siguiente tipo (NO se negocia).
+2. **Si excede el hard cap del `CARD-pack`** → partir en 2 CARDs encadenadas (ej. `CARD-EXE-004a` ejecución + `CARD-EXE-004b` entrega).
+3. **El campo `tokens_measured` en `cards_catalog.json`** debe coincidir con el medido. Si la CARD se actualiza y cambian los tokens → re-medir + actualizar `tokens_measured_at`.
+4. **Opción A (1:1 CARD por workflow)** confirmada por PM (2026-05-30). NO consolidar packs cruzados de varios workflows.
 
 ---
 
@@ -701,3 +775,4 @@ Por ahora: directo al PM. Cuando exista un sistema de tickets de mejora → ahí
 | Versión | Fecha | Cambio |
 |---|---|---|
 | 1.0 | 2026-05-17 | Versión inicial — checklist por nivel + 8 anti-patterns + workflow del autor + FAQ |
+| 1.1 | 2026-05-31 | **Tratamiento del Nivel R CARD agregado.** §2 árbol de decisión ampliado con CASO ESPECIAL CARD (no es 5to nivel paralelo, es vista runtime 1:1 con Workflow). §4.5 NUEVA: Checklist CARD (estructura + calidad + catálogo + ACRONIMOS). §4.6 NUEVA: Presupuesto de tokens canónico chars/4 con tabla de 4 tipos + reglas de hard cap + Opción A 1:1 confirmada por PM. Referencias cruzadas a `README.md` §2.4.bis (modelo conceptual CARD) y §8.bis (estructura obligatoria CARD). Por PM Martin Rivas. |

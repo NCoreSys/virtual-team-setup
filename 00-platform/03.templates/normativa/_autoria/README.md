@@ -4,10 +4,12 @@ Esta carpeta contiene los **moldes** que el autor (PM/TL) usa para crear nuevos 
 
 | Campo | Valor |
 |---|---|
-| **Versión** | 1.0 |
-| **Fecha** | 2026-05-17 |
+| **Versión** | 1.1 |
+| **Fecha** | 2026-05-31 |
 | **Mantenedor** | PM Martin Rivas |
-| **Audiencia** | Quien va a escribir un Protocol / Workflow / Skill / Script nuevo |
+| **Audiencia** | Quien va a escribir un Protocol / Workflow / Skill / Script / **CARD** nuevo |
+
+> **v1.1 (2026-05-31):** Agregado `TEMPLATE_CARD.md` (Nivel R). Ver `README.md` §2.4.bis y `GUIA_AUTOR.md` §4.5/§4.6 para detalles del Nivel R.
 
 ---
 
@@ -19,6 +21,7 @@ Esta carpeta contiene los **moldes** que el autor (PM/TL) usa para crear nuevos 
 | `TEMPLATE_WORKFLOW.md` | Un Workflow nuevo (Nivel 3) | `02.normativa/02.Workflows/` | Markdown |
 | `TEMPLATE_SKILL.md` | Una Skill nueva (Nivel 2) | `02.normativa/03.Skills/<categoria>/` | Markdown |
 | `TEMPLATE_SCRIPT.py` | Un Script nuevo (Nivel 1) | `02.normativa/04.Scripts/<categoria>/` | Python |
+| `TEMPLATE_CARD.md` | Una CARD nueva (Nivel R Runtime) | `02.normativa/05.Cards/<categoria>/` | Markdown |
 
 ---
 
@@ -34,6 +37,7 @@ Antes de copiar nada, verificar que estás creando algo del nivel correcto. Ver 
 | ¿Es un sub-procedimiento con pasos secuenciales fijos sin decisiones mayores? | → **Workflow** (Nivel 3) |
 | ¿Es una capacidad reusable con inputs/outputs contractuales que orquesta scripts? | → **Skill** (Nivel 2) |
 | ¿Es un comando atómico ejecutable? | → **Script** (Nivel 1) |
+| ¿Es una vista runtime comprimida del happy path de un Workflow para inyectar al prompt del agente? | → **CARD** (Nivel R) — requiere Workflow padre existente (1:1) |
 
 ### Paso 2 — Asignar código
 
@@ -45,6 +49,7 @@ Pattern: `VTT.<NIVEL>-<CAT>-<NNN>[.<MMM>]_<titulo_snake_case>.<ext>`
 | Workflow | `VTT.WORKFLOW-<CAT>-<NNN>.<MMM>_<titulo>.md` | `VTT.WORKFLOW-ASG-001.003_generar_briefs.md` |
 | Skill | `VTT.SKILL-<CAT>-<NNN>_<titulo>.md` | `VTT.SKILL-ATTACH-001_subir_attachment.md` |
 | Script | `VTT.SCRIPT-<CAT>-<NNN>_<titulo>.py` | `VTT.SCRIPT-ATTACH-001_post_attachment_multipart.py` |
+| CARD | `VTT.CARD-<CAT>-<NNN>_<titulo>.md` | `VTT.CARD-EXE-004_agente_ejecuta_workflow_assignment.md` |
 
 **Cómo encontrar el `<NNN>` siguiente disponible:**
 

@@ -1,13 +1,15 @@
-# Guía Normativa VTT — Modelo Operativo de 4 Niveles
+# Guía Normativa VTT — Modelo Operativo de 4 Niveles + Nivel R Runtime
 
 | Campo | Valor |
 |---|---|
 | **Código** | `VTT.PROTOCOL-GOV-001` |
-| **Versión** | 1.0.0 |
-| **Fecha** | 2026-05-13 |
+| **Versión** | 1.2.0 |
+| **Fecha** | 2026-05-31 |
 | **Autor** | PM Martin Rivas |
 | **Aplica a** | Todos los agentes y roles que escriben o ejecutan documentación normativa en VTT |
 | **Estado** | Aprobado para uso |
+
+> **v1.2.0 (2026-05-31):** §2.4.bis nueva con Nivel R CARD (runtime, comprimido happy-path inyectable al prompt del agente). §4.2 actualizada con categorías CARD/EXE/ISS/HOTL. §4.4 extensiones incluye CARD=`.md`. §5/6/7/8 sin cambios — CARD tiene su propia §8.bis. Nueva §11.6 checklist CARD. Glosario §13 con CARD, Nivel R, Prompt Builder, Aplica cuando. Nuevo Anexo H con ejemplo mínimo CARD.
 
 ---
 
@@ -62,7 +64,7 @@ No aplica a:
 
 ---
 
-## 2. Modelo Operativo VTT de 4 niveles + Nivel 0 transversal
+## 2. Modelo Operativo VTT de 4 niveles + Nivel 0 transversal + Nivel R runtime
 
 ```
 NIVEL 0 — Rules       "restringe transversalmente"  ←── aplica a TODOS los niveles
@@ -70,11 +72,11 @@ NIVEL 0 — Rules       "restringe transversalmente"  ←── aplica a TODOS l
               ▼ se aplican a
 NIVEL 4 — Protocol    "gobierna"
               ↓ invoca
-NIVEL 3 — Workflow    "guía"
-              ↓ usa
-NIVEL 2 — Skill       "ejecuta capacidad reusable"
-              ↓ corre
-NIVEL 1 — Script      "automatiza acción atómica"
+NIVEL 3 — Workflow    "guía"  ───────────────────────►  NIVEL R — CARD
+              ↓ usa                                     "runtime comprimido"
+NIVEL 2 — Skill       "ejecuta capacidad reusable"      (inyectable al prompt
+              ↓ corre                                    del agente — Prompt Builder
+NIVEL 1 — Script      "automatiza acción atómica"        activa por Aplica cuando)
 ```
 
 > **Nivel 0 — Rules** es transversal. No es un nivel operativo (no se invoca por sí solo);
@@ -170,21 +172,54 @@ Características:
 Ejemplo:
 > `VTT.SCRIPT-ATTACH-001_post_attachment_multipart.py` — `POST /api/tasks/:id/attachments` con file binary + fields
 
+### 2.4.bis CARD — runtime comprimido (Nivel R)
+
+**Tarjeta de referencia comprimida que el agente lee durante la ejecución real.**
+
+Responde a: *¿Qué CARD le doy al agente para que ejecute X en runtime sin cargarle todo el Protocol+Workflow+Skill?*
+
+Características:
+- **Es Nivel R (Runtime)** — no es un nivel operativo más; es una vista comprimida del happy-path
+- **No reemplaza** Protocol/Workflow/Skill/Script — el agente puede consultar el nivel completo si necesita más detalle
+- **Comprime ~83-91%** vs cargar Protocol+Workflow+Skill+Script para el mismo proceso
+- **Inyectada por el Prompt Builder** (futuro) según el campo `Aplica cuando` que evalúa contexto del agente
+- **TODAY (lazy-loading TL):** el TL referencia CARDs en el ASSIGNMENT como rutas de filesystem
+- **TOMORROW (Prompt Builder):** consume `cards_catalog.json` y activa CARDs automáticamente
+- **4 tipos por presupuesto** (estimador canónico `chars/4`):
+  - `CARD-mini` (200-500 tok, hard cap 700)
+  - `CARD-std` (500-1200 tok, hard cap 1500)
+  - `CARD-large` (1200-2500 tok, hard cap 3000)
+  - `CARD-pack` (2500-4500 tok, hard cap 5000)
+- **Si excede el tope** → upgrade obligatorio al siguiente tipo o partir en 2 CARDs. **NO se negocia el tope.**
+- **Header obligatorio**:
+  - `Aplica cuando` (expresión lógica máquina-legible sobre `task.phase` + `agent.role` + `task.category`)
+  - `Requiere Cards previas` (lista de CARD IDs predecesoras, para encadenamiento)
+- **1:1 con Workflow** (Opción A confirmada por PM): una CARD por workflow, no consolidar packs
+
+Ejemplo:
+> `VTT.CARD-EXE-004_agente_ejecuta_workflow_assignment` — Comprime los 13 pasos del WORKFLOW-ASG-001.034 (~2,400 líneas Workflow + Skills + Scripts) en ~2,100 tokens runtime. Aplica cuando `task.phase = execution AND agent.role IN [BE,DB,FE,DO,QA,DL,UX,AR,SA]`.
+
+**Catálogo Prompt Builder:** `02.normativa/05.Cards/cards_catalog.json`
+**Template autoría:** `03.templates/normativa/_autoria/TEMPLATE_CARD.md`
+**Carpeta canónica:** `02.normativa/05.Cards/<categoria>/`
+
+> **Regla importante:** Una CARD NO se invoca desde Workflow/Skill. La activación es **al revés**: el Prompt Builder (o el TL hoy) decide qué CARD inyectar según `Aplica cuando`. La CARD apunta al Workflow padre en su header pero no es invocada por él.
+
 ### 2.5 Diagrama de invocación
 
 ```
-┌──────────────────────────────────────────┐
-│ PROTOCOL                                 │
-│  Define proceso completo                 │
-│  §6 Referencias Cruzadas:                │
-│    → Workflow A                          │
-│    → Workflow B                          │
-└──────────────────────────────────────────┘
-                  ↓ invoca
-┌──────────────────────────────────────────┐
-│ WORKFLOW                                 │
-│  Pasos secuenciales con reglas           │
-│  "Paso 3: subir BRIEF                    │
+┌──────────────────────────────────────────┐         ┌─────────────────────────┐
+│ PROTOCOL                                 │         │ CARD (Nivel R)          │
+│  Define proceso completo                 │         │  Comprimido del happy   │
+│  §6 Referencias Cruzadas:                │         │  path de UN Workflow.   │
+│    → Workflow A                          │   ◄────►│  Inyectada al prompt    │
+│    → Workflow B                          │         │  del agente por Prompt  │
+└──────────────────────────────────────────┘         │  Builder según          │
+                  ↓ invoca                           │  "Aplica cuando".       │
+┌──────────────────────────────────────────┐  ◄─────►│  4 tipos (mini/std/     │
+│ WORKFLOW                                 │         │  large/pack) por        │
+│  Pasos secuenciales con reglas           │         │  presupuesto chars/4    │
+│  "Paso 3: subir BRIEF                    │         └─────────────────────────┘
 │   → invocar SKILL-ATTACH-001 con         │
 │     file_type='brief'"                   │
 └──────────────────────────────────────────┘
@@ -203,6 +238,8 @@ Ejemplo:
 │  multipart/form-data                     │
 └──────────────────────────────────────────┘
 ```
+
+> La CARD NO se invoca desde Workflow/Skill. La activación va al revés: el Prompt Builder decide qué CARD inyectar según `Aplica cuando`. La CARD apunta al Workflow padre como referencia documental.
 
 ### 2.6 Filosofía: nombres interpretables por agentes
 
@@ -248,18 +285,19 @@ La implementación operativa de estos documentos vive en:
 
 ### 3.1 Tabla decisoria
 
-| Pregunta | Protocol | Workflow | Skill | Script |
-|---|---|---|---|---|
-| ¿Cubre un proceso de negocio end-to-end? | Sí | No | No | No |
-| ¿Tiene fases? | Sí (varias) | No (una actividad) | No | No |
-| ¿Decisiones de negocio? | Sí | No (ejecución guiada) | No | No |
-| ¿Orquesta varios scripts? | Sí (a través de skills) | A través de skills | Sí | No |
-| ¿Es un comando atómico? | No | No | No | Sí |
-| ¿Idempotente? | No | Parcial | Cuando es posible | Sí (obligatorio) |
-| ¿Reusable entre proyectos? | Sí (genérico VTT) | Sí | Sí | Sí |
-| ¿Quién lo escribe? | PM/TL líder | TL | TL técnico | Dev/agente |
-| ¿Quién lo lee primero? | Líderes + ejecutores | Ejecutor que planea | Agente que ejecuta | Ejecutor inmediato |
-| Tamaño típico | 400-700 líneas | 150-300 líneas | 60-150 tokens (~30-80 líneas) | 5-50 líneas |
+| Pregunta | Protocol | Workflow | Skill | Script | CARD |
+|---|---|---|---|---|---|
+| ¿Cubre un proceso de negocio end-to-end? | Sí | No | No | No | No |
+| ¿Tiene fases? | Sí (varias) | No (una actividad) | No | No | No |
+| ¿Decisiones de negocio? | Sí | No (ejecución guiada) | No | No | No (solo happy path) |
+| ¿Orquesta varios scripts? | Sí (a través de skills) | A través de skills | Sí | No | No (referencia, no orquesta) |
+| ¿Es un comando atómico? | No | No | No | Sí | No |
+| ¿Idempotente? | No | Parcial | Cuando es posible | Sí (obligatorio) | N/A (es vista, no acción) |
+| ¿Reusable entre proyectos? | Sí (genérico VTT) | Sí | Sí | Sí | Sí |
+| ¿Quién lo escribe? | PM/TL líder | TL | TL técnico | Dev/agente | TL al producir Workflow (1:1) |
+| ¿Quién lo lee primero? | Líderes + ejecutores | Ejecutor que planea | Agente que ejecuta | Ejecutor inmediato | **Agente en runtime** vía Prompt Builder |
+| ¿Es invocado por niveles superiores? | — | Por Protocol §6 | Por Workflow pasos | Por Skill ejecución | **NO** — activado por Prompt Builder |
+| Tamaño típico | 400-700 líneas | 150-300 líneas | 60-150 tokens (~30-80 líneas) | 5-50 líneas | 200-5000 tokens según tipo |
 
 ### 3.2 La pregunta clave: ¿Workflow o Skill?
 
@@ -423,8 +461,20 @@ VTT.<NIVEL>-<CAT>-<NNN>[.MMM]_titulo_snake_case.<ext>
 | `DB` | Operaciones de base de datos |
 | `GIT` | Operaciones de Git/GitHub |
 | `FILE` | Operaciones de filesystem |
+| `EXE` | CARDs runtime FASE 3 ejecución del agente (CARD-EXE-001..009) |
+| `HOTL` | Handoff TL (FASE 0 PROTOCOL-ASG-001 §5.0.2) |
+| `LD` | Living Documents (skill+script revisión catálogo LDs) |
+| `DOCIMP` | Document Impacts (registro en VTT con fallback DEBT-INFRA-VTT-01) |
+| `HARDCODE` | Hardcode Security Check (9 patrones canónicos) |
+| `CODE` | Code Implementation + `.LOGIC.md` espejo |
+| `PR` | Pull Request (gh CLI canónico) |
+| `RESUME` | Resume Task tras auto-resume del sistema VTT |
+| `CFL` | Canonical File Loader + fulfill CAs |
+| `CARD` | (transversal) CARDs sin sub-sistema específico — reservado |
 
-Para agregar una categoría nueva → notificar PM y actualizar esta sección.
+> **Fuente de verdad de los acrónimos:** `02.normativa/00_REGISTRO_ACRONIMOS.md` §3.1 (registro autoritativo con fechas, dueños y estado).
+
+Para agregar una categoría nueva → registrar primero en `00_REGISTRO_ACRONIMOS.md` y luego sincronizar esta tabla.
 
 ### 4.3 Numeración
 
@@ -440,6 +490,7 @@ Para agregar una categoría nueva → notificar PM y actualizar esta sección.
 | Workflow | `.md` |
 | Skill | `.md` |
 | Script | `.py` (preferido) / `.sh` / `.ts` |
+| **CARD** | `.md` (con header obligatorio `Aplica cuando` + `Requiere Cards previas` + `Tipo`) |
 | Flowchart | `.mmd` (mermaid) o `.pdf` |
 | Template | `.md` (con bloque code para JSON/YAML si aplica) |
 
@@ -456,6 +507,10 @@ VTT.SKILL-ATTACH-001_subir_attachment_a_tarea.md
 VTT.SKILL-TRK-001_crear_trackable_item.md
 VTT.SCRIPT-ATTACH-001_post_attachment_multipart.py
 VTT.SCRIPT-TRK-001_post_trackable_item.py
+VTT.CARD-EXE-001_agente_lee_inputs_iniciales.md
+VTT.CARD-EXE-004_agente_ejecuta_workflow_assignment.md
+VTT.CARD-MAN-001_task_manifest_v10.md
+VTT.CARD-ISS-001_crear_issue_vtt.md
 VTT.FLOWCHART-ASG-001_ciclo_asignacion.mmd
 VTT.TEMPLATE-ASG-001_brief.md
 ```
@@ -728,6 +783,84 @@ if __name__ == "__main__":
 
 ---
 
+## 8.bis Estructura obligatoria del CARD (Nivel R)
+
+Una CARD es una **vista comprimida runtime** del happy path de un Workflow. No reemplaza ningún nivel — el agente puede consultar Workflow/Skill si necesita más detalle.
+
+### Header obligatorio
+
+```markdown
+# VTT.CARD-<CAT>-<NNN> — [Título corto]
+
+| Campo | Valor |
+|---|---|
+| **Código** | `VTT.CARD-<CAT>-<NNN>` |
+| **Tipo** | `CARD-mini` / `CARD-std` / `CARD-large` / `CARD-pack` |
+| **Versión** | <X.Y> |
+| **Aplica cuando** | <expresión lógica máquina-legible> |
+| **Requiere Cards previas** | <lista de CARD IDs o `ninguna`> |
+| **Pertenece a** | WORKFLOW-<CAT>-<NNN>.<MMM> |
+| **Tokens estimados** | ~XXX (chars/4 canónico) |
+```
+
+### Gramática del campo `Aplica cuando`
+
+Expresión lógica máquina-legible. Operadores: `=`, `IN [...]`, `AND`, `OR`.
+
+**Campos válidos:**
+- `task.phase` ∈ {`assignment`, `execution_start`, `execution`, `closing`, `review`, `approval`}
+- `agent.role` ∈ {`BE`, `DB`, `FE`, `DO`, `QA`, `DL`, `UX`, `AR`, `SA`, `TL`, `PM`, `PJM`}
+- `task.category` ∈ {`development`, `deployment`, `devops`, `documentation`, `testing`, `design`, `bugfix`}
+
+**Ejemplos:**
+- `task.phase = closing AND agent.role IN [BE,DB,FE,DO,QA,DL,UX,AR,SA]`
+- `task.phase = execution_start AND agent.role IN [BE,DB,FE]`
+- `task.phase = review AND agent.role = TL`
+
+### Cuerpo
+
+```markdown
+## Qué hacer
+
+[Pasos del happy path, comprimidos. Sin bifurcaciones complejas — solo el camino exitoso.]
+
+## Si falla
+
+[Tabla compacta de errores comunes y acción inmediata.]
+
+## Output
+
+[Qué deja en estado consistente cuando termina exitosa. Siguiente CARD opcional.]
+```
+
+### Presupuesto canónico (chars/4)
+
+| Tipo | Target | Hard cap |
+|---|---|---|
+| `CARD-mini` | 200-500 tok | 700 |
+| `CARD-std` | 500-1200 tok | 1500 |
+| `CARD-large` | 1200-2500 tok | 3000 |
+| `CARD-pack` | 2500-4500 tok | 5000 |
+
+**Si excede el hard cap → upgrade al siguiente tipo o partir en 2 CARDs. NO se negocia el tope.**
+
+### Convenciones de paths
+
+- **Carpeta canónica:** `02.normativa/05.Cards/<categoria>/`
+- **Catálogo PB:** `02.normativa/05.Cards/cards_catalog.json` (sincronizado al producir/actualizar CARDs)
+- **Template autoría:** `03.templates/normativa/_autoria/TEMPLATE_CARD.md`
+- **README categoría:** `02.normativa/05.Cards/<categoria>/README.md` (lista CARDs de la categoría)
+
+### Reglas estructurales
+
+1. **1:1 con Workflow** — una CARD por workflow, no consolidar packs (Opción A confirmada por PM)
+2. **No invocación inversa** — Workflow/Skill NO invocan CARDs. Las CARDs apuntan a su Workflow padre como referencia documental.
+3. **Token measurement obligatorio** — el catálogo `cards_catalog.json` lleva `tokens_measured` (medido al producir, NO estimado).
+4. **Estimador canónico**: `chars/4`. Auxiliar `words×1.33` solo de referencia, NO para decisiones de budget.
+5. **`Requiere Cards previas`** habilita activación condicional del Prompt Builder (si CARD-X requiere CARD-Y, el PB asegura el orden de inyección).
+
+---
+
 ## 9. Reglas de invocación entre niveles
 
 ### 9.1 Cómo se invoca cada nivel
@@ -738,12 +871,16 @@ if __name__ == "__main__":
 | **Workflow → Skill** | En el paso correspondiente: "→ invoca **VTT.SKILL-XXX-NNN** con (param=valor, ...)" |
 | **Skill → Script** | En la sección Ejecución de la skill: comando inline `python VTT.SCRIPT-XXX-NNN.py --args` |
 | **Script → APIs externas** | El script hace los HTTP calls finales |
+| **Prompt Builder → CARD** | El PB evalúa `Aplica cuando` de cada CARD del catálogo y inyecta la(s) coincidente(s) al prompt del agente. **Hoy**: el TL referencia CARDs en el ASSIGNMENT como rutas (lazy-load). |
+| **CARD → Workflow padre** | Referencia documental en su header (`Pertenece a:`). NO invocación. |
 
 ### 9.2 Prohibido saltar niveles
 
 ❌ Un Protocol no invoca skills directamente — siempre pasa por Workflow.
 ❌ Un Workflow no invoca scripts directamente — siempre pasa por Skill.
 ❌ Una Skill no contiene scripts inline — siempre referencia un Script existente.
+❌ Una CARD NO se invoca desde Workflow/Skill — la activación es al revés (Prompt Builder → CARD).
+❌ Un Workflow no debe duplicar el contenido de su CARD ni viceversa — el Workflow tiene el camino completo (incluye errores, ramificaciones), la CARD solo el happy path comprimido.
 
 **Excepciones documentadas** (cuando la regla aplica, registrar en §8 del documento):
 - Skills muy simples pueden contener el curl inline (≤5 líneas) sin crear Script aparte
@@ -775,6 +912,7 @@ Estas son **comunes a todos los proyectos VTT**. Los IDs específicos del proyec
 | Workflow | SemVer (X.Y.Z) | Cambian inputs/outputs y secuencia |
 | Skill | Incremental (v1, v2) | Cambios atómicos en contrato |
 | Script | Incremental (v1, v2) | Cambios técnicos en endpoints |
+| **CARD** | Incremental (v1, v2) + `tokens_measured` actualizado | Cualquier cambio que afecte tokens requiere re-medición. Si supera hard cap → upgrade de tipo |
 
 ### 10.2 Cuándo es major vs minor
 
@@ -888,6 +1026,24 @@ Skills y Scripts llevan changelog en el header del documento/archivo.
 [ ] Testeado con un caso real
 ```
 
+### 11.6 Checklist CARD
+
+```
+[ ] Código VTT.CARD-<CAT>-<NNN>
+[ ] Header con Tipo + Aplica cuando + Requiere Cards previas + Pertenece a
+[ ] Aplica cuando usa gramática válida (task.phase / agent.role / task.category + operadores =, IN, AND, OR)
+[ ] Tokens medidos con chars/4 (no estimados)
+[ ] Tokens dentro del rango del tipo declarado (mini ≤700, std ≤1500, large ≤3000, pack ≤5000)
+[ ] Si excede hard cap → upgrade al siguiente tipo o partir en 2 CARDs
+[ ] Cuerpo: solo happy path comprimido (sin ramificaciones complejas)
+[ ] Si falla: tabla compacta de errores comunes + acción
+[ ] Output: estado consistente al terminar + CARD siguiente si encadenada
+[ ] Pertenece a Workflow existente (referencia documental)
+[ ] Entrada agregada a `cards_catalog.json` con tokens_measured + tokens_measured_at
+[ ] Path canónico: `02.normativa/05.Cards/<categoria>/`
+[ ] Si la categoría es nueva → README de categoría creado + ACRONIMOS actualizado
+```
+
 ---
 
 ## 12. Migración de SOPs existentes
@@ -933,9 +1089,15 @@ Curls inline         →  Extraer como VTT.SCRIPT-XXX-NNN
 
 **Agente**: instancia de modelo IA (Claude/GPT/etc.) operando bajo un rol específico (TL, BE, PM, etc.).
 
+**Aplica cuando**: campo obligatorio del header de toda CARD. Expresión lógica máquina-legible sobre `task.phase` + `agent.role` + `task.category`. Evaluada por el Prompt Builder para decidir qué CARDs inyectar al prompt del agente.
+
 **Artefacto**: documento generado durante la ejecución de un proceso (BRIEF, ASSIGNMENT, devlog, manifest). **No** es normativa.
 
+**CARD**: Nivel R del modelo — vista comprimida runtime del happy path de UN Workflow. Inyectada al prompt del agente por el Prompt Builder según `Aplica cuando`. 4 tipos por presupuesto: `mini` (200-500), `std` (500-1200), `large` (1200-2500), `pack` (2500-4500). Comprime ~83-91% vs Protocol+Workflow+Skill completos.
+
 **Capacidad reusable**: bloque de funcionalidad que se invoca con inputs distintos sin modificar la implementación interna. Equivale a una función parametrizada.
+
+**Chars/4**: estimador canónico de tokens en VTT. Auxiliar `words×1.33` solo de referencia, NO para decisiones de budget. Aplica a CARDs y a presupuesto runtime.
 
 **Contractual (inputs/outputs)**: definidos formalmente — siempre los mismos para esa Skill/Script, sin importar quién la llame.
 
@@ -943,11 +1105,17 @@ Curls inline         →  Extraer como VTT.SCRIPT-XXX-NNN
 
 **Marker**: convención textual estructurada que se embebe en datos sin schema dedicado (ej. `[TASK:MS-285] [SPRINT:S1]` en evidencias).
 
-**Normativa**: conjunto de documentos que **gobiernan cómo se opera** (Protocol/Workflow/Skill/Script).
+**Nivel R (Runtime)**: la "R" en el modelo VTT denota el nivel runtime de las CARDs. No es un nivel operativo (no se "ejecuta") — es una capa de comprimido que se "lee" o "inyecta" al prompt.
+
+**Normativa**: conjunto de documentos que **gobiernan cómo se opera** (Protocol/Workflow/Skill/Script + CARD).
+
+**Prompt Builder**: componente futuro que evalúa el contexto del agente (`task.phase`, `agent.role`, `task.category`) y consulta `cards_catalog.json` para inyectar las CARDs aplicables al prompt. Hoy el TL ejerce esta función manualmente referenciando CARDs en el ASSIGNMENT.
 
 **Protocol**: nivel 4 del modelo — proceso de negocio end-to-end.
 
 **Pool de transacciones (futuro)**: sistema centralizado que recibe operaciones VTT en JSON, las dedupa y las ejecuta atómicamente. Idea pendiente de implementación.
+
+**Requiere Cards previas**: campo del header de CARD que lista IDs de CARDs predecesoras. Habilita activación condicional + encadenamiento por el Prompt Builder (asegura orden de inyección).
 
 **Skill**: nivel 2 del modelo — capacidad reusable parametrizada.
 
@@ -1157,16 +1325,23 @@ flowchart TD
     W[WORKFLOW<br/>Guía pasos secuenciales<br/>Sin decisiones de negocio]
     S[SKILL<br/>Capacidad reusable parametrizada<br/>Inputs/Outputs contractuales]
     SC[SCRIPT<br/>Comando atómico ejecutable<br/>Idempotente cuando es posible]
+    C[CARD - Nivel R<br/>Vista runtime comprimida<br/>del happy path del Workflow<br/>200-5000 tokens]
+    PB[Prompt Builder<br/>Evalúa Aplica cuando<br/>e inyecta CARDs al prompt]
 
     P -->|"§6 Referencias Cruzadas"| W
     W -->|"en cada Paso → invoca"| S
     S -->|"sección Ejecución → corre"| SC
     SC -->|"HTTP/Bash/Python"| API[(VTT Backend<br/>GitHub<br/>Filesystem)]
+    W -.->|"comprimida en 1:1"| C
+    PB -.->|"activa por Aplica cuando"| C
+    C -.->|"inyectada al prompt del agente"| AG[(Agente ejecutor)]
 
     style P fill:#1f4e79,color:#fff
     style W fill:#2e75b6,color:#fff
     style S fill:#9dc3e6,color:#000
     style SC fill:#bdd7ee,color:#000
+    style C fill:#ffd966,color:#000
+    style PB fill:#a9d18e,color:#000
 ```
 
 ### Anexo F — Checklist de calidad por nivel
@@ -1198,13 +1373,83 @@ Para auditoría ISO 9001 o referencia con sistemas externos (KN/CUP, ITIL, etc.)
 | Flowchart | Flowchart / Diagrama de Flujo | Igual |
 | Template | Formato / Formulario | Igual |
 
+### Anexo H — Ejemplo mínimo de CARD
+
+```markdown
+# VTT.CARD-EXE-001 — Agente lee inputs iniciales
+
+| Campo | Valor |
+|---|---|
+| **Código** | `VTT.CARD-EXE-001` |
+| **Tipo** | `CARD-mini` |
+| **Versión** | 1.0 |
+| **Aplica cuando** | `task.phase = assignment AND agent.role IN [BE,DB,FE,DO,QA,DL,UX,AR,SA]` |
+| **Requiere Cards previas** | ninguna |
+| **Pertenece a** | WORKFLOW-ASG-001.031 |
+| **Tokens estimados** | ~520 |
+
+---
+
+## Qué hacer
+
+Al recibir notificación de asignación, antes de tocar código:
+
+1. **Login VTT** → `export VTT_TOKEN=$(...)` + extrae `AGENT_UUID` del JWT
+2. **Leer ASSIGNMENT completo** en `knowledge/agent-assignments/<sprint>/<TASK_ID>/`
+3. **Leer BRIEF completo** (referenciado por ASSIGNMENT)
+4. **Verificar archivos REFERENCIA OBLIGATORIOS** existen en disco
+5. **Revisar sección TIs APLICABLES**: TIs a ATENDER vs TIs a RESPETAR
+
+## Si detectas conflicto TI ↔ ASSIGNMENT
+
+NO improvisar. Crear Issue `type=requirement` `severity=high` via `CARD-ISS-001` ANTES de tocar código.
+
+## Si falla
+
+| Síntoma | Acción |
+|---|---|
+| Archivo de referencia faltante | STOP + escalar al TL |
+| TI contradice ASSIGNMENT | Issue antes de código |
+| OPERATIVO no encontrado | Usar guía genérica del rol como fallback |
+
+## Output
+
+Comprensión completa de la tarea. Listo para `CARD-EXE-002` (verificar worktree).
+```
+
+**Notas sobre el ejemplo:**
+- Header obligatorio con `Aplica cuando` máquina-legible y `Requiere Cards previas`
+- Cuerpo en 3 secciones: Qué hacer (happy path), Si falla (tabla compacta), Output (estado consistente)
+- Tipo `CARD-mini` con tokens ~520 → dentro del rango (200-500 target, 700 hard cap — el 520 está dentro de target)
+- Apunta al Workflow padre `.031` como referencia documental, NO como invocación
+- Encadenamiento explícito al final: "Listo para `CARD-EXE-002`"
+
 ---
 
 | Editor | Dueño | Última Actualización |
 |---|---|---|
-| PM Martin Rivas | PM Martin Rivas | 2026-05-13 |
+| PM Martin Rivas | PM Martin Rivas | 2026-05-31 |
 
-**Versión:** 1.0.0 — Documento inicial — Modelo Operativo VTT de 4 niveles (Protocol / Workflow / Skill / Script)
+**Versión:** 1.2.0 — Modelo Operativo VTT de 4 niveles + Nivel R Runtime (Protocol / Workflow / Skill / Script + CARD)
+
+**Cambios v1.2.0 (2026-05-31):**
+- §2.4.bis NUEVA: Nivel R CARD (runtime comprimido inyectable al prompt)
+- §2.5 Diagrama actualizado con CARD y Prompt Builder
+- §3.1 Tabla decisoria con columna CARD
+- §4.2 Categorías nuevas: EXE, HOTL, LD, DOCIMP, HARDCODE, CODE, PR, RESUME, CFL, CARD
+- §4.4 Extensiones incluye CARD = `.md`
+- §4.5 Ejemplos incluye `VTT.CARD-*`
+- §8.bis NUEVA: Estructura obligatoria del CARD (header, gramática Aplica cuando, presupuesto chars/4, reglas estructurales)
+- §9.1 Invocación Prompt Builder → CARD documentada
+- §9.2 Prohibido invocación inversa CARD
+- §10.1 Versionado CARD incremental con re-medición de tokens
+- §11.6 NUEVA: Checklist CARD
+- §13 Glosario con CARD, Nivel R, Prompt Builder, Aplica cuando, Chars/4, Requiere Cards previas
+- Anexo E diagrama actualizado con CARD y Prompt Builder
+- Anexo H NUEVO: Ejemplo mínimo de CARD
+
+**Cambios v1.1.0 (2026-05-13):** Documento inicial con 4 niveles (Protocol/Workflow/Skill/Script) + Nivel 0 Rules transversal.
+
 **Estado:** Aprobado para uso
 
 *Versión más reciente en el repo `virtual-teams-setup`. No controlada si se imprime.*

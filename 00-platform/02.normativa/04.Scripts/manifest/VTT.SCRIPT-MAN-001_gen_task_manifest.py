@@ -1,13 +1,27 @@
 #!/usr/bin/env python3
 # =============================================================================
 # VTT.SCRIPT-MAN-001 — gen_task_manifest.py
-# Version: 1.3 (2026-05-18)
+# Version: 1.4 (2026-05-31)
 # =============================================================================
 #
 # Proposito: Generar/actualizar Task Manifest schema v1.2 y subirlo a VTT como
 #            attachment fileType=manifest. Cubre v1.0 (agente) y v1.5 (TL).
 #
 # Changelog:
+#   v1.4 (2026-05-31) — Bug CRITICO detectado por TL Reviewer VTT en VTT-870:
+#     - parse_report_sections() regex line 207 no aceptaba ":" final en headings
+#       Pattern viejo:   rf"(?:^|\n)#{1,3}\s+{alias}\s*\n(.*?)..."
+#       Headings como "### Findings:" / "### Deuda tecnica:" NO matcheaban,
+#       quedaban como None -> caian a "N/A" o [] en el JSON final.
+#     - Impacto: 6 de 12 secciones del REPORT se perdian silenciosamente
+#       (findings, adrs, derived_tasks, notes, items_detected, how_to_verify).
+#     - Fix: pattern_md y pattern_line ahora aceptan ":" opcional antes del
+#       separador. Cambios:
+#       pattern_md:   "{alias}\s*\n"  ->  "{alias}\s*:?\s*\n"
+#       pattern_line: "{alias}\s*[:\n]"  ->  "{alias}\s*:?\s*\n" (homogeneo)
+#     - Heading lookahead tambien actualizado para tolerar ":" en el next heading.
+#     - Test: probar con REPORT que tenga mezcla de "### X" y "### X:" — ambos
+#       deben parsear el contenido.
 #   v1.3 (2026-05-18) — Bug #8 detectado en validacion VTT-718:
 #     - El v1.5 solo agregaba a related_to los TIs de new_tis_created.
 #       NO procesaba evidences_added[] (TIs existentes que el TL evidencio al
@@ -200,17 +214,29 @@ def parse_report(report_path):
     sections = {}
     # Split por headings (## o ###) o por lines "Title:" (formato legacy)
     # Estrategia: para cada section key, intentar todos sus aliases
+    #
+    # v1.4 fix (Bug VTT-870 / TL Reviewer):
+    #   Los regex ahora aceptan ":" final opcional en el heading.
+    #   Antes:  "### Findings\n..." OK   /   "### Findings:\n..." FALLABA -> None -> N/A
+    #   Ahora:  ambos parsean igual.
+    #   Cambio minimo y seguro:
+    #     pattern_md:   "{alias}\s*\n"      -> "{alias}\s*:?\s*\n"
+    #     pattern_line: "{alias}\s*[:\n]"   -> "{alias}\s*:?\s*\n" (homogeneo)
+    #   Los lookaheads de corte (siguiente heading / siguiente "Title:") quedan
+    #   intactos para no romper la deteccion del fin de seccion. Probado con
+    #   reportes mezclando headings con y sin ":".
+    #
     for key, aliases in REPORT_SECTIONS.items():
         sections[key] = None
         for alias in aliases:
-            # Pattern: heading "## <alias>" o linea "Alias:" — captura hasta el siguiente heading
-            pattern_md = rf"(?:^|\n)#{{1,3}}\s+{re.escape(alias)}\s*\n(.*?)(?=\n#{{1,3}}\s+|\Z)"
+            # Pattern: heading "## <alias>[:]" — captura hasta el siguiente heading
+            pattern_md = rf"(?:^|\n)#{{1,3}}\s+{re.escape(alias)}\s*:?\s*\n(.*?)(?=\n#{{1,3}}\s+|\Z)"
             m = re.search(pattern_md, content, re.DOTALL | re.IGNORECASE)
             if m:
                 sections[key] = m.group(1).strip()
                 break
-            # Fallback: linea "Alias:" en formato no-markdown
-            pattern_line = rf"(?:^|\n){re.escape(alias)}\s*[:\n](.*?)(?=\n[A-Z][a-zA-Z\s]+:|\Z)"
+            # Fallback: linea "Alias[:]" en formato no-markdown
+            pattern_line = rf"(?:^|\n){re.escape(alias)}\s*:?\s*\n(.*?)(?=\n[A-Z][a-zA-Z\s]+:|\Z)"
             m = re.search(pattern_line, content, re.DOTALL)
             if m:
                 sections[key] = m.group(1).strip()

@@ -17,19 +17,29 @@ Datos clave:
 Stack: Node.js 20 + TypeScript 5.x + Express + Prisma + Zod + PostgreSQL + MinIO
 
 ⚠️ Worktrees (VTT.PROTOCOL-WT-001):
-- 4 worktrees: vtt-espacio-1/2/3/4
+- 5 worktrees disponibles para AGENTES EJECUTORES: vtt-espacio-1/2/3/4/5
+- El TL Reviewer NO ocupa worktree (opera en repo padre) → los 5 son 100% para ejecutores
 - TU WORKTREE TE SERÁ ASIGNADO EN LA TAREA por el TL
 - NUNCA elegir worktree por tu cuenta
 - NUNCA tocar otro worktree
 
+⚠️ Documentos a leer (vivien en virtual-teams-setup/) — solo la parte que TE corresponde:
+- PROTOCOL-WT-001 §5.2 apertura sesión + §5.4 casos especiales + §5.4.5 cleanup al cerrar
+- PROTOCOL-MAN-001 §5.2 leer execution_manifest ANTES de tocar código + §5.3 generar task_manifest v1.0
+- WORKFLOW-WT-001.002 (apertura), WORKFLOW-MAN-001.002 (leer manifest), WORKFLOW-MAN-001.003 (generar manifest v1.0)
+- SKILL-PRECHECK-001 (5 checks entorno), SKILL-EXM-001 (execution manifest), SKILL-MAN-001 (task manifest v1.0)
+- NO leas PROTOCOL-ASG-001 completo — ese es del TL (47 pasos / 6 fases). Vos solo ejecutás tu fase.
+
 Al iniciar:
-1. Lee SETUP
+1. Lee SETUP (PASO 0..5)
 2. Verificá worktree asignado en tu tarea (comentario del TL en VTT)
 3. cd al worktree asignado
-4. DIAGNÓSTICO obligatorio (6 estados — SETUP §PASO 4)
-5. JWT
-6. Leé brief + ASSIGNMENT + archivos de referencia listados
-7. Primera respuesta: qué entendiste, archivos a crear, enfoque, dudas
+4. Pre-check obligatorio (SKILL-PRECHECK-001 — 5 checks)
+5. DIAGNÓSTICO worktree (6 estados — SETUP §PASO 4)
+6. JWT
+7. Leé tu execution_manifest (.vtt/manifests/<TASK_ID>.execution.json) ANTES de tocar código
+8. Leé brief + ASSIGNMENT + archivos de referencia listados
+9. Primera respuesta: qué entendiste, archivos a crear, enfoque, dudas
 
 Convenciones BE:
 - Servicios retornan {data, meta} — NO array directo
@@ -40,7 +50,21 @@ Convenciones BE:
 - Error format: {error: {code, message, details?}}
 - .LOGIC.md por cada archivo
 
+🔒 SEGURIDAD — RULE-SEC-001 (crítica) — NO postear NUNCA en VTT:
+VTT es accesible para CUALQUIER usuario autenticado. En comments / devlog / attachments PROHIBIDO postear:
+- IPs/hostnames de prod → usar "<VM_PROD>"
+- Usuarios privilegiados (root, postgres) y métodos de auth (SSH key, password)
+- Paths absolutos del filesystem prod (/root/..., /var/lib/...) → usar "path estándar VM"
+- Puertos específicos expuestos, vulnerabilidades activas no parcheadas
+- Credenciales (passwords, JWT, OAuth, API keys, service keys, llaves SSH)
+- Strings de conexión a BD completos
+
+✅ Permitido: referencias indirectas, comandos genéricos sin host/path, coordinar paths reales con PM por chat privado.
+
+Si ya posteaste datos sensibles → alertar PM + borrar comment/devlog + recrear sin sensibles + si hubo credenciales reales → rotar.
+
 Reglas innegociables:
+- NUNCA postear datos sensibles en VTT (RULE-SEC-001) — usar referencias indirectas
 - NUNCA modificar backend/prisma/schema.prisma → crear issue al DB
 - NUNCA modificar docker-compose.yml / .env / nginx.conf → crear issue al DO
 - NUNCA modificar frontend/ → es del FE

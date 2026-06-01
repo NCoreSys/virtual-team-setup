@@ -1291,10 +1291,47 @@
       },
       "related_rules": ["RULE-SCRIPT-001"],
       "tags": ["normativa", "templates", "single-source-of-truth", "drift"]
+    },
+    {
+      "id": "RULE-SEC-001",
+      "title": "Prohibido postear datos sensibles de infraestructura en comments/devlog/attachments de VTT",
+      "rule_text": "VTT es accesible para cualquier usuario autenticado de la plataforma — no tiene control de visibilidad por tarea ni por usuario. Por lo tanto, NINGÚN agente ni humano debe postear en comments, devlog entries o attachments de VTT: (a) IPs/hostnames de prod, (b) usuarios privilegiados de SO (root, postgres, etc.) y sus métodos de autenticación (SSH key, password, sudo), (c) paths absolutos del filesystem prod (/root/..., /var/lib/..., /etc/...), (d) puertos específicos expuestos en prod, (e) credenciales de cualquier tipo (passwords, JWT, OAuth tokens, API keys, service keys, llaves SSH públicas o privadas), (f) strings de conexión a BD (DSN completos), (g) vulnerabilidades activas no parcheadas (servicios sin HTTPS, puertos abiertos sin auth, configs inseguras). Usar SIEMPRE referencias indirectas: '<VM_PROD>', 'path estándar de la VM', 'el PM te pasa los paths en tu ventana', 'ver SETUP de tu rol'. Esta regla aplica a comments públicos, devlog entries de cualquier severidad, y attachments. NO aplica a la conversación directa con el PM en su ventana de chat (canal privado) ni a archivos en repos privados con control de acceso.",
+      "status": "active",
+      "version": "1.0",
+      "scope": {
+        "level": "PLATFORM"
+      },
+      "actor_types": ["HUMAN", "AGENT"],
+      "required_capabilities": [],
+      "markers": {
+        "mandatory": true,
+        "sensitive": true,
+        "human_only": false,
+        "sod_enforcement": false,
+        "blocks_review_gate": true,
+        "auto_detect": true,
+        "agent_default_forbidden": false
+      },
+      "violation": {
+        "severity": "critical",
+        "action": "block",
+        "auto_detect_query": "comment/devlog/attachment body matches regex (\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}) OR contains tokens (root@|ssh root|PRIVATE KEY|BEGIN OPENSSH|password=|POSTGRES_PASSWORD=|JWT_SECRET|API_KEY|service_key|/root/|/var/lib/postgresql|nginx no instalado|puerto.*expuesto|sin HTTPS)"
+      },
+      "source_origin": {
+        "file": "Incidente VTT 2026-05-30",
+        "section": "TL Reviewer posteó comments con IP VM, usuario SSH root, paths absolutos /root/..., puerto 3000 expuesto y 'Nginx no instalado' (vulnerabilidad activa) en tareas VTT-864/819/870/818"
+      },
+      "examples": {
+        "compliant": "El PM aplicará la migration en <VM_PROD>. Workflow: pre-checks (ver SOP del rol) → migration → post-checks. Coordinar con PM por chat privado para paths y credenciales.",
+        "violation": "ssh root@77.42.88.106; cd /root/virtual-teams-tracking; npx prisma migrate deploy. Nota: puerto 3000 está expuesto directo sin Nginx — no hay HTTPS aún."
+      },
+      "remediation_on_detect": "Borrar comment/devlog/attachment expuesto inmediatamente (DELETE endpoint), recrear con referencias indirectas. Si la exposición incluyó credenciales reales → ROTAR la credencial.",
+      "related_rules": ["RULE-AGENT-001"],
+      "tags": ["seguridad", "infosec", "data-exposure", "vtt-comments", "leccion-aprendida"]
     }
   ],
   "summary": {
-    "total_rules": 49,
+    "total_rules": 50,
     "by_level": {
       "PLATFORM": 16,
       "ORGANIZATION": 0,
@@ -1306,7 +1343,7 @@
       "AGENT": 0
     },
     "by_status": {
-      "active": 49,
+      "active": 50,
       "deprecated": 0,
       "superseded": 0,
       "draft": 0
@@ -1326,12 +1363,12 @@
       "MS-290_vs_MS-333_lesson": 2
     },
     "by_severity": {
-      "critical": 11,
+      "critical": 12,
       "high": 23,
       "medium": 11,
       "low": 4
     },
-    "mandatory": 49,
+    "mandatory": 50,
     "human_only": 2,
     "agent_default_forbidden": 7,
     "sod_enforcement": 5,

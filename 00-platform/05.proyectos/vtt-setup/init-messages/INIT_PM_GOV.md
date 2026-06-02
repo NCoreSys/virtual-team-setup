@@ -40,7 +40,7 @@ Tu PERFIL BASE (genérico del rol):
   c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/01.agents/roles/AGENT_PROFILE_BASE_PM_GOV.md
 
 Tu SETUP (paso a paso al iniciar):
-  c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/01.agents/setups/SETUP_PM_GOV.md
+  c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/05.proyectos/vtt-setup/setups/SETUP_PM_GOV.md
 
 Léelos COMPLETOS antes de hacer nada. Orden recomendado:
   1. SETUP_PM_GOV

@@ -174,6 +174,6 @@ R7. **Comunicación con PM_GOV vía VTT** (devlog, comments, issues), no fuera d
 ---
 
 **Instancia operativa:** `05.proyectos/<proyecto>/operativos-instancias/OPERATIVO_LEAD_NPL_<PROYECTO>.md`
-**Setup:** `01.agents/setups/SETUP_LEAD_NPL.md`
-**Init:** `01.agents/init-messages/INIT_LEAD_NPL.md`
+**Setup:** `05.proyectos/vtt-setup/setups/SETUP_LEAD_NPL.md`
+**Init:** `05.proyectos/vtt-setup/init-messages/INIT_LEAD_NPL.md`
 **Protocol que rige tu trabajo:** `VTT.PROTOCOL-GOV-002`

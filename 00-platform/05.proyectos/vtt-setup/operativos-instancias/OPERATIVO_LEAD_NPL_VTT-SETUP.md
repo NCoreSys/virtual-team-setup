@@ -421,7 +421,7 @@ Postear comment en la tarea VTT siguiendo SKILL-REPORT-001 v1.1:
 ---
 
 **Perfil base:** `01.agents/roles/AGENT_PROFILE_BASE_LEAD_NPL.md`
-**Setup:** `01.agents/setups/SETUP_LEAD_NPL.md`
-**Init:** `01.agents/init-messages/INIT_LEAD_NPL.md`
+**Setup:** `05.proyectos/vtt-setup/setups/SETUP_LEAD_NPL.md`
+**Init:** `05.proyectos/vtt-setup/init-messages/INIT_LEAD_NPL.md`
 **Biblia operativa:** `02.normativa/GUIA_AUTOR.md` v1.1
 **Estado:** Activo

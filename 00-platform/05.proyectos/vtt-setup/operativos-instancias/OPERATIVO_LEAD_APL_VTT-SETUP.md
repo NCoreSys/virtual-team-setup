@@ -396,7 +396,7 @@ Cuando no hay tarea de PM_GOV:
 ---
 
 **Perfil base:** `01.agents/roles/AGENT_PROFILE_BASE_LEAD_APL.md`
-**Setup:** `01.agents/setups/SETUP_LEAD_APL.md`
-**Init:** `01.agents/init-messages/INIT_LEAD_APL.md`
+**Setup:** `05.proyectos/vtt-setup/setups/SETUP_LEAD_APL.md`
+**Init:** `05.proyectos/vtt-setup/init-messages/INIT_LEAD_APL.md`
 **Biblia operativa:** `03.templates/agents/TEMPLATE_TRIADA_AGENTE.md` v1.0
 **Estado:** Activo

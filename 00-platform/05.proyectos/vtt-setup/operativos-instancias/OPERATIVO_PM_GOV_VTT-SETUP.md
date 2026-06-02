@@ -452,8 +452,8 @@ Tareas estratégicas identificadas el 2026-06-02 al definir la jerarquía:
 ---
 
 **Perfil base:** `01.agents/roles/AGENT_PROFILE_BASE_PM_GOV.md`
-**Setup de arranque:** `01.agents/setups/SETUP_PM_GOV.md`
-**Init message:** `01.agents/init-messages/INIT_PM_GOV.md`
+**Setup de arranque:** `05.proyectos/vtt-setup/setups/SETUP_PM_GOV.md`
+**Init message:** `05.proyectos/vtt-setup/init-messages/INIT_PM_GOV.md`
 **Protocol que rige tu trabajo:** `VTT.PROTOCOL-GOV-002`
 **Sucede a:** `_deprecated/OPERATIVO_COORD_VTT-SETUP.md` v2.0
 **Estado:** Activo

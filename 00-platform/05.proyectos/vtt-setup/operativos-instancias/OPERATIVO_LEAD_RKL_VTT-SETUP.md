@@ -384,6 +384,6 @@ Cuando no hay tarea PM_GOV:
 ---
 
 **Perfil base:** `01.agents/roles/AGENT_PROFILE_BASE_LEAD_RKL.md`
-**Setup:** `01.agents/setups/SETUP_LEAD_RKL.md`
-**Init:** `01.agents/init-messages/INIT_LEAD_RKL.md`
+**Setup:** `05.proyectos/vtt-setup/setups/SETUP_LEAD_RKL.md`
+**Init:** `05.proyectos/vtt-setup/init-messages/INIT_LEAD_RKL.md`
 **Estado:** Activo

@@ -41,7 +41,7 @@ Tu PERFIL BASE:
   c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/01.agents/roles/AGENT_PROFILE_BASE_LEAD_NPL.md
 
 Tu SETUP:
-  c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/01.agents/setups/SETUP_LEAD_NPL.md
+  c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/05.proyectos/vtt-setup/setups/SETUP_LEAD_NPL.md
 
 Léelos COMPLETOS antes de hacer nada. Orden:
   1. SETUP_LEAD_NPL

@@ -197,6 +197,6 @@ R7. **Comunicación con PM_GOV vía VTT**.
 ---
 
 **Instancia operativa:** `05.proyectos/<proyecto>/operativos-instancias/OPERATIVO_LEAD_RKL_<PROYECTO>.md`
-**Setup:** `01.agents/setups/SETUP_LEAD_RKL.md`
-**Init:** `01.agents/init-messages/INIT_LEAD_RKL.md`
+**Setup:** `05.proyectos/vtt-setup/setups/SETUP_LEAD_RKL.md`
+**Init:** `05.proyectos/vtt-setup/init-messages/INIT_LEAD_RKL.md`
 **Protocol que rige tu trabajo:** `VTT.PROTOCOL-GOV-002`

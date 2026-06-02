@@ -173,6 +173,6 @@ R7. **Sesión por tema** — si Martin abre un tema nuevo conmigo, asumir que es
 ---
 
 **Instancia operativa:** `05.proyectos/vtt-setup/operativos-instancias/OPERATIVO_PM_GOV_VTT-SETUP.md`
-**Setup de arranque:** `01.agents/setups/SETUP_PM_GOV.md`
-**Init message:** `01.agents/init-messages/INIT_PM_GOV.md`
+**Setup de arranque:** `05.proyectos/vtt-setup/setups/SETUP_PM_GOV.md`
+**Init message:** `05.proyectos/vtt-setup/init-messages/INIT_PM_GOV.md`
 **Protocol que rige tu trabajo:** `VTT.PROTOCOL-GOV-002`

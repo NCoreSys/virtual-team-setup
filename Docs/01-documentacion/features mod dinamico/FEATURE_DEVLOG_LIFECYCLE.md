@@ -7,6 +7,11 @@
 | **Fecha** | 2026-05-21 |
 | **Sprint origen** | S2 — Core Backend (documentado post-implementación) |
 | **Estado** | ✅ Implementado (BE) |
+| **Protocol normativo** | `VTT.PROTOCOL-DEV-001` v1.1.0 — ver `00-platform/02.normativa/01.Protocols/VTT.PROTOCOL-DEV-001_ciclo_devlog_entry.md` |
+| **Workflows operativos** | `VTT.WORKFLOW-DEV-001.001` (crear), `.002` (editar/transicionar), `.003` (cerrar sprint) — `00-platform/02.normativa/02.Workflows/` |
+| **Skills** | `VTT.SKILL-DEV-001..005` — `00-platform/02.normativa/03.Skills/dev/` |
+| **Cards runtime (Nivel R)** | `VTT.CARD-DEV-001/002/003` — `00-platform/02.normativa/05.Cards/dev/` |
+| **Frontera con bug/blocker/question** | escalación a `VTT.PROTOCOL-ASG-001` §5.4 (bug/blocker) / §5.4.bis (question) — ver Protocol DEV-001 §5.1.2.bis |
 
 ---
 

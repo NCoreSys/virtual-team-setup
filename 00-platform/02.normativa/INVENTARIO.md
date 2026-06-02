@@ -153,7 +153,7 @@ Los operativos y scripts referencian:
 | `VTT.PROTOCOL-ASG-001` | Ciclo de asignación y cierre de tarea | `02.normativa/01.Protocols/VTT.PROTOCOL-ASG-001_ciclo_asignacion_tarea.md` | ✅ v1.5.0 (2026-05-22) — OLA 1 cierre MSG + §5.5.9 bifurca rechazo en feedback simple vs bug con tarea hija (invoca WORKFLOW-ASG-001.030) |
 | `VTT.PROTOCOL-MAN-001` | Gobernanza del Manifest (Task + Execution) | `02.normativa/01.Protocols/VTT.PROTOCOL-MAN-001_gobernanza_manifest.md` | ✅ Nuevo (2026-05-17) |
 | `VTT.PROTOCOL-WT-001` | Gobernanza de Worktrees por rol | `02.normativa/01.Protocols/VTT.PROTOCOL-WT-001_gobernanza_worktrees.md` | ✅ Nuevo (2026-05-18) v1.0.1 |
-| `VTT.PROTOCOL-DEV-001` | **Ciclo de vida del Devlog Entry** (creación → Review Gate → review → cierre de sprint) | `02.normativa/01.Protocols/VTT.PROTOCOL-DEV-001_ciclo_devlog_entry.md` | ✅ Nuevo (2026-05-22) v1.0.0 — origen feature DEVLOG_LIFECYCLE; orquesta DEV-001..005 |
+| `VTT.PROTOCOL-DEV-001` | **Ciclo de vida del Devlog Entry** (creación → Review Gate → review → cierre de sprint) | `02.normativa/01.Protocols/VTT.PROTOCOL-DEV-001_ciclo_devlog_entry.md` | ✅ Activo v1.1.0 (2026-06-02) — frontera con ASG-001 §5.4/§5.4.bis (escalación bug/blocker/question); orquesta DEV-001..005 + WORKFLOW-DEV-001.001/.002/.003 + CARD-DEV-001/002/003. Bumped por TW-OPS en auditoría VTS-007 |
 | `VTT.PROTOCOL-REVMA-001` | **Ciclo de Revisión Multi-Agente.** Transversal — invocado por todos los Protocols del upstream. PM Revisor (modelo distinto) audita docs producidos por agentes generadores. Máx 3 vueltas por documento. Backfeed obligatorio si downstream rompe upstream. Política "corregir local vs devolver" con 5 criterios. | `02.normativa/01.Protocols/VTT.PROTOCOL-REVMA-001_ciclo_revision_multiagente.md` | ✅ Nuevo (2026-05-31) v1.0.0 — Por TW-OPS |
 | `VTT.PROTOCOL-PT-001` | **Generación del Paquete Técnico Base** (3B.1..3B.8). Ownership único por doc, tabla maestra de producción con inputs/colaboradores/función, orden de dependencias (3B.1 raíz), paralelismo desde 3B.4 aprobado, cross-check de coherencia cruzada antes de entregar al TL para `IPL-001`. | `02.normativa/01.Protocols/VTT.PROTOCOL-PT-001_generacion_paquete_tecnico.md` | ✅ Nuevo (2026-05-31) v1.0.0 — Por TW-OPS |
 | `VTT.PROTOCOL-OB-001` | **Onboarding de Feature en Sistema Operando.** Variante de `PT-001` para features dentro de repos con código vivo. 2 pistas paralelas: (A) diseño delta desde SPEC, (B) estado actual del repo citando archivos/líneas. Resolución de drift SPEC vs Repo. Inversión única amortizada en docs `*_actual_*`. | `02.normativa/01.Protocols/VTT.PROTOCOL-OB-001_onboarding_feature_sistema_operando.md` | ✅ Nuevo (2026-05-31) v1.0.0 — Por TW-OPS |
@@ -237,6 +237,14 @@ Los operativos y scripts referencian:
 | `VTT.WORKFLOW-WT-001.003` | Agregar worktree de rol nuevo (bajo demanda) | `02.normativa/02.Workflows/VTT.WORKFLOW-WT-001.003_agregar_rol.md` | ✅ Nuevo (2026-05-18) — invocado por PROTOCOL-WT-001 §5.3 |
 | `VTT.WORKFLOW-WT-001.004` | Casos especiales (multi-repo / branch dependiente / pausar / recovery) | `02.normativa/02.Workflows/VTT.WORKFLOW-WT-001.004_casos_especiales.md` | ✅ Nuevo (2026-05-18) — invocado por PROTOCOL-WT-001 §5.4 |
 | `VTT.WORKFLOW-WT-001.005` | Cleanup final del proyecto | `02.normativa/02.Workflows/VTT.WORKFLOW-WT-001.005_cleanup_final.md` | ✅ Nuevo (2026-05-18) — invocado por PROTOCOL-WT-001 §5.5 |
+
+### Workflows de PROTOCOL-DEV-001 (Devlog Lifecycle)
+
+| Workflow | Función | Path canónico | Estado |
+|---|---|---|---|
+| `VTT.WORKFLOW-DEV-001.001` | **Crear devlog entry** — POST `/devlog` con 7 categoryCode + 4 severity, agente ejecutor | `02.normativa/02.Workflows/VTT.WORKFLOW-DEV-001.001_crear_devlog_entry.md` | ✅ Nuevo (2026-06-02) v1.0.0 — invocado por PROTOCOL-DEV-001 §5.1 |
+| `VTT.WORKFLOW-DEV-001.002` | **Editar contenido (Vía A PATCH body) o transicionar lifecycle (Vía B PATCH status)** — agente/TL | `02.normativa/02.Workflows/VTT.WORKFLOW-DEV-001.002_editar_o_transicionar_entry.md` | ✅ Nuevo (2026-06-02) v1.0.0 — invocado por PROTOCOL-DEV-001 §5.1.4 + §5.3 |
+| `VTT.WORKFLOW-DEV-001.003` | **Cerrar entries terminales pre-aprobación del sprint** — auditoría TL+PM al cierre de sprint (FASE 4) | `02.normativa/02.Workflows/VTT.WORKFLOW-DEV-001.003_cerrar_entries_terminal_pre_aprobacion.md` | ✅ Nuevo (2026-06-02) v1.0.0 — invocado por PROTOCOL-DEV-001 §5.4 |
 
 > **Nota:** los Workflows nacen cuando se genera su Protocol padre. No hay Workflows huérfanos.
 

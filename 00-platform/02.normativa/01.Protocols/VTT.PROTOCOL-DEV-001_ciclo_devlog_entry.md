@@ -4,8 +4,8 @@
 |---|---|
 | **Código** | `VTT.PROTOCOL-DEV-001` |
 | **Título** | Ciclo de vida del Devlog Entry (creación → review → cierre de sprint) |
-| **Versión** | 1.0.0 |
-| **Fecha** | 2026-05-22 |
+| **Versión** | 1.1.0 |
+| **Fecha** | 2026-06-02 |
 | **Autor** | PM Martin Rivas |
 | **Aplica a** | Agentes ejecutores, TL Reviewer, PM (cierre de sprint), QA (durante review) |
 | **Estado** | Aprobado para uso |
@@ -13,7 +13,7 @@
 | **Reglas aplicables (Nivel 0)** | Ver `00.Rules/rules_catalog.json` — Review Gate bloquea con entries `critical`/`high` no resueltas |
 | **Feature origen** | `Docs/01-documentacion/features mod dinamico/FEATURE_DEVLOG_LIFECYCLE.md` |
 | **Endpoints VTT cubiertos** | `POST/PATCH/DELETE /api/tasks/:taskId/devlog[/:entryId][/status]` |
-| **Protocols relacionados** | `VTT.PROTOCOL-ASG-001` (el devlog se mueve dentro del ciclo de asignación), `VTT.PROTOCOL-MAN-001` (el TL registra `devlog_resolved_count` en el manifest v1.5) |
+| **Protocols relacionados** | `VTT.PROTOCOL-ASG-001` (el devlog se mueve dentro del ciclo de asignación; §5.4 / §5.4.bis son los destinos de escalación cuando una entry `issue` debe convertirse en Issue formal — ver §6.3), `VTT.PROTOCOL-MAN-001` (el TL registra `devlog_resolved_count` en el manifest v1.5) |
 
 ---
 
@@ -183,11 +183,31 @@ El agente detecta uno de los 7 tipos de evento durante su trabajo:
 
 #### 5.1.2 Decisión: ¿devlog, comment o issue?
 
+Primer corte — qué herramienta usar según la naturaleza del registro:
+
 | Si... | Usar |
 |---|---|
 | Trazabilidad de decisión/observación/finding | **Devlog entry** (esta fase) |
 | Comunicación con el equipo, no requiere trazabilidad | Comment (`VTT.SKILL-COMMENT-001`) |
 | Bloqueante real que detiene la tarea ahora | Issue (`VTT.SKILL-ISS-001`) + on_hold |
+
+#### 5.1.2.bis Cuándo una entry devlog escala a Issue formal (frontera con ASG-001 §5.4 / §5.4.bis)
+
+Algunas categorías de entry pueden volverse bloqueantes técnicos o consultas formales que exceden el ámbito del devlog y requieren un **Issue formal** procesado por el sub-ciclo correspondiente del `VTT.PROTOCOL-ASG-001`. La siguiente tabla define la frontera:
+
+| `categoryCode` de la entry | Acción del agente | ¿Escala a Issue formal? | Sub-ciclo destino |
+|---|---|---|---|
+| `decision` | registrar y seguir | no | — |
+| `observation` | registrar y seguir | no | — |
+| `tech_debt` | registrar + derivar tarea futura | no (queda en devlog) | — |
+| `issue` (no-bug, no-blocker) | registrar y seguir | no | — |
+| `issue` con síntoma `bug`/`blocker` (severity `high`/`critical`) | crear Issue formal + mover tarea a `task_on_hold` | **sí** — `POST /api/tasks/:id/issues` con `type=bug` o `type=blocker` | `VTT.PROTOCOL-ASG-001` §5.4 |
+| `issue` con síntoma `question` (severity `low`/`medium`, NUNCA `high`/`critical`) | crear Issue formal sin `on_hold` | **sí** — `POST /api/tasks/:id/issues` con `type=question` | `VTT.PROTOCOL-ASG-001` §5.4.bis |
+
+> **Heurística de ASG-001 §4 para distinguir `bug`/`blocker` vs `question`:**
+> - "¿Debería hacer X o Y?" (decisión de diseño/scope/criterio) → `question`
+> - "X no funciona, error Y al ejecutar Z" (síntoma técnico) → `bug` o `blocker` según severidad
+> - Si la pregunta sube a severity `high`/`critical` → ya no es pregunta, es blocker → `§5.4` con `task_on_hold`
 
 #### 5.1.3 Creación
 
@@ -344,6 +364,8 @@ Una vez confirmado 0 pending, generar el reporte M del sprint con el resumen del
 | Código | Relación |
 |---|---|
 | `VTT.PROTOCOL-ASG-001` | El lifecycle del devlog ocurre **dentro** del ciclo de asignación. El review (FASE 3) coincide con el PASS del code review del PROTOCOL-ASG-001 §5.5. |
+| `VTT.PROTOCOL-ASG-001` §5.4 | Sub-ciclo de Issue tipo `bug`/`blocker` — destino al que escala una entry devlog `categoryCode: issue` con síntoma técnico severity `high`/`critical`. La tarea pasa a `task_on_hold`. Ver tabla §5.1.2.bis. |
+| `VTT.PROTOCOL-ASG-001` §5.4.bis | Sub-ciclo de Issue tipo `question` — destino al que escala una entry devlog `categoryCode: issue` con síntoma de consulta de diseño/scope (severity `low`/`medium`). La tarea NO pasa a `task_on_hold`. Ver tabla §5.1.2.bis. |
 | `VTT.PROTOCOL-MAN-001` | El TL registra `devlog_resolved_count` (y conteos asociados) en el Task Manifest v1.5 (FASE 4 del MAN-001). |
 | `VTT.PROTOCOL-GOV-001` | Este Protocol sigue el modelo de 4 niveles de la Guía Normativa VTT. |
 
@@ -388,14 +410,15 @@ Una vez confirmado 0 pending, generar el reporte M del sprint con el resumen del
 | Versión | Fecha | Editor | Cambios |
 |---|---|---|---|
 | 1.0.0 | 2026-05-22 | PM Martin Rivas | Versión inicial. Documenta el lifecycle de devlog entries en 4 fases (creación / Review Gate / review / cierre de sprint). Cubre los 7 categoryCode (decision, observation, blocker, tech_debt, testing_note, risk, issue), los 6 estados (pending → acknowledged → in_progress → resolved/wont_fix/deferred) y las 12 reglas críticas (R1-R12). Origen: `FEATURE_DEVLOG_LIFECYCLE.md` v1.0 + skills DEV-001..005. Define 3 workflows hijos (.001/.002/.003) a desarrollar en siguientes iteraciones. |
+| 1.1.0 | 2026-06-02 | TW-OPS (auditoría VTS-007) | **Frontera DEV-001 ↔ ASG-001 §5.4/§5.4.bis** (escalación de entries `issue` a Issue formal). Cambios: (1) §5.1.2.bis nuevo — tabla de 6 filas con cuándo escalar entry devlog → Issue formal (`bug`/`blocker` → ASG-001 §5.4 / `question` → §5.4.bis) + heurística de distinción tomada de ASG-001 §4. (2) §6.3 Protocols relacionados ampliada con 2 entradas explícitas para ASG-001 §5.4 y §5.4.bis (antes mencionaba solo §5.5 — cross-link unidireccional incompleto detectado en auditoría VTS-007). (3) Frontmatter §1: fecha actualizada + ampliada la descripción de ASG-001 en "Protocols relacionados". Confirmado por Coord en comments `02d88544` + `83c7aba4` (issue `6a8e7df6`). NO se tocó la prosa del cuerpo del Protocol — los workflows hijos `.001/.002/.003` y las skills `DEV-001..005` mantienen sus contratos. Auditoría completa: `knowledge/agent-tasks/audits/AUDIT_VTS-007_DEV-001.md`. |
 
 ---
 
 | Editor | Dueño | Última Actualización |
 |---|---|---|
-| PM Martin Rivas | PM Martin Rivas | 2026-05-22 |
+| TW-OPS Agent | PM Martin Rivas | 2026-06-02 |
 
-**Versión:** 1.0.0 — Documento inicial — Ciclo de vida del Devlog Entry
+**Versión:** 1.1.0 — Frontera DEV-001 ↔ ASG-001 §5.4/§5.4.bis
 **Estado:** Aprobado para uso
 
 *Versión más reciente en el repo `virtual-teams-setup`. No controlada si se imprime.*

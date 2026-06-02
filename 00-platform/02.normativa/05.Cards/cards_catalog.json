@@ -1,16 +1,49 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-05-31",
+  "generated_at": "2026-06-02",
   "estimator": "chars/4",
   "estimator_note": "Estimador canónico VTT. Auxiliar (words×1.33) solo para referencia, no para decisiones de budget.",
   "consumer": "Prompt Builder (futuro) + TL Reviewer al escribir ASSIGNMENT (hoy)",
   "applies_when_grammar": {
     "fields": {
-      "task.phase": ["assignment", "execution_start", "execution", "closing", "review", "approval"],
-      "agent.role": ["BE", "DB", "FE", "DO", "QA", "DL", "UX", "AR", "SA", "TL", "PM", "PJM"],
-      "task.category": ["development", "deployment", "devops", "documentation", "testing", "design", "bugfix"]
+      "task.phase": [
+        "assignment",
+        "execution_start",
+        "execution",
+        "closing",
+        "review",
+        "approval"
+      ],
+      "agent.role": [
+        "BE",
+        "DB",
+        "FE",
+        "DO",
+        "QA",
+        "DL",
+        "UX",
+        "AR",
+        "SA",
+        "TL",
+        "PM",
+        "PJM"
+      ],
+      "task.category": [
+        "development",
+        "deployment",
+        "devops",
+        "documentation",
+        "testing",
+        "design",
+        "bugfix"
+      ]
     },
-    "operators": ["=", "IN [...]", "AND", "OR"],
+    "operators": [
+      "=",
+      "IN [...]",
+      "AND",
+      "OR"
+    ],
     "examples": [
       "task.phase = closing AND agent.role IN [BE,DB,FE,DO,QA,DL,UX,AR,SA]",
       "task.phase = execution_start AND agent.role IN [BE,DB,FE]",
@@ -46,7 +79,9 @@
       "tokens_measured": 580,
       "tokens_measured_at": "2026-05-31",
       "applies_when": "task.phase = execution_start AND agent.role IN [BE,DB,FE,DO,QA,DL,UX,AR,SA]",
-      "requires_prior": ["CARD-EXE-001"],
+      "requires_prior": [
+        "CARD-EXE-001"
+      ],
       "consumer": "agent",
       "trigger": "Agente leyó inputs iniciales, va a entrar al worktree",
       "output": "Agente en worktree correcto, main actualizado, working tree limpio",
@@ -67,7 +102,10 @@
       "tokens_measured": 430,
       "tokens_measured_at": "2026-05-31",
       "applies_when": "task.phase = execution_start AND agent.role IN [BE,DB,FE,DO,QA,DL,UX,AR,SA]",
-      "requires_prior": ["CARD-EXE-002", "CARD-MAN-004"],
+      "requires_prior": [
+        "CARD-EXE-002",
+        "CARD-MAN-004"
+      ],
       "consumer": "agent",
       "trigger": "Agente verificó worktree + leyó execution_manifest",
       "output": "Tarea en task_in_progress, auditoría con changedBy=agent_id",
@@ -88,7 +126,10 @@
       "tokens_measured": 2100,
       "tokens_measured_at": "2026-05-31",
       "applies_when": "task.phase = execution AND agent.role IN [BE,DB,FE,DO,QA,DL,UX,AR,SA]",
-      "requires_prior": ["CARD-EXE-003", "CARD-MAN-004"],
+      "requires_prior": [
+        "CARD-EXE-003",
+        "CARD-MAN-004"
+      ],
       "consumer": "agent",
       "trigger": "Tarea en task_in_progress, agente listo para implementar",
       "output": "Tarea en task_in_review, PR creado, manifest v1.0 attachment + committeado",
@@ -108,7 +149,9 @@
       "tokens_measured": 950,
       "tokens_measured_at": "2026-05-31",
       "applies_when": "task.phase = execution AND agent.role IN [BE,DB,FE,DO,QA,DL,UX,AR,SA]",
-      "requires_prior": ["CARD-EXE-004"],
+      "requires_prior": [
+        "CARD-EXE-004"
+      ],
       "consumer": "agent",
       "trigger": "Agente terminó implementación, ANTES del commit final",
       "output": "Total LDs revisados = catálogo, devlog por LD (sin cambios o modificado), Document Impacts registrados via CARD-EXE-006",
@@ -128,7 +171,9 @@
       "tokens_measured": 640,
       "tokens_measured_at": "2026-05-31",
       "applies_when": "task.phase = execution AND agent.role IN [BE,DB,FE,DO,QA,DL,UX,AR,SA]",
-      "requires_prior": ["CARD-EXE-005"],
+      "requires_prior": [
+        "CARD-EXE-005"
+      ],
       "consumer": "agent",
       "trigger": "LDs modificados detectados por CARD-EXE-005",
       "output": "Document Impacts registrados (endpoint) o declarados via devlog fallback (DEBT-INFRA-VTT-01)",
@@ -148,7 +193,9 @@
       "tokens_measured": 1000,
       "tokens_measured_at": "2026-05-31",
       "applies_when": "task.phase = execution AND agent.role IN [BE,DB,FE,DO,QA,DL,UX,AR,SA]",
-      "requires_prior": ["CARD-EXE-006"],
+      "requires_prior": [
+        "CARD-EXE-006"
+      ],
       "consumer": "agent",
       "trigger": "Document Impacts registrados, ANTES del commit final",
       "output": "Status PASS (0 findings críticos/altos en producción) + FPs justificados en devlog",
@@ -169,7 +216,12 @@
       "tokens_measured": 1250,
       "tokens_measured_at": "2026-05-31",
       "applies_when": "task.phase = closing AND agent.role IN [BE,DB,FE,DO,QA,DL,UX,AR,SA]",
-      "requires_prior": ["CARD-EXE-005", "CARD-EXE-006", "CARD-EXE-007", "CARD-MAN-001"],
+      "requires_prior": [
+        "CARD-EXE-005",
+        "CARD-EXE-006",
+        "CARD-EXE-007",
+        "CARD-MAN-001"
+      ],
       "consumer": "agent",
       "trigger": "Sub-workflows .017/.018/.019 OK, listo para cierre",
       "output": "task_in_review + SKL-REPORT-01 comment + manifest v1.0 attachment + committeado al PR + renderizado",
@@ -210,7 +262,9 @@
       "tokens_measured": 690,
       "tokens_measured_at": "2026-05-31",
       "applies_when": "task.phase = execution AND agent.role IN [BE,DB,FE,DO,QA,DL,UX,AR,SA]",
-      "requires_prior": ["CARD-EXE-004"],
+      "requires_prior": [
+        "CARD-EXE-004"
+      ],
       "consumer": "agent",
       "trigger": "Agente detectó bloqueante durante implementación (datos faltantes / conflicto TI / dependency / tech_error)",
       "output": "Issue creado con marker [TASK:MS-XXX] + devlog blocker enlazado",
@@ -231,7 +285,9 @@
       "tokens_measured": 580,
       "tokens_measured_at": "2026-05-31",
       "applies_when": "task.phase = execution AND agent.role IN [BE,DB,FE,DO,QA,DL,UX,AR,SA]",
-      "requires_prior": ["CARD-ISS-001"],
+      "requires_prior": [
+        "CARD-ISS-001"
+      ],
       "consumer": "agent",
       "trigger": "Issue creado, tarea debe pausarse",
       "output": "Tarea en task_on_hold con onHoldIssueId habilitando auto-resume + código stashed",
@@ -272,7 +328,9 @@
       "tokens_measured": 1350,
       "tokens_measured_at": "2026-05-31",
       "applies_when": "task.phase = execution AND agent.role = TL",
-      "requires_prior": ["CARD-ISS-003"],
+      "requires_prior": [
+        "CARD-ISS-003"
+      ],
       "consumer": "tl",
       "trigger": "TL terminó análisis, debe ejecutar acción",
       "output": "Issue en pending_corrective (A) / resolved (B,C) / wont_fix (D) + auto-resume preparado",
@@ -303,6 +361,68 @@
         "workflow": "WORKFLOW-ASG-001.038",
         "skill": "SKILL-RESUME-001",
         "script": "SCRIPT-RESUME-001"
+      }
+    },
+    {
+      "id": "CARD-DEV-001",
+      "title": "Crear devlog entry (decision/observation/blocker/tech_debt/testing_note/risk/issue)",
+      "category": "dev",
+      "type": "CARD-std",
+      "tokens_measured": 769,
+      "tokens_measured_at": "2026-06-02",
+      "applies_when": "task.phase IN [execution, review] AND agent.role IN [BE,DB,FE,DO,QA,DL,UX,AR,SA,TL]",
+      "requires_prior": [],
+      "consumer": "agent",
+      "trigger": "Agente detecta evento durante ejecución que debe quedar registrado en devlog de la tarea",
+      "output": "Entry creada con entry_id, status=pending, lista para procesamiento del TL en FASE 3",
+      "status": "done",
+      "path": "05.Cards/dev/VTT.CARD-DEV-001_crear_devlog_entry.md",
+      "references": {
+        "protocol": "PROTOCOL-DEV-001 §5.1",
+        "workflow": "WORKFLOW-DEV-001.001",
+        "skill": "SKILL-DEV-001,SKILL-DEV-002"
+      }
+    },
+    {
+      "id": "CARD-DEV-002",
+      "title": "Editar contenido (Vía A) o transicionar lifecycle (Vía B) de devlog entry",
+      "category": "dev",
+      "type": "CARD-std",
+      "tokens_measured": 1036,
+      "tokens_measured_at": "2026-06-02",
+      "applies_when": "task.phase IN [execution, review] AND agent.role IN [BE,DB,FE,DO,QA,DL,UX,AR,SA,TL]",
+      "requires_prior": [
+        "CARD-DEV-001"
+      ],
+      "consumer": "agent",
+      "trigger": "Agente corrige contenido propio (Vía A §5.1.4) o TL procesa entry en code review (Vía B §5.3)",
+      "output": "Entry con nuevo estado (Vía B: pending→acknowledged/resolved/wont_fix/deferred) o nuevo contenido (Vía A). Si terminal: resolvedAt + resolvedBy seteados por backend",
+      "status": "done",
+      "path": "05.Cards/dev/VTT.CARD-DEV-002_editar_o_transicionar_entry.md",
+      "references": {
+        "protocol": "PROTOCOL-DEV-001 §5.1.4 + §5.3",
+        "workflow": "WORKFLOW-DEV-001.002",
+        "skill": "SKILL-DEV-003,SKILL-DEV-004"
+      }
+    },
+    {
+      "id": "CARD-DEV-003",
+      "title": "Cerrar entries terminales pre-aprobación del sprint (FASE 4)",
+      "category": "dev",
+      "type": "CARD-std",
+      "tokens_measured": 1029,
+      "tokens_measured_at": "2026-06-02",
+      "applies_when": "sprint.action = close AND agent.role IN [TL, PM]",
+      "requires_prior": [],
+      "consumer": "tl",
+      "trigger": "PM+TL inician cierre formal del sprint (pre-aprobación del reporte M)",
+      "output": "Sprint con count(pending+acknowledged+in_progress)==0 en todas las tareas. Reporte M con resumen del devlog (totales + listado deferred). Task Manifests v1.5 actualizados si hubo cambios",
+      "status": "done",
+      "path": "05.Cards/dev/VTT.CARD-DEV-003_cerrar_entries_terminal_pre_aprobacion.md",
+      "references": {
+        "protocol": "PROTOCOL-DEV-001 §5.4",
+        "workflow": "WORKFLOW-DEV-001.003",
+        "skill": "SKILL-DEV-003,SKILL-DEV-004,SKILL-QUERY-*"
       }
     }
   ]

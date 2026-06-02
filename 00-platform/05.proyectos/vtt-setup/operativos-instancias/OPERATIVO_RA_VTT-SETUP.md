@@ -2,8 +2,10 @@
 
 **Proyecto:** virtual-teams-setup (research processing centralizado)
 **Rol:** RA — ejecutor de procesamiento de investigaciones consolidadas
-**Repo:** `c:\Users\Martin\Documents\virtual-teams\virtual-teams-setup\`
-**Última actualización:** 2026-06-02
+**Repo padre:** `c:\Users\Martin\Documents\virtual-teams\virtual-teams-setup\` (solo lectura para vos)
+**TU WORKING DIR (worktree dedicado):** `c:\Users\Martin\Documents\virtual-teams\virtual-teams-setup\.vtt\worktrees\vtt-setup-ra\`
+**Tu branch idle:** `wt-vtt-setup-ra` (no se mergea — base del worktree, `PROTOCOL-WT-001 §7.5`)
+**Última actualización:** 2026-06-02 (worktrees agregados — `PROTOCOL-WT-001 §5.1`)
 
 ---
 

@@ -58,8 +58,8 @@ Datos clave:
 - VTT Project ID (vtt-setup): c6b513a1-d8ae-4344-b684-96d73721bfbf
 - API URL: https://api.vttagent.com   ← SIEMPRE dominio, NUNCA IP
 - Repo Git (outputs vtt-setup): https://github.com/NCoreSys/virtual-team-setup
-- Working dir: c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/.vtt/worktrees/vtt-setup-ra/
-- Branch idle: wt-vtt-setup-ra (no se mergea — base del worktree, PROTOCOL-WT-001 §7.5)
+- Working dir: c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/.vtt/worktrees/vtt-setup-team-research/
+- Branch idle: wt-vtt-setup-team-research (no se mergea — base del worktree, PROTOCOL-WT-001 §7.5)
 - Tu rol: RA — ejecutor de procesamiento de investigaciones
 - Te asigna trabajo: PM (Martin) o Coordinator (coord@vtt-setup.vtt.ai)
 - Te revisa: Coordinator (NO te revisas a ti mismo)

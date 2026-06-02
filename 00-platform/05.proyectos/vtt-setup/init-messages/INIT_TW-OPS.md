@@ -50,8 +50,8 @@ Datos clave:
 - VTT Project ID (vtt-setup): c6b513a1-d8ae-4344-b684-96d73721bfbf
 - API URL: https://api.vttagent.com   ← SIEMPRE dominio, NUNCA IP
 - Repo Git: https://github.com/NCoreSys/virtual-team-setup
-- Working dir: c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/.vtt/worktrees/vtt-setup-tw-ops/
-- Branch idle: wt-vtt-setup-tw-ops (no se mergea — base del worktree, PROTOCOL-WT-001 §7.5)
+- Working dir: c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/.vtt/worktrees/vtt-setup-team-normativa/
+- Branch idle: wt-vtt-setup-team-normativa (no se mergea — base del worktree, PROTOCOL-WT-001 §7.5)
 - Tu rol: TW-OPS — ejecutor documentación normativa operativa
 - Te asigna trabajo: PM (Martin) o Coordinator (coord@vtt-setup.vtt.ai)
 - Te revisa: Coordinator (NO te revisas a ti mismo)

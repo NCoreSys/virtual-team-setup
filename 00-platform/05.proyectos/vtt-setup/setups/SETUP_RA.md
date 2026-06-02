@@ -9,8 +9,8 @@
 ## PASO 0 — Posicionarte y validar entorno
 
 ```bash
-cd c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/.vtt/worktrees/vtt-setup-ra
-git status   # branch agent/ra/... o wt-vtt-setup-ra (idle)
+cd c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/.vtt/worktrees/vtt-setup-team-research
+git status   # branch agent/ra/... o wt-vtt-setup-team-research (idle)
 git branch --show-current
 
 # Variable obligatoria al arrancar
@@ -37,8 +37,8 @@ test -f $VTT_SETUP/03.templates/research/TEMPLATE_RESEARCH_PROCESSING_INDEX.md &
 
 | Carpeta | ¿Puedo trabajar ahí? |
 |---|---|
-| `.vtt/worktrees/vtt-setup-ra/00-platform/03.templates/research/` | ⚠️ **SOLO LECTURA** — los 4 templates RA |
-| `.vtt/worktrees/vtt-setup-ra/knowledge/research/<repo-origen>/<feature>/` | ✅ **PRIMARIO (a)** — respaldo central de outputs |
+| `.vtt/worktrees/vtt-setup-team-research/00-platform/03.templates/research/` | ⚠️ **SOLO LECTURA** — los 4 templates RA |
+| `.vtt/worktrees/vtt-setup-team-research/knowledge/research/<repo-origen>/<feature>/` | ✅ **PRIMARIO (a)** — respaldo central de outputs |
 | `virtual-teams-Hook-Manager/Analisis R2.0/` (y similares por repo) | ✅ **PRIMARIO (lectura)** — leer CONSOLIDADOS/individuales/prompts |
 | `virtual-teams-Hook-Manager/Analisis R2.0/extractos/` (y similares) | ✅ **PRIMARIO (c)** — copia de outputs en repo origen |
 | Tarea VTT (`POST /attachments`) | ✅ **PRIMARIO (b)** — subir outputs como attachments (`fileType=devlog` para reportes, también `code_logic` para pasar Review Gate L10) |
@@ -134,8 +134,8 @@ test -f $VTT_SETUP/03.templates/research/TEMPLATE_RESEARCH_PROCESSING_INDEX.md &
 | Campo | Valor |
 |---|---|
 | **Repo Git (outputs vtt-setup)** | `https://github.com/NCoreSys/virtual-team-setup` |
-| **Working dir** | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/.vtt/worktrees/vtt-setup-ra` |
-| **Branch idle** | `wt-vtt-setup-ra` |
+| **Working dir** | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/.vtt/worktrees/vtt-setup-team-research` |
+| **Branch idle** | `wt-vtt-setup-team-research` |
 | **API VTT** | `https://api.vttagent.com`   ← dominio, NO IP |
 | **Project ID (vtt-setup en VTT)** | `c6b513a1-d8ae-4344-b684-96d73721bfbf` |
 | **Tu UUID** | ver §1 del OPERATIVO |
@@ -254,7 +254,7 @@ Detalle completo en `OPERATIVO_RA_VTT-SETUP.md` §6.
 - ❌ Usar `/api/auth/login` (rate-limited) — siempre `/api/auth/service-token`
 - ❌ Crear issues con `type=requirement` (NO existe — usar `blocker`/`improvement`/`other`)
 - ❌ Resolver issues con `PATCH /api/issues/<id>/resolve` (NO existe — usar `PUT /api/issues/<id>`)
-- ❌ Trabajar en el clone base — siempre en el worktree `.vtt/worktrees/vtt-setup-ra/`
+- ❌ Trabajar en el clone base — siempre en el worktree `.vtt/worktrees/vtt-setup-team-research/`
 - ❌ Crear documentos en `02.normativa/` (eso es TW-OPS)
 - ❌ Crear documentos en `05.proyectos/*/operativos-instancias/` (eso es Coord)
 

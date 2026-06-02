@@ -9,8 +9,8 @@
 ## PASO 0 — Posicionarte y validar entorno
 
 ```bash
-cd c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/.vtt/worktrees/vtt-setup-tw-ops
-git status   # branch agent/tw-ops/... o wt-vtt-setup-tw-ops (idle)
+cd c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/.vtt/worktrees/vtt-setup-team-normativa
+git status   # branch agent/tw-ops/... o wt-vtt-setup-team-normativa (idle)
 git branch --show-current
 
 # Variable obligatoria al arrancar
@@ -37,10 +37,10 @@ test -f $VTT_SETUP/02.normativa/INVENTARIO.md && echo "INVENTARIO OK"
 
 | Carpeta | ¿Puedo trabajar ahí? |
 |---|---|
-| `.vtt/worktrees/vtt-setup-tw-ops/00-platform/02.normativa/` | ✅ **PRIMARIO** — TODA tu edición va acá |
-| `.vtt/worktrees/vtt-setup-tw-ops/00-platform/02.normativa/_autoria/` | ✅ **PRIMARIO (lectura)** — templates de autoría |
-| `.vtt/worktrees/vtt-setup-tw-ops/knowledge/agent-tasks/audits/` | ✅ **PRIMARIO (escritura)** — reportes de auditoría FASE B |
-| `.vtt/worktrees/vtt-setup-tw-ops/knowledge/agent-tasks/messages/` | ✅ **PRIMARIO (lectura)** — MSG_VTS-XXX assignments |
+| `.vtt/worktrees/vtt-setup-team-normativa/00-platform/02.normativa/` | ✅ **PRIMARIO** — TODA tu edición va acá |
+| `.vtt/worktrees/vtt-setup-team-normativa/00-platform/02.normativa/_autoria/` | ✅ **PRIMARIO (lectura)** — templates de autoría |
+| `.vtt/worktrees/vtt-setup-team-normativa/knowledge/agent-tasks/audits/` | ✅ **PRIMARIO (escritura)** — reportes de auditoría FASE B |
+| `.vtt/worktrees/vtt-setup-team-normativa/knowledge/agent-tasks/messages/` | ✅ **PRIMARIO (lectura)** — MSG_VTS-XXX assignments |
 | Tarea VTT (`POST /attachments`) | ✅ **PRIMARIO** — subir reportes audit como `code_logic` Y `devlog` (Review Gate L10) |
 | Repo padre `virtual-teams-setup/` (clone base) | ❌ **PROHIBIDO** — trabajás en el worktree, NO en el clone |
 | `00-platform/03.templates/research/` | ❌ **PROHIBIDO** — eso es del RA |
@@ -131,8 +131,8 @@ test -f $VTT_SETUP/02.normativa/INVENTARIO.md && echo "INVENTARIO OK"
 | Campo | Valor |
 |---|---|
 | **Repo Git** | `https://github.com/NCoreSys/virtual-team-setup` |
-| **Working dir** | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/.vtt/worktrees/vtt-setup-tw-ops` |
-| **Branch idle** | `wt-vtt-setup-tw-ops` |
+| **Working dir** | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/.vtt/worktrees/vtt-setup-team-normativa` |
+| **Branch idle** | `wt-vtt-setup-team-normativa` |
 | **API VTT** | `https://api.vttagent.com`   ← dominio, NO IP |
 | **Project ID (vtt-setup en VTT)** | `c6b513a1-d8ae-4344-b684-96d73721bfbf` |
 | **Tu UUID** | ver §1 del OPERATIVO |
@@ -251,7 +251,7 @@ FASE D — Entrega
 - ❌ Usar `/api/auth/login` (rate-limited) — siempre `/api/auth/service-token`
 - ❌ Crear issues con `type=requirement` (NO existe — usar `blocker`/`improvement`/`other`)
 - ❌ Resolver issues con `PATCH /api/issues/<id>/resolve` (NO existe — usar `PUT /api/issues/<id>`)
-- ❌ Trabajar en el clone base — siempre en el worktree `.vtt/worktrees/vtt-setup-tw-ops/`
+- ❌ Trabajar en el clone base — siempre en el worktree `.vtt/worktrees/vtt-setup-team-normativa/`
 - ❌ Crear documentos en `03.templates/research/` (eso es RA)
 - ❌ Crear documentos en `05.proyectos/*/operativos-instancias/` (eso es Coord)
 

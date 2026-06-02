@@ -2,17 +2,19 @@
 
 **Propósito:** Procedimiento de arranque para el TL Reviewer del proyecto VTT.
 
-**Trabajamos con git worktrees** (VTT.PROTOCOL-WT-001). El TL Reviewer opera principalmente desde **vtt-espacio-1** como "espacio de coordinación".
+**REGLA CRÍTICA (`VTT.PROTOCOL-WT-001 v1.1` §2):** El TL Reviewer **NO usa worktrees**. Los worktrees son SOLO para agentes ejecutores. Yo opero directamente en el **repo padre `virtual-teams-tracking/`** en modo lectura/auditoría. Si necesito modificar código → asigno tarea al TL Executor (sesión separada, mismo UUID), él trabaja en su worktree.
 
 ---
 
-## PASO 0 — Posicionarte en tu worktree de coordinación
+## PASO 0 — Posicionarte en el repo padre
 
 ```bash
-cd c:/Users/Martin/Documents/virtual-teams/virtual-teams-tracking/.vtt/worktrees/vtt-espacio-1
+cd c:/Users/Martin/Documents/virtual-teams/virtual-teams-tracking
+git fetch origin
+git checkout main && git pull --ff-only origin main
 ```
 
-> El TL Reviewer **no implementa código** — usa el worktree para tener acceso al codebase al hacer review (leer routes, schema, components). Si necesitás ejecutar tarea técnica → cambiá a modo Executor con su propio SETUP.
+> Trabajás sobre `main` actualizado. Para revisar el PR de un agente, hacés checkout temporal de su branch (PASO 4) sin tocar los worktrees del agente.
 
 ---
 
@@ -20,9 +22,9 @@ cd c:/Users/Martin/Documents/virtual-teams/virtual-teams-tracking/.vtt/worktrees
 
 | Carpeta | ¿Puedo trabajar ahí? |
 |---------|----------------------|
-| `virtual-teams-tracking/.vtt/worktrees/vtt-espacio-1` | ✅ **PRIMARIO** (coordinación) |
-| `virtual-teams-tracking/.vtt/worktrees/vtt-espacio-2/3/4` | ⚠️ **AUXILIAR** — para hacer review accediendo al PR/branch del agente |
-| `virtual-teams-tracking/` (raíz) | ❌ **PROHIBIDO** — solo lectura |
+| `virtual-teams-tracking/` (raíz, repo padre) | ✅ **PRIMARIO** — lectura, audit, checkout temporal de PRs |
+| `virtual-teams-tracking/.vtt/manifests/` | ✅ **AUXILIAR** — generar manifest v1.5 al cerrar review |
+| `virtual-teams-tracking/.vtt/worktrees/vtt-espacio-*` | ❌ **PROHIBIDO** — son de los Executors. NO `cd` ahí ni hacer checkout |
 | `virtual-teams-setup/` | ❌ **PROHIBIDO para edición** — repo normativa (solo lectura como referencia) |
 
 ---
@@ -36,8 +38,12 @@ cd c:/Users/Martin/Documents/virtual-teams/virtual-teams-tracking/.vtt/worktrees
 | 1 | `c:/Users/Martin/.claude/rules/rules_agents.instructions.md` | Reglas globales VTT |
 | 2 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/05.proyectos/vtt/Proyect_data.md` | UUIDs + service key + paths |
 | 3 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/05.proyectos/vtt/operativos-instancias/OPERATIVO_TL_REVIEWER.md` | Tu OPERATIVO |
-| 4 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/02.normativa/01.Protocols/VTT.PROTOCOL-WT-001_gobernanza_worktrees.md` | Worktrees |
-| 5 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/02.normativa/01.Protocols/_pending-migration/PROCESO_ASIGNACION_TAREAS.md` | Proceso asignación v1.6 |
+| 4 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/02.normativa/01.Protocols/VTT.PROTOCOL-WT-001_gobernanza_worktrees.md` | Worktrees v1.1 — **Reviewers NO usan worktrees** |
+| 5 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/02.normativa/01.Protocols/VTT.PROTOCOL-ASG-001_ciclo_asignacion_tarea.md` | **Ciclo asignación + cierre canónico (47 pasos, 6 fases)** — reemplaza `_pending-migration/PROCESO_ASIGNACION_TAREAS.md` |
+| 6 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/02.normativa/01.Protocols/VTT.PROTOCOL-DEV-001_ciclo_devlog_entry.md` | Lifecycle devlog en review (FASE 3) |
+| 7 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/02.normativa/01.Protocols/VTT.PROTOCOL-MAN-001_gobernanza_manifest.md` | Manifest v1.0 (agente) / v1.5 (TL al cerrar) |
+| 8 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/02.normativa/03.Skills/precheck/VTT.SKILL-PRECHECK-001_validar_entorno_inicio_tarea.md` | Pre-check de entorno al iniciar sesión |
+| 9 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/02.normativa/03.Skills/report/VTT.SKILL-REPORT-001_entrega_tarea.md` | Formato canónico del reporte v1.1 |
 
 ### Operativa (repo `virtual-teams-tracking/`)
 
@@ -76,42 +82,56 @@ Reportar al PM (formato §8 del OPERATIVO).
 
 ---
 
-## PASO 4 — Diagnóstico del worktree (mismo que TL Executor)
+## PASO 4 — Revisar PR de un agente (sin worktree)
+
+Cuando una tarea pasa a `task_in_review`, hacés checkout temporal de su branch **en el repo padre** (NO en worktrees):
 
 ```bash
-git branch --show-current
-git status
-git stash list
+cd c:/Users/Martin/Documents/virtual-teams/virtual-teams-tracking
+
+# 1. Sincronizar
 git fetch origin
-git log --oneline @{u}..HEAD 2>/dev/null
+
+# 2. Checkout temporal de la branch del PR (sin tocar worktrees del agente)
+git checkout feature/<TASK_ID>
+# o si el PR está en otra rama: git checkout -b review-<TASK_ID> origin/<branch_del_pr>
+
+# 3. Revisar: leer código, ejecutar curl al endpoint, validar criterios
+# ...
+
+# 4. Volver a main al terminar
+git checkout main
+git pull --ff-only origin main
 ```
 
-**6 estados posibles** (A/B/C/D/E/F) — ver `SETUP_TL_EXECUTOR.md` §PASO 4.2 para árbol completo.
+**5 verificaciones obligatorias antes de PASS (PROTOCOL-ASG-001 §5.5):**
 
-- ✅ A/B → continuar
-- ✅ C → tu propia branch en curso
-- ⚠️ D → archivos extraños → STOP + investigar
-- 🛑 E → branch de otra tarea → STOP + decidir
-- 🛑 F → stash sin label → investigar
+1. Review gate verde (`GET /api/tasks/<id>/review-gate` → `canProceedToReview: true`)
+2. Criterios met (DoD 12/12 + integración 2/2 + acceptance según brief)
+3. Manifest v1.0 commiteado al PR (`<TASK_ID>.json` + `.manifest.md` + `_REPORT.md` en `knowledge/task-manifests/<phase>/<sprint>/`)
+4. Devlog en estado terminal (`PROTOCOL-DEV-001` §FASE 3 — todos los entries en resolved/wont_fix/deferred)
+5. Reporte en path canónico v1.1 (`knowledge/task-manifests/<phase>/<sprint>/<TASK_ID>_REPORT.md`, NO en `agent-tasks/reports/`)
 
 ---
 
-## PASO 5 — Asignar worktree a un agente (cuando creás ASSIGNMENT)
+## PASO 5 — Asignar tarea a un agente ejecutor
 
-Cuando preparás un ASSIGNMENT para un agente ejecutor, **vos elegís el worktree** que usa:
+Cuando preparás un ASSIGNMENT para un agente ejecutor, **vos asignás el worktree** que usa (vos NO ocupás ninguno):
 
 ```
-Worktrees disponibles:
-- vtt-espacio-1 (TL coordinación)
+Worktrees disponibles para Executors:
+- vtt-espacio-1 (agente)
 - vtt-espacio-2 (agente)
 - vtt-espacio-3 (agente)
 - vtt-espacio-4 (agente)
+- vtt-espacio-5 (agente)
 ```
 
 Reglas:
 - 1 agente = 1 worktree por tarea
 - NO asignar 2 agentes al mismo worktree simultáneamente
-- Verificá disponibilidad: `git -C virtual-teams-tracking worktree list` + confirmar que el worktree elegido está idle (no en branch feature de tarea activa)
+- Verificá disponibilidad: `git -C virtual-teams-tracking worktree list` + confirmar que el worktree elegido está idle
+- **El TL Reviewer NO ocupa worktree** (`VTT.PROTOCOL-WT-001 v1.1` §2). Los 5 worktrees son 100% para Executors.
 
 Documentá en el ASSIGNMENT (sección "Worktree asignado") y en el mensaje al agente.
 

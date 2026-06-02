@@ -4,8 +4,8 @@
 |---|---|
 | **Código** | `VTT.PROTOCOL-ASG-001` |
 | **Título** | Ciclo de Asignación y Cierre de Tarea |
-| **Versión** | 1.5.0 |
-| **Fecha** | 2026-05-22 |
+| **Versión** | 1.6.1 |
+| **Fecha** | 2026-05-31 |
 | **Autor** | PM Martin Rivas |
 | **Aplica a** | TL (ejecutor principal), PJM (proveedor de inputs), Agentes ejecutores, PM (aprobación terminal), SA (reviewer opcional) |
 | **Estado** | Aprobado para uso |
@@ -119,7 +119,18 @@ No aplica a:
 
 **Review Gate:** validación VTT (`canProceedToReview`) que verifica que la tarea puede pasar a review.
 
-**Issue:** bloqueante reportado por un agente que requiere intervención de otro rol.
+**Issue:** registro estructurado creado por un agente que requiere intervención del TL. Tiene **tipo** que determina el sub-ciclo aplicable:
+
+- **`blocker` / `bug`** (severity `high` / `critical`) → bloqueante técnico real. El agente mueve la tarea a `task_on_hold`. Resolución: tarea correctiva con `sourceIssueId` o resolución directa por el TL. **Sub-ciclo §5.4** (FASE 3.5).
+
+- **`question`** (severity `low` / `medium`, nunca `high`/`critical`) → consulta del agente al TL para destrabar una decisión de diseño o scope. **NO es bloqueante técnico** — el agente NO mueve la tarea a `task_on_hold`, queda en `task_in_progress`. Resolución: TL responde como comment en la tarea, agente aplica la decisión y cierra el issue con PATCH `isResolved=true` (auto-cierre por el creador, no por el TL). **Sub-ciclo §5.4.bis**.
+
+> **Cómo distinguir question vs bug:**
+> - "¿Debería hacer X o Y?" (decisión de diseño/scope/criterio) → **`question`**
+> - "X no funciona, error Y al ejecutar Z" (síntoma técnico) → **`bug`** o **`blocker`** según severidad
+> - Si la pregunta llega a severity `high` o `critical` → ya no es pregunta, es blocker → sub-ciclo §5.4 con `task_on_hold`
+
+> **Schema VTT (pendiente DB):** verificar que el enum `IssueType` en `schema.prisma` incluye el valor `question`. Si no existe, crear tarea para el DB (hallazgo registrado en devlogs `b428d19d` / `f9f976e3` de VTT-818).
 
 **Manifest:** JSON auditable de la tarea cerrada. v1.0 = agente al cerrar, v1.5 = TL al aprobar.
 
@@ -392,9 +403,12 @@ requis.  cación       ción       ción        tarea       Sprint
      - **N False Positives** (ej. comandos `grep` auto-referenciales dentro de docs) → justificar en devlog `decision` con detalle de cada FP
    - Sin Hardcode Check ejecutado → bloquea Review Gate
 
-5.3.8 ¿Agente encontró un bloqueante? → **[DECISIÓN]**
-- **SÍ** → invocar FASE 3.5 (Sub-ciclo de Issue)
-- **NO** → continuar
+5.3.8 ¿Agente encontró un bloqueante o tiene una pregunta? → **[DECISIÓN]**
+- **Bloqueante técnico real** (bug, error funcional, dependencia rota, severity `high`/`critical`) → invocar **§5.4** (Sub-ciclo de Issue `blocker`/`bug`) → tarea pasa a `task_on_hold`
+- **Pregunta / consulta** (decisión de diseño, scope, criterio — severity `low`/`medium`, NUNCA `high`/`critical`) → invocar **§5.4.bis** (Sub-ciclo de Issue `question`) → tarea queda en `task_in_progress`
+- **NO** → continuar al 5.3.9
+
+> Para distinguir bloqueante vs pregunta ver §4 Definiciones — "Issue".
 
 5.3.9 Agente entrega: reporta CAs (`PATCH /criteria/:cid`) → posteo SKL-REPORT-01 como comment → mueve tarea a `task_in_review` → genera manifest v1.0 → **[PROCESO]** → ver `VTT.WORKFLOW-ASG-001.010_entrega_agente`
    - SKL-REPORT-01 incluye obligatoriamente:
@@ -403,11 +417,13 @@ requis.  cación       ción       ción        tarea       Sprint
      - **Hardcode Check** (findings totales, críticos/altos = 0, FPs justificados con devlog id)
      - Devlog entries por status (resolved/pending count)
 
-### 5.4 FASE 3.5 — Sub-ciclo de Issue
+### 5.4 FASE 3.5 — Sub-ciclo de Issue tipo `blocker` / `bug`
 
-> **Solo se activa si el agente encuentra un bloqueante. No es parte del flujo normal.**
+> **Aplica SOLO a issues tipo `blocker` o `bug` (severity `high`/`critical`).** Para issues tipo `question` (consultas no bloqueantes) ver §5.4.bis.
+>
+> Solo se activa si el agente encuentra un bloqueante técnico real. No es parte del flujo normal.
 
-5.4.1 Agente crea Issue en VTT con tipo + severidad → **[ACTIVIDAD]** → invoca `SKL-ISSUE-01`
+5.4.1 Agente crea Issue en VTT con tipo `blocker`/`bug` + severidad `high`/`critical` → **[ACTIVIDAD]** → invoca `SKL-ISSUE-01`
 
 5.4.2 Agente solicita on_hold + PM/TL pone tarea en `task_on_hold` (`PUT /on-hold` con `x-user-id`) → **[ACTIVIDAD]** → invoca `SKL-STATUS-05`
 
@@ -424,6 +440,39 @@ requis.  cación       ción       ción        tarea       Sprint
 5.4.7 TL notifica al agente original que puede continuar (si on_hold ocurrió antes de in_review) → **[ACTIVIDAD]** → invoca `SKL-COMMENT-01`
 
 5.4.8 Agente original retoma desde el paso donde se bloqueó y continúa hasta 5.3.5
+
+### 5.4.bis FASE 3.5b — Sub-ciclo de Issue tipo `question` (consulta no bloqueante)
+
+> **Aplica SOLO a issues tipo `question` (severity `low`/`medium`, NUNCA `high`/`critical`).** Para issues tipo `blocker`/`bug` ver §5.4.
+>
+> **Diferencia clave con §5.4:** la tarea **NO** se mueve a `task_on_hold`. Queda en `task_in_progress`. La métrica de velocity no se ve afectada por preguntas chicas.
+
+5.4.bis.1 Agente crea Issue en VTT con tipo `question` + severidad `low`/`medium` → **[ACTIVIDAD]** → invoca `SKL-ISSUE-01`
+   - **NO mueve** la tarea a `task_on_hold` — queda en `task_in_progress`
+   - Postea comment en la tarea con prefijo `QUESTION-TL:` referenciando el issue (para que el TL la detecte en su diagnóstico de sesión)
+
+5.4.bis.2 TL recibe notificación / detecta el comment `QUESTION-TL:` en su diagnóstico → lee el issue → **[ACTIVIDAD]**
+
+5.4.bis.3 TL responde como **comment en la tarea VTT** (NO en el issue) → **[ACTIVIDAD]** → invoca `SKL-COMMENT-01`
+   - **TL NO crea tarea correctiva** (no hay bug que arreglar — es una consulta)
+   - **TL NO hace PUT manual al issue** (preserva regla "TL no hace PUT manual al issue" — quien creó el issue lo cierra)
+   - Comment en la tarea queda en feed unificado → más fácil de seguir para el agente
+
+5.4.bis.4 ¿Agente puede continuar trabajando en otra parte de la tarea mientras espera la respuesta del TL? → **[DECISIÓN]**
+- **SÍ** → continúa en paralelo. La pregunta queda abierta sin trabar.
+- **NO** → ¿pasaron más de 4 horas sin respuesta del TL? → **[DECISIÓN-SUB]**
+  - **SÍ (timeout)** → el issue se reclasifica a `blocker` severity `medium`, agente invoca §5.4 (mueve a `task_on_hold` con referencia al issue `question` original). Esto evita `task_in_progress` colgada eternamente con agente inactivo.
+  - **NO** → seguir esperando
+
+5.4.bis.5 Agente lee la respuesta del TL, aplica la decisión, continúa su trabajo → **[ACTIVIDAD]**
+
+5.4.bis.6 Agente actualiza su propio issue: `PATCH /issues/:id` con `{"isResolved": true, "resolutionNotes": "<resumen de la respuesta del TL y cómo se aplicó>"}` → **[ACTIVIDAD]** → invoca `SKL-ISSUE-02` (auto-cierre)
+   - El agente **SÍ puede actualizar issues que él creó** — esto NO viola la regla "TL no hace PUT manual al issue" (la regla aplica al TL respondedor, no al agente creador)
+   - El campo `resolutionNotes` queda como registro auditable de qué se decidió y cómo se aplicó
+
+5.4.bis.7 Agente continúa hasta `5.3.9` (entrega normal) → **[ACTIVIDAD]**
+
+> **Regla operativa:** si el agente recibe una respuesta del TL que **cambia su scope de manera significativa** (no es una pregunta resuelta sino un cambio de procedimiento), el TL debe bumpear el ASSIGNMENT (v2) y postear `RE-ASSIGN-TL:` — esto es Brecha 3 del Sprint S00, pendiente de formalizar en este Protocol §5.2 (sesión futura).
 
 ### 5.5 FASE 4 — Cierre con Modelo Dinámico
 
@@ -475,13 +524,57 @@ requis.  cación       ción       ción        tarea       Sprint
 5.5.9 ¿Code review aprobado? → **[DECISIÓN]**
 - **NO** → 2 caminos según la naturaleza de la falla:
   - **Falla menor o feedback simple** (typo en comentarios, ajustes cosméticos, aclaración de docs) → devolver con `task_rejected` + razón en comment — el agente corrige in-place en la misma tarea
-  - **Bug propiamente dicho** (CI failing, scope mezclado, error funcional, falta de docs, violación de política I2/I3 v1.1, etc.) → **[PROCESO]** → ver `VTT.WORKFLOW-ASG-001.030_manejo_bugs_en_review`
-    - Crear tarea hija consecutiva `MS-XXX` con `[BUG] MS-padre <desc>` (NO acrónimos `MS-XXXfix`)
-    - Mover padre a `task_on_hold` (`PUT /on-hold`, NO `PATCH /status`)
-    - Crear bug entry + dependency `blocks` + assignment + CAs
-    - Notificar al agente con mensaje generado por `VTT.SCRIPT-MSG-001`
-    - El agente corrige en la hija; cuando cierra, padre se libera (`PUT /release-hold`) y vuelve a este paso 5.5.9
+  - **Bug propiamente dicho** (CI failing, scope mezclado, error funcional, falta de docs, violación de política I2/I3 v1.1, etc.) → **[DECISIÓN-SUB: estado del PR del padre]**
+    - **PR del padre está `OPEN`** → **[PROCESO]** → ver `VTT.WORKFLOW-ASG-001.030_manejo_bugs_en_review` (flujo estándar)
+      - Crear tarea hija consecutiva `MS-XXX` con `[BUG] MS-padre <desc>` (NO acrónimos `MS-XXXfix`)
+      - Mover padre a `task_on_hold` (`PUT /on-hold`, NO `PATCH /status`)
+      - Crear bug entry + dependency `blocks` + assignment + CAs
+      - Notificar al agente con mensaje generado por `VTT.SCRIPT-MSG-001`
+      - El agente corrige en la hija (commits van al PR del padre todavía OPEN); cuando cierra, padre se libera (`PUT /release-hold`) y vuelve a este paso 5.5.9
+    - **PR del padre está `MERGED`** (auto-merge o merge manual antes del review) → **[PROCESO]** → ver §5.5.9.bis (sub-paso nuevo v1.6.1)
 - **SÍ** → continuar a aplicar modelo dinámico
+
+##### §5.5.9.bis — Sub-paso: Bug detectado con PR padre ya MERGED (v1.6.1)
+
+> **Trigger:** `5.5.9` decide "Bug propiamente dicho" PERO el PR del padre tiene `state=MERGED` (auto-merge habilitado o merge manual antes de que el TL completara el code review).
+>
+> **Origen:** TL Reviewer VTT detectó este caso edge en VTT-819 / PR #800 (2026-05-31). El workflow 030 estándar asume PR `OPEN` y reabrirlo no es opción limpia con Git. Devlog improvement registrado en VTT-818 id `44f38c56`.
+
+**Reglas duras del sub-paso:**
+
+| # | Regla |
+|---|---|
+| R1 | **NO reabrir PR padre.** El merge es irreversible operativamente — Git no lo soporta limpio y el historial queda confuso |
+| R2 | **El bug YA ESTÁ EN `main`.** Asumirlo. El padre técnicamente "se mergeó OK" pero introdujo deuda crítica |
+| R3 | **El PR mergeado NO exime al agente del fix.** La tarea hija es obligatoria — no opcional |
+| R4 | **La hija branch desde `main` actualizado** (no desde la branch del padre que ya no existe). Comando obligatorio: `git checkout main && git pull origin main && git checkout -b fix/<TASK_ID_HIJA>` |
+| R5 | **El nuevo PR de la hija ES el cierre de la hija.** No hay PR adicional. Cuando el PR de la hija se mergea, la hija pasa a `task_completed`. |
+| R6 | **Padre se libera al cerrar hija** (auto-resume normal: `task_on_hold` → `previousStatus`). El padre NO requiere otro PR — su PR original ya está mergeado |
+
+**Pasos:**
+
+5.5.9.bis.1 TL crea tarea hija `MS-XXX` con `[BUG-POST-MERGE] MS-padre <desc>` → **[ACTIVIDAD]**
+   - Misma estructura que workflow 030 (bug entry + dependency `blocks` + assignment + CAs)
+   - Adicional: en el ASSIGNMENT, especificar **branch base = `main` actualizado**, NO la branch del padre
+
+5.5.9.bis.2 TL mueve padre a `task_on_hold` (`PUT /on-hold`) — mismo mecanismo que §5.4 estándar → **[ACTIVIDAD]**
+
+5.5.9.bis.3 TL evalúa **impacto en producción** (si `main` se deploya automáticamente) → **[DECISIÓN]**
+   - **Bug NO afectó datos reales** (solo código no llamado, lógica defensiva, etc.) → solo el fix de código alcanza
+   - **Bug afectó datos reales** (corrupción, pérdida, exposición) → crear tarea adicional de **remediation de datos** asignada al DO/DB. Vincular como `blocks` de la hija de fix.
+   - **No se puede determinar inmediatamente** → escalar al PM antes de continuar
+
+5.5.9.bis.4 Agente recibe la hija → ejecuta §5.3 (ciclo normal de ejecución) con branch desde `main` actualizado (R4) → **[ACTIVIDAD]**
+
+5.5.9.bis.5 Agente entrega la hija con su PR nuevo (desde `main`) → TL revisa con §5.5 normal → **[ACTIVIDAD]**
+
+5.5.9.bis.6 Al cerrar la hija (`task_completed` → `task_approved`), el padre se libera automáticamente vía VTT auto-resume y vuelve a este paso 5.5.9 → **[ACTIVIDAD]** (sistema VTT)
+
+5.5.9.bis.7 TL vuelve a §5.5.9 con el padre en `task_in_review`. Como ya está mergeado el original Y la hija aplicó el fix, el code review del padre se aprueba (asumiendo que el fix de la hija cubrió todos los hallazgos) → **[ACTIVIDAD]**
+
+> **Edge case operativo:** si durante §5.5.9.bis aparece OTRO bug del padre (no relacionado con la hija en curso), abrir SEGUNDA hija — `task_on_hold` del padre persiste hasta que TODAS las hijas estén `task_approved`. El padre nunca se libera con hijas pendientes.
+
+> **Por qué no rechazar el padre con `task_rejected`:** porque el PR ya se mergeó. El rechazo implica que el agente "revierte y rehace" — operacionalmente equivale a un revert + nuevo PR, que es exactamente lo que evita §5.5.9.bis (más limpio: hija = fix forward).
 
 5.5.10 TL aplica **Modelo Dinámico** (las 4 acciones de cierre) → **[PROCESO]** → ver `VTT.WORKFLOW-ASG-001.013_aplicar_modelo_dinamico`
    - 5.5.10.a Crear TIs detectados por el agente (tech_debts, items para trackeo)
@@ -661,7 +754,7 @@ requis.  cación       ción       ción        tarea       Sprint
 | `VTT.WORKFLOW-ASG-001.026` | Generar y subir CONTEXTO_SX.md a la tarea SETUP-SX | 5.1.10 (cierre del setup, antes de mover SETUP-SX a completed) |
 | `VTT.WORKFLOW-ASG-001.027` | Cerrar SETUP-SX (devlog + code_logic + comment + in_review → completed) | 5.1.11 (desbloquea las tareas del sprint) |
 | `VTT.WORKFLOW-ASG-001.028` | Mantener SPRINT_STATUS_SX.md durante ejecución (dashboard operativo del TL) | 5.3.bis (durante FASE 3 — TL actualiza cada vez que revisa o resuelve blocker) |
-| `VTT.WORKFLOW-ASG-001.030` | **Manejo de Bugs detectados en Code Review** — crear tarea hija consecutiva `MS-XXX`, mover padre a `task_on_hold`, ciclo bug-fix-release | 5.5.9 (cuando el TL detecta bug que requiere corrección antes de aprobar — alternativa al `task_rejected` simple) |
+| `VTT.WORKFLOW-ASG-001.030` | **Manejo de Bugs detectados en Code Review** — crear tarea hija consecutiva `MS-XXX`, mover padre a `task_on_hold`, ciclo bug-fix-release. **Aplica cuando PR del padre está `OPEN`.** Si PR está `MERGED` → ver §5.5.9.bis (v1.6.1) | 5.5.9 (cuando el TL detecta bug que requiere corrección antes de aprobar — alternativa al `task_rejected` simple) |
 
 ### Skills referenciadas (Nivel 2)
 
@@ -765,6 +858,30 @@ Reglas extraídas del catálogo `rules_catalog.json` que cualquier ejecución de
 | `RULE-ABAC-009` Agente nunca aprueba | 5.5.17 (no agente) |
 | `RULE-DATA-001` Prohibido mockear datos | 5.3.4 |
 | `RULE-GIT-004` Prohibido commit a main | 5.3.4 |
+| `RULE-SEC-001` Prohibido postear datos sensibles en comments/devlog/attachments | transversal (todas las fases) |
+
+### Reglas operativas del sub-ciclo Issue (§5.4 / §5.4.bis)
+
+| Regla | Aplica en |
+|---|---|
+| **Issue tipo `question` NUNCA tiene severity `high` o `critical`** — si tiene esa severidad → no es pregunta, es blocker → §5.4 (no §5.4.bis) | 5.3.8 (decisión), §4 (definición), 5.4.bis.1 |
+| **Issue tipo `question` NO mueve la tarea a `task_on_hold`** — queda en `task_in_progress` para no afectar velocity | 5.4.bis.1 |
+| **TL responde la pregunta como comment en la TAREA** (no en el issue) — feed unificado | 5.4.bis.3 |
+| **TL NO hace PUT manual al issue tipo `question`** — el agente creador lo cierra con `PATCH isResolved=true` | 5.4.bis.3, 5.4.bis.6 |
+| **Agente SÍ puede actualizar issues que él creó** (no viola "TL no PUT manual") — el cierre del `question` lo hace el agente | 5.4.bis.6 |
+| **Timeout 4h sin respuesta del TL** → si el agente no puede avanzar en otra parte, reclasifica a `blocker medium` e invoca §5.4 (mueve a `task_on_hold`) | 5.4.bis.4 |
+| **Comment `QUESTION-TL:` obligatorio en la tarea** al crear issue tipo `question` — para que el TL detecte en su diagnóstico de sesión | 5.4.bis.1 |
+
+### Reglas operativas del sub-paso §5.5.9.bis (bug con PR padre MERGED)
+
+| Regla | Aplica en |
+|---|---|
+| **NO reabrir PR padre mergeado** — Git no lo soporta limpio, historial confuso | 5.5.9.bis R1 |
+| **PR mergeado NO exime al agente del fix** — la hija es obligatoria | 5.5.9.bis R3 |
+| **Hija branch desde `main` actualizado** (`git pull` previo obligatorio), NO desde branch del padre | 5.5.9.bis R4 |
+| **Nuevo PR de la hija ES el cierre de la hija** — no hay PR adicional | 5.5.9.bis R5 |
+| **Padre se libera al cerrar TODAS las hijas** — auto-resume normal, padre NO requiere otro PR | 5.5.9.bis R6, edge case 7 |
+| **Evaluar impacto en prod ANTES de continuar** — si `main` se deploya auto y el bug afectó datos → crear tarea de remediation con DO/DB | 5.5.9.bis.3 |
 
 Lista completa: ejecutar `query_rules.py --simulate-task <TASK_ID>` (35-40 reglas activas para una tarea típica).
 
@@ -781,6 +898,8 @@ Lista completa: ejecutar `query_rules.py --simulate-task <TASK_ID>` (35-40 regla
 | 1.3.3 | 2026-05-20 | PM Martin Rivas | **Gaps detectados al revisar `PROCESO_ANALISIS_HO_GENERACION_BRIEFS.md` v1.5.** (1) Nuevo §4.bis Modelo de datos VTT (Project→Release→Sprint→Delivery→Task) con tabla de endpoints + gotchas (sprintId obligatorio en body, PUT no PATCH para reordenar, assignedToId no assigneeId). (2) Nuevo §4.ter Nomenclatura estándar de Deliveries (SETUP/DB/BE/FE/TL/REV) con order convention. (3) Nuevo §4.quater Cadena de dependencias del sprint con SETUP-S1 anchor fijo + regla de primera tarea operativa con 2 deps. (4) Nuevas definiciones CONTEXTO_SX.md y SPRINT_STATUS_SX.md. (5) **4 Workflows nuevos en §6.1**: `.025` vincular Trackable Items, `.026` generar CONTEXTO_SX.md, `.027` cerrar SETUP-SX, `.028` mantener SPRINT_STATUS_SX.md. Sin cambios en pasos del procedimiento — el `PROCESO_ANALISIS_HO_GENERACION_BRIEFS.md` legacy se migrará a los Workflows correspondientes en el siguiente bump. |
 | 1.4.0 | 2026-05-22 | PM Martin Rivas | **OLA 1 de cierre del sub-sistema MSG.** Origen: drift visible entre `MENSAJE_MS-290.md` (correcto) y `MENSAJE_MS-333.md` (desactualizado — endpoint devlog malo, fulfill CAs malo, sin sección execution_manifest) generados por **5 copias** distintas de `gen_mensaje.py` en worktrees del proyecto memory-service. Cambios: (1) §5.2.13 ahora exige path canónico `$VTT_SETUP/02.normativa/04.Scripts/msg/VTT.SCRIPT-MSG-001_gen_mensaje.py` (NO copias locales). (2) Referencia explícita a las 2 Reglas Nivel 0 nuevas: `RULE-SCRIPT-001` (invocación desde $VTT_SETUP) y `RULE-TEMPLATE-001` (templates leídos de disco, no hardcoded). (3) Mensaje ahora debe referenciar `VTT.SKILL-REPORT-001` + ubicación canónica del reporte (`knowledge/task-manifests/<phase>/<sprint>/`) + render obligatorio del reporte (NO `cat`) — bumped del template a v2.1. (4) Nota de estado de migración del sub-sistema MSG (5 ítems con ✅/🟡). Pendientes (no en esta versión): refactor del script + creación de `VTT.SKILL-MSG-001` + `VTT.WORKFLOW-MSG-001.001`. |
 | 1.5.0 | 2026-05-22 | PM Martin Rivas | **Formalización del workflow de manejo de bugs en review.** Origen: `00-agent-setup/06.Documentos_soporte/GUIA_MANEJO_BUGS_TL.md` v1.1 (legacy memory-service) transformada al modelo de 4 niveles VTT. Cambios: (1) §5.5.9 ahora bifurca la decisión "code review NO aprobado" en 2 caminos: feedback simple (`task_rejected` en la misma tarea) o **bug propiamente dicho** (invoca `VTT.WORKFLOW-ASG-001.030_manejo_bugs_en_review` que crea tarea hija consecutiva + mueve padre a `task_on_hold` + ciclo bug-fix-release). (2) Workflow nuevo agregado en §6 Referencias Cruzadas: `VTT.WORKFLOW-ASG-001.030`. (3) Lección aprendida MS-322 → MS-375 (2026-05-21) consolidada como proceso normativo. Pendiente: promover script `crear_tarea_bug.py` a `VTT.SCRIPT-ASG-001` siguiendo RULE-SCRIPT-001 (mismo refactor que `gen_mensaje.py` → `VTT.SCRIPT-MSG-001`). |
+| 1.6.1 | 2026-05-31 | PM Martin Rivas | **§5.5.9.bis nuevo — Bug detectado con PR padre ya MERGED (caso edge auto-merge).** Origen: TL Reviewer VTT detectó el caso en VTT-819 / PR #800 (auto-merge antes del code review, bug crítico de 4 DROP COLUMN destructivos sobre columnas activas; workflow 030 disparó pero el bug ya estaba en `main`). Devlog improvement registrado en VTT-818 id `44f38c56`. Cambios: (1) §5.5.9 ahora bifurca el camino "Bug propiamente dicho" en 2 sub-caminos según el `state` del PR padre: `OPEN` → workflow 030 estándar / `MERGED` → §5.5.9.bis. (2) §5.5.9.bis nuevo con 6 reglas duras (no reabrir PR padre, hija desde `main` actualizado, nuevo PR de la hija ES el cierre, padre se libera al cerrar TODAS las hijas, evaluar impacto prod) + 7 sub-pasos operativos incluyendo evaluación de impacto en datos reales (escalación al DO/DB si hubo corrupción). (3) §6 entrada del workflow 030 actualizada con nota "Aplica cuando PR padre está `OPEN`; si MERGED → §5.5.9.bis". (4) §6 reglas operativas §5.5.9.bis agregadas. (5) Edge case operativo: múltiples hijas posibles, padre nunca se libera con hijas pendientes. Pendiente: Workflow específico para §5.5.9.bis si el caso se repite con frecuencia (por ahora vive inline en el Protocol). |
+| 1.6.0 | 2026-05-31 | PM Martin Rivas | **Nuevo sub-ciclo §5.4.bis para issues tipo `question` (consulta no bloqueante).** Origen: TL Reviewer VTT propuso distinguir preguntas de bloqueantes técnicos para no afectar velocity con dudas chicas (sesión 2026-05-31). Cambios: (1) §4 Definiciones — "Issue" ampliada con tipos `blocker`/`bug` vs `question` + heurística para distinguir + nota DB sobre enum `IssueType` pendiente de verificar en schema. (2) §5.3.8 bifurca decisión "agente bloqueado" en 2 caminos: blocker real → §5.4 (con `on_hold`) / pregunta → §5.4.bis (sin `on_hold`). (3) §5.4 clarificado: aplica solo a `blocker`/`bug` severity `high`/`critical`. (4) **§5.4.bis nuevo (7 sub-pasos)**: agente crea issue `question` + comment `QUESTION-TL:` (sin `on_hold`) → TL responde como comment en tarea (no en issue) → agente aplica + cierra su propio issue con `PATCH isResolved=true`. Incluye timeout 4h: si el TL no responde y el agente no puede avanzar, reclasifica a `blocker medium` e invoca §5.4. (5) §6 Reglas operativas del sub-ciclo Issue agregadas (7 reglas) — `question` nunca `high`/`critical`, NO `on_hold`, TL no PUT manual, agente cierra su propio issue, comment `QUESTION-TL:` obligatorio. (6) `RULE-SEC-001` agregada al listado §6 (aplica transversal). Pendiente DB: verificar enum `IssueType` incluye `question` (devlogs `b428d19d`/`f9f976e3` de VTT-818). Pendiente futuro: §5.2 versionado de ASSIGNMENT con `RE-ASSIGN-TL:` (Brecha 3 Sprint S00). |
 
 ---
 

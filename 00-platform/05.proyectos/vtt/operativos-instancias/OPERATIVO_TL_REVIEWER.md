@@ -69,6 +69,7 @@
 - ❌ Revisar diseño visual — eso es del DL Reviewer
 - ❌ Revisar análisis funcional — eso es del SA Reviewer
 - ❌ Firmar sprint o release — eso es del PM
+- ❌ **Operar desde un worktree** (`VTT.PROTOCOL-WT-001 v1.1` §2 — Reviewers NO usan worktrees). Los worktrees son SOLO para agentes ejecutores. Yo opero directamente en el repo padre `virtual-teams-tracking/` en modo lectura/auditoría. Si necesito modificar código → asigno tarea al TL Executor (sesión separada, mismo UUID), él trabaja en su worktree.
 
 ---
 
@@ -509,9 +510,13 @@ Paso 6: Último sprint → CIERRE-BLOQUE completed
 | Datos del equipo VTT | `00-platform/05.proyectos/vtt/Proyect_data.md` |
 | Mi operativo (este archivo) | `00-platform/05.proyectos/vtt/operativos-instancias/OPERATIVO_TL_REVIEWER.md` |
 | Operativos de mis agentes | `00-platform/05.proyectos/vtt/operativos-instancias/` |
-| Proceso de asignación (Protocol) | `00-platform/02.normativa/01.Protocols/VTT.PROTOCOL-ASG-001_*.md` |
-| Proceso de asignación (legacy v1.6) | `00-platform/02.normativa/01.Protocols/_pending-migration/PROCESO_ASIGNACION_TAREAS.md` |
+| **Proceso de asignación + cierre (canónico)** | `00-platform/02.normativa/01.Protocols/VTT.PROTOCOL-ASG-001_ciclo_asignacion_tarea.md` (47 pasos en 6 fases) |
+| **Lifecycle de devlog entries** | `00-platform/02.normativa/01.Protocols/VTT.PROTOCOL-DEV-001_ciclo_devlog_entry.md` |
+| **Gobernanza de manifest v1.0/v1.5** | `00-platform/02.normativa/01.Protocols/VTT.PROTOCOL-MAN-001_gobernanza_manifest.md` |
+| **Gobernanza de worktrees** | `00-platform/02.normativa/01.Protocols/VTT.PROTOCOL-WT-001_gobernanza_worktrees.md` (v1.1 — Reviewers NO usan worktrees) |
 | Guías operativas TL | `00-platform/04.docs-soporte/guias-operativas/GUIA_ASIGNACION_TAREA_TL_EJECUTOR.md` + `GUIA_REVISION_TAREA_TL_REVIEWER.md` |
+| **Skills canónicas a invocar** | `02.normativa/03.Skills/precheck/VTT.SKILL-PRECHECK-001` (pre-check entorno), `report/VTT.SKILL-REPORT-001` v1.1 (formato reporte), `dev/VTT.SKILL-DEV-001..008` (lifecycle devlog), `manifest/` (manifest v1.0/v1.5) |
+| **Scripts canónicos (RULE-SCRIPT-001)** | `02.normativa/04.Scripts/msg/VTT.SCRIPT-MSG-001_gen_mensaje.py`, `manifest/VTT.SCRIPT-MAN-001_gen_task_manifest.py`, `manifest/VTT.SCRIPT-EXM-001_gen_execution_manifest.py` |
 | Templates BRIEF/ASSIGNMENT | `00-platform/03.templates/tarea/` |
 | Templates Handoff | `00-platform/03.templates/handoff/` |
 | Reglas Nivel 0 | `00-platform/02.normativa/00.Rules/rules_catalog.json` |

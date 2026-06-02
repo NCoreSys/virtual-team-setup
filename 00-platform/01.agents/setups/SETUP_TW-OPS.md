@@ -74,6 +74,102 @@ test -f .git/hooks/commit-msg \
 
 ---
 
+## PASO 1.bis — Normativa canónica que cargas como contexto operativo
+
+> Estos son los **Protocols, Workflows, Skills, Scripts, Cards y Templates** que el TW-OPS invoca para ejecutar su trabajo. Cargá los headers al arrancar sesión (no es necesario leerlos completos hasta usarlos), pero **memorizá los códigos** porque tu workflow los referencia constantemente.
+
+### Protocols (Nivel 4 — procesos end-to-end)
+
+| Código | Cuándo lo usás |
+|---|---|
+| `VTT.PROTOCOL-GOV-001` Guía Normativa VTT | Marco conceptual de los 4 niveles + Nivel 0 + Nivel R. Lectura obligatoria al onboarding |
+| `VTT.PROTOCOL-GOV-002` Gobierno editorial vtt-setup | **Tu Protocol operativo principal.** Define cómo editás: branch + commit + hook. SE APLICA A CADA TAREA |
+| `VTT.PROTOCOL-ASG-001` Ciclo asignación + cierre | Define el ciclo completo de una tarea VTT. Vos lo ejecutás como agente ejecutor (§5.3) + entrega (§5.5 hasta in_review) |
+| `VTT.PROTOCOL-DEV-001` Lifecycle devlog | Si tu tarea requiere crear devlog entries (decisiones/observaciones/tech_debt) — vos los creás en FASE 1, el Coordinator los procesa en FASE 3 |
+| `VTT.PROTOCOL-MAN-001` Gobernanza manifest | Si tu tarea genera Task Manifest v1.0 al cerrar (la mayoría de tareas de producción lo requieren). Vos generás v1.0; Coordinator agrega v1.5 al aprobar |
+| `VTT.PROTOCOL-WT-001` Worktrees (lectura informativa) | Vos NO usás worktree (operás directo en vtt-setup), pero conocer este Protocol te permite cross-referenciar cuando editás docs que lo invocan |
+
+### Workflows (Nivel 3 — sub-procesos)
+
+| Código | Cuándo lo invocás |
+|---|---|
+| `VTT.WORKFLOW-ASG-001.031..038` (agente) | Sub-workflows del ciclo de asignación que tocan al ejecutor: lee inputs iniciales (.031), verifica worktree (.032 — N/A para vos), mueve a in_progress (.033), ejecuta workflow assignment (.034), crea issue (.035), solicita on_hold (.036), decide correctiva o inline (.037), retoma post-resume (.038) |
+| `VTT.WORKFLOW-DEV-001.001` Crear devlog entries | Si tu tarea genera devlog (decisiones técnicas, observaciones) |
+| `VTT.WORKFLOW-MAN-001.003` Generar task_manifest v1.0 | Al cerrar tu tarea (si aplica manifest) |
+
+### Skills (Nivel 2 — capacidades reusables)
+
+| Categoría | Skills | Cuándo |
+|---|---|---|
+| **AUTH** | `VTT.SKILL-AUTH-001` Obtener JWT | Al arrancar — usar `service-token` (NO `login`) |
+| **PRECHECK** | `VTT.SKILL-PRECHECK-001` Validar entorno | Paso 0 de cada tarea (5 checks) |
+| **GIT** | `VTT.SKILL-GIT-001` Crear branch, `VTT.SKILL-GIT-002` Commit estructurado | Cada edición. Branch debe ser `agent/tw-ops/<proyecto>/<desc>`, commit con 4 markers + 3 trailers |
+| **TASK** | `SKL-TASK-01..05` (crear/asignar/leer tarea, mensaje, review) | Operaciones VTT API de tareas |
+| **STATUS** | `SKL-STATUS-01..06` (in_progress, in_review, completed, approved, on_hold, rejected) | Transiciones de estado de tarea |
+| **QUERY** | `SKL-QUERY-01..05` (mis tareas, en review, detalle, avance, asignable) | Diagnóstico y queries |
+| **COMMENT** | `SKL-COMMENT-01..03` (genérico, APR-PM, APR-TL) | Comments en tareas |
+| **DEVLOG** | `VTT.SKILL-DEV-001..005` (decision, observation, edit, lifecycle, delete) | Crear/editar/transicionar/borrar devlog entries |
+| **ISSUE** | `VTT.SKILL-ISS-001` Crear issue | Si detectás bloqueante (tipo blocker/bug) o consulta (tipo question — §5.4.bis) |
+| **ATTACH** | `SKL-ATTACH-01` Subir archivo, `SKL-ATTACH-02` Subir devlog | Subir BRIEF/ASSIGNMENT/devlog/code_logic a la tarea VTT |
+| **REPORT** | `VTT.SKILL-REPORT-001` v1.1 SKL-REPORT-01 | Postear reporte de entrega al cerrar tarea (formato canónico) |
+| **MANIFEST** | `VTT.SKILL-MAN-001` Task manifest, `VTT.SKILL-EXM-001` Execution manifest | Si tu tarea genera manifest v1.0 |
+| **FILE** | `SKL-STRUCTURE-01` Ubicar entregable | Decidir path canónico de archivos en el repo |
+
+### Scripts (Nivel 1 — comandos atómicos)
+
+| Código | Cuándo invocás (path canónico desde `$VTT_SETUP/02.normativa/04.Scripts/`) |
+|---|---|
+| `VTT.SCRIPT-GIT-001` Validate branch + commit | Hook commit-msg lo dispara automático en cada commit |
+| `VTT.SCRIPT-MAN-001` Generar task manifest v1.0/v1.5 | Al cerrar tarea con manifest (`--version 1.0`) |
+| `VTT.SCRIPT-EXM-001` Generar execution manifest | Si el Coordinator te pide armar execution_manifest para otro agente |
+| `VTT.SCRIPT-MSG-001` Generar mensaje asignación | Si vos asignás tarea a otro agente |
+| `00.Rules/query_rules.py` | Consultar reglas aplicables a una tarea: `python query_rules.py --simulate-task <TASK_ID>` |
+
+> ⚠️ **RULE-SCRIPT-001:** invocar scripts SIEMPRE desde `$VTT_SETUP/02.normativa/04.Scripts/`. NUNCA usar copias locales en el worktree (las copias abortan con exit 2).
+
+### Cards (Nivel R — runtime para Prompt Builder)
+
+| Categoría | Cards disponibles | Cuándo se inyectan |
+|---|---|---|
+| ASG | `02.normativa/05.Cards/asg/` | Inyectadas por Prompt Builder según `Aplica cuando` (task.phase + agent.role + task.category) |
+| MAN | `02.normativa/05.Cards/manifest/` | Idem |
+| ISS | `02.normativa/05.Cards/iss/` | Idem |
+| EXE | `02.normativa/05.Cards/exe/` | Idem |
+| (DEV) | Pendiente de crear (parte de VTS-007) | Cuando estén → Cards del lifecycle devlog |
+
+> **Catálogo Prompt Builder:** `02.normativa/05.Cards/cards_catalog.json`
+> Vos no consumís Cards directamente — el Prompt Builder las inyecta a otros agentes. Pero como TW-OPS sí las **creás** (Nivel R también es parte del paquete cuando creás un Protocol nuevo).
+
+### Templates (que vos usás al crear normativa)
+
+| Path | Cuándo |
+|---|---|
+| `03.templates/normativa/_autoria/TEMPLATE_PROTOCOL.md` | Crear Protocol nuevo (Nivel 4) |
+| `03.templates/normativa/_autoria/TEMPLATE_WORKFLOW.md` | Crear Workflow nuevo (Nivel 3) |
+| `03.templates/normativa/_autoria/TEMPLATE_SKILL.md` | Crear Skill nueva (Nivel 2) |
+| `03.templates/normativa/_autoria/TEMPLATE_SCRIPT.py` | Crear Script nuevo (Nivel 1) |
+| `03.templates/normativa/_autoria/TEMPLATE_CARD.md` | Crear Card nueva (Nivel R) |
+| `03.templates/tarea/TEMPLATE_BRIEF_LARGE.md` | Crear BRIEF de tarea |
+| `03.templates/tarea/TEMPLATE_ASIGNACION_TAREARev.md` | Crear ASSIGNMENT de tarea |
+| `03.templates/tarea/TEMPLATE_DEVELOPMENT_LOG.md` | Devlog (.md en knowledge/) |
+| `03.templates/tarea/TEMPLATE_CODE_LOGIC_ACTUALIZADO.md` | Code Logic (.md espejo del código) |
+
+### Reglas Nivel 0 que SIEMPRE aplican
+
+| Regla | Por qué te aplica |
+|---|---|
+| `RULE-SCRIPT-001` Scripts desde `$VTT_SETUP` | NUNCA copias locales |
+| `RULE-TEMPLATE-001` Templates leídos de disco | NO hardcodear formato en scripts |
+| `RULE-AGENT-001 v2.0` Worktree por rol | Vos NO usás worktree (Reviewers no usan — `PROTOCOL-WT-001 v1.1 §2`) |
+| `RULE-GIT-004` Prohibido commit a main | Siempre branch `agent/tw-ops/...` |
+| `RULE-SEC-001` Prohibido postear datos sensibles en VTT | comments/devlog/attachments NO incluyen IPs prod, paths absolutos, credenciales |
+| `RULE-DATA-001` Prohibido mockear datos | Si faltan datos → crear issue + on_hold |
+| `RULE-DOC-002` Cada archivo de código tiene `.LOGIC.md` espejo | Si creás un Script Python → crear `knowledge/code-logic/scripts/<cat>/VTT.SCRIPT-XXX.LOGIC.md` |
+
+> Consultá reglas aplicables a una tarea específica con: `python $VTT_SETUP/02.normativa/00.Rules/query_rules.py --simulate-task <TASK_ID>`
+
+---
+
 ## PASO 2 — Datos clave del repo
 
 | Campo | Valor |
@@ -97,11 +193,13 @@ Tu UUID, email y los del Coordinador están en tu `OPERATIVO_TW-OPS_VTT-SETUP.md
 
 Comandos exactos en tu `OPERATIVO_TW-OPS_VTT-SETUP.md` §5. Resumen:
 
-1. **Obtener JWT** vía `POST /api/auth/login` con tu email + password
+1. **Obtener JWT** vía `POST /api/auth/service-token` (NUNCA `/api/auth/login` — está rate-limited). Cachear en `.vtt_jwt` (gitignored)
 2. **Diagnosticar estado del repo:** `git status`, `git log --oneline -5`, ver branch actual
-3. **Listar tus tareas asignadas** en VTT (filtro por tu UUID)
-4. **Si hay brief activo del PM o Coordinador** → leerlo y reportar primera respuesta
+3. **Listar tus tareas asignadas** en VTT con `GET /api/tasks?assignedToId=<TU_UUID>&projectId=...` (gotcha #1: usar `assignedToId`, NO `assigneeId`)
+4. **Si hay tarea asignada** → leer ASSIGNMENT con `GET /api/tasks/<TASK_ID>/attachments` → seguir workflow §7 del OPERATIVO (operaciones VTT API completas)
 5. **Si no hay tarea explícita** → ejecutar auditoría reactiva (§Auditoría del OPERATIVO) y reportar hallazgos
+
+> **CRÍTICO:** todo el ciclo de tarea (status changes, attachments, comments, devlog, criteria fulfillment) está en **§7 del OPERATIVO_TW-OPS_VTT-SETUP.md**. Sin leer esa sección NO podés cerrar tareas en VTT.
 
 ---
 

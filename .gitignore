@@ -39,3 +39,6 @@ desktop.ini
 *.bak
 *.log
 .vtt_jwt
+
+# Worktrees de agentes (NO subir copias enteras del repo)
+.vtt/worktrees/

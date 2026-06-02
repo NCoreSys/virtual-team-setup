@@ -4,11 +4,11 @@
 |---|---|
 | **Código** | `VTT.SKILL-ISS-001` |
 | **Categoría** | ISS (Issue) |
-| **Versión** | 1.0 |
-| **Fecha** | 2026-05-19 |
+| **Versión** | 1.2 |
+| **Fecha** | 2026-06-02 |
 | **Aplica a** | Todos los roles |
-| **Tokens estimados** | ~250 |
-| **Cuándo se usa** | Cuando hay un blocker real — datos faltantes, dependencia rota, decisión PM pendiente |
+| **Tokens estimados** | ~270 |
+| **Cuándo se usa** | Cuando hay un blocker real, un bug detectado, una mejora propuesta, o una duda formal que necesita decisión del TL/PM (type=question, no bloqueante) |
 | **Reemplaza** | `SKL-ISSUE-01_crear-issue.md` (legacy) |
 
 ---
@@ -39,7 +39,7 @@ El comportamiento correcto:
 | `agent_uuid` | uuid | sí | UUID del que reporta (= `reportedBy`) |
 | `title` | string ≤200 | sí | Título del issue (descripción corta del bloqueo) |
 | `description` | string ≤5000 | sí | Descripción detallada — qué pasa, qué intentaste, qué necesitás para desbloquear |
-| `issue_type` | enum | sí | `blocker` / `requirement` / `improvement` / `bug` |
+| `issue_type` | enum | sí | **5 valores válidos (v1.2 — verificado contra backend):** `bug` / `question` / `blocker` / `improvement` / `other`. CAMBIO v1.2: `requirement` REMOVIDO (no existe en backend), `other` AGREGADO. |
 | `severity` | enum | sí | `low` / `medium` / `high` / `critical` |
 
 ---
@@ -55,8 +55,8 @@ El comportamiento correcto:
 ## Variables del entorno
 
 ```bash
-$TOKEN
-$VTT_BASE_URL              # http://77.42.88.106:3000
+$TOKEN                     # JWT (ver VTT.SKILL-AUTH-001)
+$VTT_BASE_URL              # https://api.vttagent.com (NO IP — RULE-SEC-001)
 $AGENT_UUID
 ```
 
@@ -102,17 +102,26 @@ for i in issues[-3:]:
 
 ## Cómo resolver un issue
 
+**v1.1 — ruta real verificada contra API:** `PUT /api/issues/<id>` (NO `PATCH .../resolve` — esa ruta documentada en v1.0 NO existe en backend).
+
 ```bash
-curl -s -X PATCH "$VTT_BASE_URL/api/issues/$ISSUE_ID/resolve" \
+curl -s -X PUT "$VTT_BASE_URL/api/issues/$ISSUE_ID" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
   -d "{
-    \"resolution\": \"Descripción del fix aplicado\",
-    \"resolvedBy\": \"$AGENT_UUID\"
+    \"isResolved\": true,
+    \"resolution\": \"Descripción del fix aplicado\"
   }"
 ```
 
+Respuesta esperada: el issue queda con `isResolved=true` y `resolvedAt=<timestamp>`. NO se borra — permanece visible en `GET /api/tasks/<TASK_ID>/issues` con flag resuelto.
+
 > **Auto-resume:** si la tarea estaba en `task_on_hold` por este issue (con `sourceIssueId` apuntando aquí), al resolverlo VTT **automáticamente** vuelve la tarea a su `previousStatus`.
+
+### Quién puede resolver
+
+- **Issue type `question`** (§5.4.bis): el TL responde con comment en la tarea; el **agente que creó el issue** lo marca resuelto cuando aplica la respuesta (auto-cierre).
+- **Issue type `bug`/`blocker`/`improvement`/`other`**: lo resuelve quien aporta el fix (puede ser el mismo agente o un TL/peer).
 
 ---
 
@@ -123,8 +132,28 @@ curl -s -X PATCH "$VTT_BASE_URL/api/issues/$ISSUE_ID/resolve" \
 | Falta dato del PM (especificación incompleta) | `blocker` | `high` | Sí |
 | Dependencia rota (otro módulo no funciona) | `blocker` | `critical` | Sí |
 | Detectaste bug en otro módulo durante la tarea | `bug` | `medium`/`high` | No necesariamente — depende |
-| Falta una capability/feature de VTT | `requirement` | `medium` | Solo si bloquea tu tarea |
+| Falta una capability/feature de VTT que bloquea tu tarea | `blocker` | `medium`/`high` | Sí (v1.2: ya no existe `requirement` en backend — usar `blocker` si bloquea, `improvement` si NO bloquea) |
 | Tenés idea de mejora que no es scope | `improvement` | `low` | No |
+| **Duda de scope/diseño que necesita decisión del TL/PM** | **`question`** | **`low`** o `medium` | **NO** (no bloqueante — sub-ciclo §5.4.bis ASG-001; agente sigue con FASE alternativa mientras espera respuesta) |
+| Caso que no encaja en ninguno de los anteriores | `other` | según impacto | depende |
+
+### Árbol de decisión para severity de `question`
+
+| Caso | Severity |
+|---|---|
+| Duda conceptual sobre scope que NO te impide trabajar en NADA | `low` |
+| Duda concreta que te impide arrancar UNA tarea (la actual) pero el resto del sprint avanza sin vos | `low` |
+| Duda concreta que te impide arrancar TODAS tus tareas asignadas | `medium` |
+| Duda que pone en riesgo el sprint o release timeline | NO usar question — usar `blocker` con severity high/critical |
+
+### Aplicabilidad de `question` cuando la tarea está en `pending` (pre-arranque)
+
+§5.4.bis ASG-001 aplica también a tareas en estado `pending` — NO solo a `in_progress`. Si necesitás aclaración antes de arrancar:
+
+1. NO patches a `in_progress` todavía
+2. Creá el issue `question` con la tarea aún en `pending` (el backend lo acepta — no exige `in_progress`)
+3. En el comment paralelo agregá prefijo `[PRE-ARRANQUE]` para que el TL identifique el bloqueo pre-arranque
+4. Cuando el TL responda y vos apliques la respuesta, recién entonces patcheás a `in_progress`
 
 ---
 
@@ -133,9 +162,10 @@ curl -s -X PATCH "$VTT_BASE_URL/api/issues/$ISSUE_ID/resolve" \
 | Error | Causa | Solución |
 |---|---|---|
 | Issue se crea pero tarea sigue en in_progress | Esperabas auto-on_hold | Comportamiento corregido: necesitás llamar a `VTT.SKILL-STATUS-005` después |
-| HTTP 400 type inválido | Usar enum no listado | Solo: blocker/requirement/improvement/bug |
-| HTTP 400 severity inválido | Mismo | Solo: low/medium/high/critical |
-| Issue sin contexto | Faltó description detallada | El TL/PM necesita reproducir el problema — agregar contexto |
+| HTTP 400 `Type must be one of: bug, question, blocker, improvement, other` | Usar enum no listado | **v1.2 enum oficial:** `bug` / `question` / `blocker` / `improvement` / `other`. `requirement` ya NO existe en backend (era ficticio en v1.0/v1.1) |
+| HTTP 400 severity inválido | Usar enum no listado | Solo: low/medium/high/critical |
+| HTTP 404 al resolver con `PATCH /api/issues/<id>/resolve` | Ruta NO existe (era doc errónea en v1.0) | Usar `PUT /api/issues/<id>` con `{isResolved:true,resolution:"..."}` |
+| Issue sin contexto | Faltó description detallada | El TL/PM necesita reproducir el problema — agregar contexto (usar estructura de 4 secciones del final del doc) |
 
 ---
 
@@ -147,17 +177,43 @@ curl -s -X PATCH "$VTT_BASE_URL/api/issues/$ISSUE_ID/resolve" \
 
 ## Skills que invocan ESTA
 
-- Workflow del agente al encontrar bloqueante
-- Después de esta skill, típicamente: `VTT.SKILL-STATUS-005` (poner tarea en on_hold)
+- Workflow del agente al encontrar bloqueante o necesitar decisión formal
+- **Después de esta skill, según `type`:**
+  - `type=blocker` o `bug` que impide continuar → invocar `VTT.SKILL-STATUS-005` (poner tarea en on_hold)
+  - `type=question` (§5.4.bis no bloqueante) → invocar `VTT.SKILL-COMMENT-001` con prefijo `QUESTION-TL:` (paralelo, en la tarea — NO en el issue) y seguir trabajando en lo que NO depende de la decisión pendiente
+  - `type=improvement` o `other` (informativo) → no invocar nada más, seguir trabajando
 
 ---
 
 ## Cuándo NO usar esta Skill
 
-- **Si es duda no bloqueante** → usar `VTT.SKILL-COMMENT-001` para consultar
+- **Si es duda conversacional rápida** (no necesita decisión formal del TL, no afecta scope) → usar `VTT.SKILL-COMMENT-001`
+- **Si es duda de scope/diseño que necesita decisión formal del TL/PM** → SÍ usar esta Skill con `type=question` — sub-ciclo §5.4.bis ASG-001
 - **Si es observación técnica** → usar `VTT.SKILL-DEV-002`
 - **Si es decisión propia** → usar `VTT.SKILL-DEV-001`
 - **Si ya hay un issue para esto** → no duplicar, agregar comment al issue existente
+
+---
+
+## Estructura recomendada del `description` (todos los types)
+
+Para que el TL/PM pueda reproducir el problema sin pedirte aclaraciones, estructurá el `description` en 4 secciones:
+
+```
+## Síntoma
+[Qué pasó — output exacto, error message, comando que falló]
+
+## Intentado
+[Qué soluciones probaste antes de escalar — comandos, links, archivos consultados]
+
+## Solicitud
+[Qué necesitás del TL/PM — decisión, fix, dato, capability]
+
+## Impacto
+[Qué tarea/sprint queda bloqueado o afectado, qué NO bloquea]
+```
+
+Esta estructura aplica especialmente para `question` (sub-ciclo §5.4.bis) — el TL responde como comment en la tarea siguiendo el orden de las 4 secciones.
 
 ---
 
@@ -166,3 +222,5 @@ curl -s -X PATCH "$VTT_BASE_URL/api/issues/$ISSUE_ID/resolve" \
 | Versión | Fecha | Cambios |
 |---|---|---|
 | 1.0 | 2026-05-19 | Versión inicial. Migración de `SKL-ISSUE-01_crear-issue.md`. **Corrección crítica:** legacy decía que crear issue ponía la tarea en on_hold automáticamente — eso NO es así. Requiere llamar `VTT.SKILL-STATUS-005` después. Documenta el flujo de auto-resume cuando se resuelve el issue. Tabla de cuándo crear cada `type`. |
+| 1.1 | 2026-06-02 | **Fixes verificados contra API real (gap reportado por TW-OPS en VTS-007 comment b863a39b y agente DB en VTT-949):** (a) `type=question` agregado al enum (sub-ciclo §5.4.bis ASG-001 — no bloqueante). (b) Ruta de resolución corregida: `PUT /api/issues/<id>` con `{isResolved:true}` — la doc v1.0 decía `PATCH .../resolve` pero esa ruta NO existe en backend (404). (c) `$VTT_BASE_URL` ejemplo cambiado a `https://api.vttagent.com` (IP de prod removida — RULE-SEC-001). (d) Sección "Cuándo NO usar" actualizada: dudas de scope/diseño SÍ usan esta Skill con type=question (antes mandaba a COMMENT-001 indistintamente). |
+| 1.2 | 2026-06-02 | **Enum oficial corregido tras probe contra API real (gap reportado por agente DB en VTT-949 al pedir clarificación):** El backend valida `type` contra exactamente 5 valores: `bug, question, blocker, improvement, other`. (a) `requirement` REMOVIDO — NO existe en backend (era ficticio en v1.0 y heredado erróneamente en v1.1). Si necesitás reportar "falta una capability/feature de VTT que bloquea tu tarea" → usar `blocker`; si NO bloquea → `improvement`. (b) `other` AGREGADO — para casos que no encajan en los otros 4. (c) Árbol de decisión de severity para `question` agregado. (d) Aplicabilidad de `question` en tarea estado `pending` (pre-arranque) documentada — antes solo se asumía `in_progress`. (e) Estructura recomendada del `description` (4 secciones: Síntoma/Intentado/Solicitud/Impacto) agregada al final, aplicable a todos los types. (f) Mensaje de error 400 actualizado con el string EXACTO que devuelve el backend (`Type must be one of: bug, question, blocker, improvement, other`). |

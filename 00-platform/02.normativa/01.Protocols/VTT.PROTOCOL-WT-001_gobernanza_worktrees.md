@@ -1,16 +1,16 @@
-# VTT.PROTOCOL-WT-001 — Gobernanza de Worktrees por Rol
+# VTT.PROTOCOL-WT-001 — Gobernanza de Worktrees por Equipo
 
 | Campo | Valor |
 |---|---|
 | **Código** | `VTT.PROTOCOL-WT-001` |
-| **Título** | Gobernanza de Worktrees por Rol |
-| **Versión** | 1.0.1 |
-| **Fecha** | 2026-05-18 |
-| **Autor** | PM Martin Rivas |
-| **Aplica a** | Coordinador humano (setup + apertura), TL (asignación + revisión), Agentes ejecutores (operación diaria) |
+| **Título** | Gobernanza de Worktrees por Equipo (antes: por Rol) |
+| **Versión** | 1.1.0 |
+| **Fecha** | 2026-06-02 |
+| **Autor** | PM Martin Rivas (v1.0.x), PM_GOV (v1.1.0 — bajo dirección de Martin) |
+| **Aplica a** | Coordinador humano (setup + apertura), TL/PM_GOV/Leads (asignación + revisión + coordinación de equipo), Agentes ejecutores (operación diaria) |
 | **Estado** | Aprobado para uso |
-| **Tipo** | Opcional VTT — aplica solo a proyectos multi-rol con ejecución paralela (memory-service). Proyectos simples (un solo agente activo) pueden omitir worktrees. |
-| **Reglas aplicables (Nivel 0)** | `RULE-WT-001` Worktree policy, `RULE-WT-002` Execution manifest, `RULE-WT-003` Cleanup post-aprobación, `RULE-AGENT-001 v2.0` Worktree por rol, `RULE-TL-001` Worktree TL |
+| **Tipo** | Aplicable VTT — aplica a proyectos multi-agente con cambios concurrentes a archivos compartidos (memory-service, vtt-setup, futuros). Aplica también a proyectos de documentación/gobernanza con 2+ agentes concurrentes. Proyectos con un solo agente activo pueden omitir worktrees. |
+| **Reglas aplicables (Nivel 0)** | `RULE-WT-001` Worktree policy, `RULE-WT-002` Execution manifest, `RULE-WT-003` Cleanup post-aprobación, `RULE-AGENT-001 v2.0` Worktree por equipo, `RULE-TL-001` Worktree TL/Lead |
 | **Reemplaza** | `04.docs-soporte/guias-operativas/GUIA_GIT_WORKTREES_TL_BACKEND.md` v2.0 (legacy descriptiva) |
 
 ---
@@ -35,13 +35,38 @@
 
 ## 1. Propósito
 
-Establecer el modelo normativo de **git worktrees por rol** que garantiza que múltiples agentes (BE, DB, FE, QA, DO, TL, PM, SA) puedan trabajar en paralelo sobre el mismo proyecto sin pisarse entre sí.
+Establecer el modelo normativo de **git worktrees por equipo** que garantiza que múltiples agentes puedan trabajar en paralelo sobre el mismo proyecto sin pisarse entre sí, **sea código o documentación**.
 
-> **Problema que resuelve:** sin worktrees, agentes que comparten working tree compiten por la branch activa. Caso real PROC-COORD-01 (MS-286): tres agentes con un solo clone hicieron `git checkout feature/MS-Y` y el agente que tenía `feature/MS-X` perdió su working state. Con worktrees por rol **cada agente tiene directorio físico distinto** → imposibilidad técnica de pisarse.
+> **Problema que resuelve:** sin worktrees, agentes que comparten working tree compiten por la branch activa. Caso real PROC-COORD-01 (MS-286): tres agentes con un solo clone hicieron `git checkout feature/MS-Y` y el agente que tenía `feature/MS-X` perdió su working state. Caso real vtt-setup (2026-06-02): agente TW-OPS creó branch y empezó a trabajar; agente RA arrancó en paralelo y al hacer checkout deshizo el estado de TW-OPS. **El incidente confirmó que el riesgo NO es exclusivo de proyectos de código** — cualquier proyecto multi-agente con archivos compartidos lo sufre.
+>
+> Con worktrees **cada equipo tiene directorio físico distinto** → imposibilidad técnica de pisarse entre equipos.
 
-**Decisión central:**
+**Decisión central (v1.1.0):**
 
-> Cada **rol activo** tiene un worktree fijo durante todo el proyecto. La **tarea** define solo la branch dentro de ese worktree. Una ventana VSCode por rol. Una sesión Claude Code por ventana.
+> Cada **equipo activo** tiene un worktree fijo durante todo el proyecto. La **tarea** define solo la branch dentro de ese worktree. Una ventana VSCode por equipo. Una sesión Claude Code por agente del equipo (puede haber varios agentes en el mismo worktree de equipo, coordinados por su líder humano o agente coordinador del equipo).
+
+### Modelo de equipos
+
+Un **equipo** es un Lead/Coordinador + sus ejecutores que trabajan sobre el mismo conjunto de archivos. Ejemplos:
+
+| Proyecto | Equipo | Lead | Ejecutores | Worktree |
+|---|---|---|---|---|
+| `vtt-setup` | Normativa | LEAD_NPL | TW-OPS | `.vtt/worktrees/vtt-setup-team-normativa/` |
+| `vtt-setup` | Research | LEAD_RKL | RA | `.vtt/worktrees/vtt-setup-team-research/` |
+| `vtt-setup` | Agentes & Plataforma | LEAD_APL | (futuros ejecutores de perfilería) | `.vtt/worktrees/vtt-setup-team-agents/` |
+| `memory-service` | Backend | TL | BE, DB | `.vtt/worktrees/memory-service-team-backend/` (cuando se aplique modelo equipo) |
+| `memory-service` | Frontend | TL | FE, UX | `.vtt/worktrees/memory-service-team-frontend/` (cuando se aplique modelo equipo) |
+
+### Coordinación intra-equipo
+
+Dentro de un worktree de equipo, **los agentes del equipo coordinan branches secuencialmente**, no en paralelo:
+- El Lead asigna tarea a un solo agente por vez del equipo.
+- Si dos agentes del mismo equipo necesitan trabajar en paralelo, el Lead crea worktrees auxiliares temporales (§5.4.5 nuevo) o secuencia las tareas.
+- La coordinación humana/Lead resuelve el conflicto dentro del equipo; la separación física por equipo resuelve el conflicto entre equipos.
+
+### Compatibilidad con modelo viejo (worktree por rol)
+
+El modelo v1.0.x "worktree por rol" sigue siendo válido para proyectos donde cada rol ejecuta solo (memory-service hoy: BE, DB, FE, etc. cada uno en su worktree). El modelo v1.1.0 "worktree por equipo" es **superset**: un equipo de 1 rol = worktree por rol; un equipo de N roles = worktree compartido por el equipo con coordinación intra-equipo del Lead.
 
 ---
 
@@ -49,15 +74,17 @@ Establecer el modelo normativo de **git worktrees por rol** que garantiza que m�
 
 ### Aplica a
 
-- Proyectos VTT con **2+ agentes ejecutores en paralelo** sobre el mismo repositorio
-- Proyectos donde el TL necesita operar simultáneamente con agentes (review en vivo)
-- Cualquier rol que necesite `.env` propio o `node_modules` independiente del clon base
+- Proyectos VTT con **2+ agentes en paralelo** sobre el mismo repositorio, **sea código o documentación**
+- Proyectos donde el TL/Lead necesita operar simultáneamente con agentes (review en vivo)
+- Cualquier rol que necesite `.env` propio, `node_modules`, o cualquier estado local independiente del clon base
+- **Proyectos de documentación/gobernanza multi-agente** (vtt-setup, futuros) — confirmado por incidente 2026-06-02 (TW-OPS+RA)
 
 ### NO aplica a
 
 - Proyectos con un solo agente activo (clon directo es suficiente)
-- Proyectos sin ejecución de código (solo documentación)
 - Repos sin Git
+
+> **Nota histórica:** v1.0.x excluía "proyectos sin ejecución de código (solo documentación)". Esa exclusión fue **invalidada en v1.1.0** por evidencia empírica: el incidente vtt-setup 2026-06-02 demostró que cualquier proyecto multi-agente con cambios concurrentes a archivos compartidos sufre el mismo problema, independientemente de si los archivos son código o docs. La regla real es **multi-agente paralelo**, no "código vs docs".
 
 > **Nota sobre Workflows/Skills/Scripts:** este Protocol referencia 5 Workflows + 2 Skills + 3 Scripts derivados (ver §6). Al momento de publicar v1.0.0, esos artefactos están **pendientes de escribir**. Las referencias se mantienen para que cuando se escriban hagan match. Mientras tanto:
 >
@@ -70,19 +97,21 @@ Establecer el modelo normativo de **git worktrees por rol** que garantiza que m�
 
 ### 3.1 Coordinador humano (Martin)
 - Ejecutar setup inicial del proyecto (FASE 1) — una vez por proyecto
-- Apertura de sesión diaria (FASE 2) — abrir las N ventanas VSCode necesarias
+- Apertura de sesión diaria (FASE 2) — abrir las N ventanas VSCode necesarias (una por equipo activo)
 
-### 3.2 TL (Tech Lead)
-- Onboardear rol nuevo cuando entra al proyecto (FASE 3) — bajo demanda
+### 3.2 TL/PM_GOV/Leads (Coordinadores de equipo)
+- Onboardear equipo nuevo cuando entra al proyecto (FASE 3) — bajo demanda
+- Coordinar internamente los agentes del equipo (asignar tareas secuencialmente, evitar pisadas dentro del mismo worktree de equipo)
 - Verificar disciplina de worktree del agente al cerrar tarea (`PROTOCOL-ASG-001 §5.5.5.b`)
-- Crear worktrees auxiliares bajo demanda (`PROTOCOL-MAN-001 §5.1`)
+- Crear worktrees auxiliares bajo demanda cuando agentes del mismo equipo necesitan paralelo real (`PROTOCOL-MAN-001 §5.1` + §5.4.5 de este Protocol)
 - Ejecutar cleanup branch local post-aprobación (`PROTOCOL-ASG-001 §5.5.18`)
 
-### 3.3 Agentes ejecutores (BE/DB/FE/DO/QA/DL/UX/AR/SA)
-- Operar SIEMPRE en su worktree dedicado (NUNCA en clon base ni en otro worktree)
+### 3.3 Agentes ejecutores (BE/DB/FE/DO/QA/DL/UX/AR/SA/TW-OPS/RA/futuros)
+- Operar SIEMPRE en el worktree de su equipo (NUNCA en clon base ni en worktree de otro equipo)
+- Coordinar branches con otros agentes del MISMO equipo a través del Lead (no checkout simultáneo sobre branches ajenas)
 - Leer execution_manifest antes de empezar (`PROTOCOL-MAN-001 §5.2`)
 - Verificar `git status` limpio antes de iniciar nueva tarea
-- Reportar al TL si el worktree quedó corrupto
+- Reportar al Lead del equipo si el worktree quedó corrupto
 
 ### 3.4 PM (Product Manager)
 - Cierre final del proyecto — disparar FASE 5 (Cleanup) cuando se cierra el repo
@@ -93,13 +122,21 @@ Establecer el modelo normativo de **git worktrees por rol** que garantiza que m�
 
 **Worktree:** directorio físico independiente del clon base que comparte `.git/` pero tiene su propia branch checked-out. Permite que múltiples branches coexistan simultáneamente en el filesystem sin conflicto.
 
-**Worktree por rol:** estructura `.vtt/worktrees/<repo>-<rol>/` donde `<rol>` ∈ {be, db, fe, do, qa, tl, pm, sa, etc.}. Cada rol tiene **un** worktree fijo durante todo el proyecto.
+**Worktree por equipo (v1.1.0):** estructura `.vtt/worktrees/<repo>-team-<area>/` donde `<area>` identifica el equipo (ej. `normativa`, `research`, `agents`, `backend`, `frontend`). Cada equipo tiene **un** worktree fijo durante todo el proyecto. El Lead del equipo coordina los agentes dentro del worktree.
 
-**Workspace VSCode dedicado:** archivo `.code-workspace` en `.vtt/workspaces/<repo>-<rol>.code-workspace` que abre VSCode con título identificable y `cwd` apuntando al worktree del rol.
+**Worktree por rol (v1.0.x compat):** estructura `.vtt/worktrees/<repo>-<rol>/` donde `<rol>` ∈ {be, db, fe, do, qa, tl, pm, sa, etc.}. Forma legítima cuando un equipo es de un solo rol. Equivalente a "worktree por equipo de tamaño 1".
 
-**Branch idle (`wt-<repo>-<rol>`):** branch base del worktree cuando no hay tarea activa. NO se mergea a main. Sirve solo para que el worktree no quede en estado detached HEAD.
+**Workspace VSCode dedicado:** archivo `.code-workspace` en `.vtt/workspaces/<repo>-team-<area>.code-workspace` (modelo equipo) o `.vtt/workspaces/<repo>-<rol>.code-workspace` (modelo rol legacy) que abre VSCode con título identificable y `cwd` apuntando al worktree.
 
-**Branch de tarea (`feature/<TASK_ID>`):** branch creada dentro del worktree del agente para una tarea específica. Vive en el mismo worktree hasta que se mergee y se cleanee.
+**Branch idle:**
+- Modelo equipo (v1.1.0): `wt-<repo>-team-<area>` — ej. `wt-vtt-setup-team-normativa`
+- Modelo rol (v1.0.x compat): `wt-<repo>-<rol>` — ej. `wt-memory-service-be`
+- NO se mergea a main. Sirve solo para que el worktree no quede en estado detached HEAD.
+
+**Branch de tarea:**
+- Ejecutores de código: `feature/<TASK_ID>` o `feature/<TASK_ID>-<desc>` — ej. `feature/MS-310`, `feature/VTS-018-mover-init`
+- Coordinadores/Leads que suben documentación: `docs/<TASK_ID>-<scope>` — ej. `docs/VTS-019-protocolo-wt-multi-agente`
+- Vive en el mismo worktree del equipo hasta que se mergee y se cleanee.
 
 **Execution manifest:** instructivo local del TL al agente — define `allowedPaths`, `branchExpected`, `worktreePath`. Vive en `.vtt/manifests/<TASK_ID>.execution.json`. Ver `VTT.PROTOCOL-MAN-001 §5.1` para detalle.
 
@@ -124,18 +161,21 @@ Establecer el modelo normativo de **git worktrees por rol** que garantiza que m�
    # etc — todos los repos del proyecto
    ```
 
-5.1.2 Identificar los roles activos al inicio del proyecto → **[ACTIVIDAD]**
-   - Típicamente: TL, BE, DB, DO, QA, PM, SA
-   - Roles que entran más tarde (FE, UX, DL): se onboardean en FASE 3 cuando lleguen
+5.1.2 Identificar los equipos activos al inicio del proyecto → **[ACTIVIDAD]**
+   - Proyecto de código (memory-service típico): equipo backend (TL+BE+DB), equipo frontend (FE+UX), equipo ops (DO+QA), equipo PM/SA
+   - Proyecto de docs/gobernanza (vtt-setup): equipo normativa (LEAD_NPL+TW-OPS), equipo research (LEAD_RKL+RA), equipo agentes (LEAD_APL), reviewer PM_GOV (sin worktree — opera en clon base, §7.bis)
+   - Equipos que entran más tarde: se onboardean en FASE 3 cuando lleguen
 
 5.1.3 Crear estructura `.vtt/` → **[ACTIVIDAD]**
    ```
    mkdir -p <project_root>/.vtt/{worktrees,workspaces,manifests}
    ```
 
-5.1.4 **Crear UN worktree por cada rol activo** → **[PROCESO]** → ver `VTT.WORKFLOW-WT-001.001_setup_inicial` *(pendiente de escribir — mientras tanto usar el comando directo abajo)*
+5.1.4 **Crear UN worktree por cada equipo activo** → **[PROCESO]** → ver `VTT.WORKFLOW-WT-001.001_setup_inicial` *(pendiente de escribir — mientras tanto usar el comando directo abajo)*
    - Invoca: `VTT.SKILL-WT-001` (`action=add_worktree`)
-   - Por cada rol: `git worktree add ../.vtt/worktrees/<repo>-<rol> -b wt-<repo>-<rol> origin/main`
+   - Por cada equipo: `git worktree add ../.vtt/worktrees/<repo>-team-<area> -b wt-<repo>-team-<area> origin/main`
+   - Ejemplo vtt-setup: `git worktree add ../.vtt/worktrees/vtt-setup-team-normativa -b wt-vtt-setup-team-normativa origin/main`
+   - Si el equipo es de un solo rol (modelo v1.0.x compat): `git worktree add ../.vtt/worktrees/<repo>-<rol> -b wt-<repo>-<rol> origin/main`
 
 5.1.5 Generar workspace VSCode por cada worktree → **[PROCESO]** → ver `VTT.WORKFLOW-WT-001.001` *(pendiente)*
    - Invoca: `VTT.SKILL-WT-002` (`action=generate_workspace`) *(pendiente)*
@@ -306,6 +346,31 @@ Establecer el modelo normativo de **git worktrees por rol** que garantiza que m�
 
 5.4.3.c Continuar con la nueva tarea → **[ACTIVIDAD]**
 
+#### 5.4.5 Paralelo real dentro de un equipo (worktree auxiliar)
+
+5.4.5.a Dos agentes del mismo equipo necesitan trabajar realmente en paralelo (no secuencial) → **[CONTEXTO]**
+   - Ej. LEAD_NPL escribiendo PROTOCOL-DEP-001 mientras TW-OPS migra un SOP legacy distinto. Ambos en el equipo normativa, ambos tocando archivos en `02.normativa/` pero en sub-rutas diferentes.
+
+5.4.5.b Lead decide si justifica worktree auxiliar → **[DECISIÓN]**
+   - Si las branches tocan paths disjuntos → vale la pena. Continuar.
+   - Si pueden colisionar → mejor secuenciar, no crear auxiliar.
+
+5.4.5.c Lead crea worktree auxiliar del equipo → **[PROCESO]** → ver `VTT.WORKFLOW-WT-001.004 §5`
+   ```
+   cd <repo>
+   git worktree add ../.vtt/worktrees/<repo>-team-<area>-aux-<NN> -b wt-<repo>-team-<area>-aux-<NN> origin/main
+   ```
+   - `<NN>` es secuencial (aux-01, aux-02). El Lead lleva el registro.
+
+5.4.5.d Agente del equipo trabaja en el worktree auxiliar para esa tarea específica → **[ACTIVIDAD]**
+
+5.4.5.e Al cerrar la tarea, Lead cleanea el worktree auxiliar → **[ACTIVIDAD]**
+   ```
+   git worktree remove ../.vtt/worktrees/<repo>-team-<area>-aux-<NN>
+   ```
+
+> **Regla:** los worktrees auxiliares son **temporales**. Si un equipo necesita ≥2 worktrees auxiliares permanentes, considerar si en realidad son 2 equipos distintos.
+
 #### 5.4.4 Worktree corrupto
 
 5.4.4.a Agente detecta error inusual (HEAD detached, branch missing, etc.) → **[CONTEXTO]**
@@ -456,30 +521,45 @@ El clon base (`<project_root>/<repo>/`) es **solo anchor** para los worktrees. S
 
 > **Excepción:** lectura. Un agente puede leer archivos del clon base (no afecta branch).
 
-### 7.2 Un rol = un worktree fijo (NO por tarea)
+### 7.2 Un equipo = un worktree fijo (NO por tarea, NO por agente del equipo)
 
-Si un agente termina MS-X y empieza MS-Y, **usa el MISMO worktree**, solo cambia branch:
+Si un agente termina MS-X y empieza MS-Y, **usa el MISMO worktree del equipo**, solo cambia branch:
 
 ```
 ✅ Correcto:
-  cd .vtt/worktrees/backend-be   # MISMO
-  git checkout -b feature/MS-Y origin/main
+  cd .vtt/worktrees/vtt-setup-team-normativa   # MISMO worktree del equipo
+  git checkout -b docs/VTS-Y-scope origin/main
 
 ❌ Incorrecto:
-  git worktree add .vtt/worktrees/backend-be-MS-Y  # NO crear nuevo por tarea
+  git worktree add .vtt/worktrees/vtt-setup-team-normativa-VTS-Y  # NO crear nuevo por tarea
+  git worktree add .vtt/worktrees/vtt-setup-tw-ops              # NO crear por agente individual del equipo
 ```
 
-### 7.3 Una ventana VSCode = un rol = una sesión Claude
+### 7.3 Una ventana VSCode = un equipo = N sesiones Claude (una por agente del equipo)
 
-NO abrir 2 chats Claude en la misma ventana. NO usar 2 ventanas para el mismo rol. Cada rol tiene **su** workspace dedicado.
+NO abrir 2 chats Claude del MISMO agente en la misma ventana. Pero SÍ pueden abrirse varias sesiones Claude **de distintos agentes del mismo equipo** apuntando al MISMO worktree de equipo, coordinadas por el Lead. Ejemplo: ventana `vtt-setup-team-normativa` puede tener sesión LEAD_NPL + sesión TW-OPS — pero el Lead coordina las branches para que no se pisen (asignación secuencial, no checkout concurrente).
+
+Para evitar pisadas dentro de un equipo:
+- Solo UN agente del equipo tiene `task_in_progress` por vez.
+- El Lead asigna la siguiente tarea solo cuando la anterior está en `task_in_review` o terminada.
+- Si dos tareas del mismo equipo deben hacerse en paralelo de verdad → §5.4.5 (worktree auxiliar del equipo).
 
 ### 7.4 Worktrees NO van a git
 
 La carpeta `.vtt/` está en `.gitignore`. Es infraestructura local, no se commitea.
 
-### 7.5 Branch idle `wt-<repo>-<rol>` NUNCA se mergea
+### 7.5 Branch idle del equipo NUNCA se mergea
 
-Es solo para que el worktree no quede detached. Si alguien intenta hacer PR de `wt-backend-be` → rechazar.
+`wt-<repo>-team-<area>` (modelo equipo) o `wt-<repo>-<rol>` (modelo rol legacy). Es solo para que el worktree no quede detached. Si alguien intenta hacer PR de `wt-vtt-setup-team-normativa` → rechazar.
+
+### 7.bis Reviewers/PMs operan en clon base (NO en worktree)
+
+PM_GOV, TL Reviewer y otros roles puramente de revisión **NO usan worktree** — operan directamente en el clon padre. Razones:
+- No producen branches `feature/*` ni `docs/*` ellos mismos (revisan las branches de otros).
+- Cuando excepcionalmente commitean (HOs, decisiones, releases), el cambio es a paths que no se solapan con worktrees de equipos.
+- Tener su propio worktree multiplica overhead sin beneficio.
+
+Excepción: si un Lead/Reviewer EJECUTA directo (no delega), entonces actúa como ejecutor del equipo correspondiente y opera en el worktree del equipo.
 
 ### 7.6 El agente verifica execution_manifest ANTES de tocar código
 
@@ -507,6 +587,7 @@ Después de cada `task_approved`, el TL ejecuta `git branch -d feature/<TASK_ID>
 |---|---|---|---|
 | 1.0.0 | 2026-05-18 | PM Martin Rivas | Versión inicial. Formaliza el modelo de worktrees por rol que estaba documentado solo en `GUIA_GIT_WORKTREES_TL_BACKEND.md` v2.0 (legacy descriptiva). Origen: incidente PROC-COORD-01 (MS-286). Define 5 FASEs operativas, 5 Workflows derivados, 2 Skills, 3 Scripts. Cross-ref con PROTOCOL-MAN-001 (execution manifest) y PROTOCOL-ASG-001 (verificación de disciplina + cleanup). Categoría `WT` registrada en `00_REGISTRO_ACRONIMOS.md §3.1` v1.3. |
 | 1.0.1 | 2026-05-18 | PM Martin Rivas | **4 fixes de review.** (1) §2 nota explícita sobre Workflows/Skills/Scripts pendientes — el Protocol es ejecutable desde hoy con comandos directos en cada paso. (2) §7.6 amplía la dependencia con PROTOCOL-MAN-001 con tabla de ortogonalidad (WT = worktree, MAN = qué tocar — sub-sistemas acoplados pero independientes). (3) §5.2.4.bis nuevo: decisión por 3 casos al abrir sesión (branch idle / branch mergeada sin cleanup / branch en curso). (4) §5.5.3-5.5.4 nuevos: inventario de branches `feature/*` y `fix/*` pendientes al cierre del proyecto con 3 acciones (mergear / cerrar wontfix / preservar para fase 2). §5.5.8 nuevo: CLOSURE final con resumen. |
+| 1.1.0 | 2026-06-02 | PM_GOV (bajo dirección de Martin) | **Minor bump — ampliación de scope y cambio de modelo.** Origen: incidente vtt-setup 2026-06-02 (agentes TW-OPS y RA se pisaron en proyecto de docs — exactamente el mismo patrón que PROC-COORD-01 que originó el Protocol, pero en docs). **Cambios:** (1) Título "por Rol" → "por Equipo" + propósito ampliado a cualquier proyecto multi-agente (código o docs). (2) §2 NUEVO: aplica explícitamente a proyectos de documentación/gobernanza multi-agente (vtt-setup, futuros). Eliminada exclusión "solo documentación" — invalidada por evidencia empírica. (3) §1 NUEVO bloque "Modelo de equipos" con tabla de mapeo equipo→Lead→ejecutores→worktree para memory-service y vtt-setup. (4) §1 NUEVO bloque "Coordinación intra-equipo" — el Lead asigna secuencialmente dentro del worktree del equipo. (5) §1 NUEVO bloque "Compatibilidad con modelo viejo" — v1.0.x "por rol" sigue válido como caso especial (equipo de 1 rol). (6) §3.2 ampliado a TL/PM_GOV/Leads como coordinadores de equipo. (7) §3.3 incluye TW-OPS/RA/futuros. (8) §4 NUEVO definición "Worktree por equipo" + branch idle `wt-<repo>-team-<area>` + branch tarea `docs/<TASK_ID>-<scope>` para coordinadores. (9) §5.1.2 ahora habla de "equipos activos" con ejemplos para proyectos de docs. (10) §5.1.4 comando actualizado a `team-<area>`. (11) §5.4.5 NUEVO: paralelo real dentro de un equipo con worktree auxiliar temporal `<area>-aux-<NN>`. (12) §7.2 actualizada al modelo equipo. (13) §7.3 amplía a "N sesiones Claude del MISMO equipo en el MISMO worktree" coordinadas por el Lead. (14) §7.5 actualizada al nuevo patrón de branch idle. (15) §7.bis NUEVO: reviewers/PMs operan en clon base, no en worktree. Aplicación inmediata: vtt-setup elimina `vtt-setup-tw-ops` y `vtt-setup-ra` y crea `vtt-setup-team-normativa` (NPL+TW-OPS) + `vtt-setup-team-research` (RKL+RA) + `vtt-setup-team-agents` (APL). |
 
 ---
 

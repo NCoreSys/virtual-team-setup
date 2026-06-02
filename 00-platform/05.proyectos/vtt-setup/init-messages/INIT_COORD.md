@@ -53,8 +53,8 @@ PASO 0 — APERTURA DE SESIÓN (PRE-CHECK OBLIGATORIO)
   [[ "$(pwd)" == *"/.vtt/worktrees/"* ]] && { echo "ABORT: Coord NO opera en worktrees (PROTOCOL-WT-001 §2)"; exit 2; }
 
   # Check 5 — Worktrees de TW-OPS y RA existen (los necesitás para revisar)
-  test -d .vtt/worktrees/vtt-setup-tw-ops || echo "AVISO: worktree TW-OPS ausente"
-  test -d .vtt/worktrees/vtt-setup-ra || echo "AVISO: worktree RA ausente"
+  test -d .vtt/worktrees/vtt-setup-team-normativa || echo "AVISO: worktree TW-OPS ausente"
+  test -d .vtt/worktrees/vtt-setup-team-research || echo "AVISO: worktree RA ausente"
 
   echo "✅ Pre-check OK — entorno Coord listo"
 
@@ -97,7 +97,7 @@ REGLAS NIVEL 0 — APLICAN A TODO TU TRABAJO COMO COORD
 ═══════════════════════════════════════════════════════════════════════
 
 RULE-AGENT-001 — Operás en el repo padre virtual-teams-setup/, NUNCA en worktrees
-   de los agentes (.vtt/worktrees/vtt-setup-tw-ops/ o vtt-setup-ra/). El Coord coordina,
+   de los agentes (.vtt/worktrees/vtt-setup-team-normativa/ o vtt-setup-team-research/). El Coord coordina,
    no ejecuta en lugar de los agentes.
 
 RULE-SCRIPT-001 — Scripts normativos SOLO desde $VTT_SETUP/02.normativa/04.Scripts/.

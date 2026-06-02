@@ -26,8 +26,8 @@ test -d "$VTT_SETUP/02.normativa" || { echo "ABORT: \$VTT_SETUP inválido"; exit
 echo "OK: estoy en repo padre"
 
 # Worktrees de TW-OPS y RA existen (los necesitás para revisar entregables)
-test -d .vtt/worktrees/vtt-setup-tw-ops && echo "worktree TW-OPS OK" || echo "AVISO: TW-OPS worktree ausente"
-test -d .vtt/worktrees/vtt-setup-ra && echo "worktree RA OK" || echo "AVISO: RA worktree ausente"
+test -d .vtt/worktrees/vtt-setup-team-normativa && echo "worktree TW-OPS OK" || echo "AVISO: TW-OPS worktree ausente"
+test -d .vtt/worktrees/vtt-setup-team-research && echo "worktree RA OK" || echo "AVISO: RA worktree ausente"
 
 # Templates y scripts críticos
 test -f $VTT_SETUP/03.templates/agents/TEMPLATE_TRIADA_AGENTE.md && echo "TRIADA template OK"
@@ -41,8 +41,8 @@ test -f $VTT_SETUP/02.normativa/04.Scripts/manifest/VTT.SCRIPT-MAN-001_gen_task_
 | Carpeta | ¿Puedo trabajar ahí? |
 |---|---|
 | `virtual-teams-setup/` (repo padre) | ✅ **PRIMARIO** — tu working dir |
-| `virtual-teams-setup/.vtt/worktrees/vtt-setup-tw-ops/` | ⚠️ **SOLO LECTURA** — leés para revisar entregables del TW-OPS |
-| `virtual-teams-setup/.vtt/worktrees/vtt-setup-ra/` | ⚠️ **SOLO LECTURA** — leés para revisar entregables del RA |
+| `virtual-teams-setup/.vtt/worktrees/vtt-setup-team-normativa/` | ⚠️ **SOLO LECTURA** — leés para revisar entregables del TW-OPS |
+| `virtual-teams-setup/.vtt/worktrees/vtt-setup-team-research/` | ⚠️ **SOLO LECTURA** — leés para revisar entregables del RA |
 | `virtual-teams-setup/00-platform/02.normativa/` | ⚠️ **SOLO LECTURA** — eso lo edita TW-OPS, vos REVISÁS |
 | `virtual-teams-setup/00-platform/05.proyectos/vtt-setup/operativos-instancias/` | ✅ **PRIMARIO** — gestionás OPERATIVOs de los agentes (tu responsabilidad) |
 | `virtual-teams-setup/knowledge/agent-tasks/` | ✅ **PRIMARIO** — creás briefs/assignments/messages para asignar tareas |
@@ -172,7 +172,7 @@ git config user.email | grep -q "coordinator" || echo "AVISO: git config no es C
 test -n "$VTT_SETUP" && test -d "$VTT_SETUP/02.normativa" || { echo "ABORT: \$VTT_SETUP"; exit 2; }
 test -f "$VTT_SETUP/02.normativa/04.Scripts/manifest/VTT.SCRIPT-MAN-001_gen_task_manifest.py" || { echo "ABORT: SCRIPT-MAN-001"; exit 2; }
 [[ "$(pwd)" == *"/.vtt/worktrees/"* ]] && { echo "ABORT: Coord NO en worktrees"; exit 2; }
-test -d .vtt/worktrees/vtt-setup-tw-ops -a -d .vtt/worktrees/vtt-setup-ra || echo "AVISO: worktrees de agentes faltan"
+test -d .vtt/worktrees/vtt-setup-team-normativa -a -d .vtt/worktrees/vtt-setup-team-research || echo "AVISO: worktrees de agentes faltan"
 # JWT se valida después de obtenerlo (PASO 3)
 echo "✅ Pre-check OK"
 ```

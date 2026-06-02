@@ -300,6 +300,238 @@ agent/tw-ops/<proyecto>/<desc>
 ### Listo para review: ✅
 ```
 
+---
+
+## 7. VTT API — Operaciones de Ciclo de Tarea (CRÍTICO — sin esto NO podés cerrar tareas)
+
+> Este es el **bloque operativo** del TW-OPS contra VTT API. Toda tarea asignada en VTT (`task_pending`) debe pasar por este ciclo: `pending → in_progress → in_review` (asignado, con attachments, comment, criteria fulfilled). El cierre a `task_completed` lo hace el Coordinator al revisar.
+
+**Base URL:** `https://api.vttagent.com`
+**Auth:** ver §5 (siempre `service-token` cacheado en `.vtt_jwt`)
+**Tu UUID (assignedToId):** `fe1b589c-7cf2-4779-82d4-b7ae536536ce`
+
+### 7.1 Recibir tarea — listar tareas asignadas
+
+```bash
+TOKEN=$(cat .vtt_jwt)
+curl -s "https://api.vttagent.com/api/tasks?projectId=c6b513a1-d8ae-4344-b684-96d73721bfbf&assignedToId=fe1b589c-7cf2-4779-82d4-b7ae536536ce" \
+  -H "Authorization: Bearer $TOKEN" | python -m json.tool | head -60
+```
+
+> **Gotcha #9:** el field es `assignedToId` (NOT `assigneeId`). PATCH y queries con `assigneeId` se IGNORAN silenciosamente.
+
+### 7.2 Leer ASSIGNMENT de una tarea + sus attachments
+
+```bash
+TASK_ID="VTS-XXX"
+
+# Detalle completo de la tarea
+curl -s "https://api.vttagent.com/api/tasks/$TASK_ID" -H "Authorization: Bearer $TOKEN" | python -m json.tool
+
+# Listar attachments de la tarea
+curl -s "https://api.vttagent.com/api/tasks/$TASK_ID/attachments" -H "Authorization: Bearer $TOKEN" | python -m json.tool
+
+# Descargar attachment (necesitás el attachmentId del listado)
+curl -s "https://api.vttagent.com/api/attachments/<ATTACHMENT_ID>/file" -H "Authorization: Bearer $TOKEN" -o "/tmp/asg.md"
+```
+
+### 7.3 Mover tarea a `task_in_progress` (al arrancar)
+
+```bash
+curl -s -X PATCH "https://api.vttagent.com/api/tasks/$TASK_ID/status" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"statusId":"2a76888a-e595-4cfc-ac4c-a3ae5087ef56","changedBy":"fe1b589c-7cf2-4779-82d4-b7ae536536ce"}'
+```
+
+UUIDs de status: ver §4.1 de este OPERATIVO.
+
+### 7.4 Crear devlog entries durante ejecución (PROTOCOL-DEV-001)
+
+```bash
+# Entry tipo decision (sin severidad)
+curl -s -X POST "https://api.vttagent.com/api/tasks/$TASK_ID/devlog" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{
+    "categoryCode":"decision",
+    "title":"<titulo decision>",
+    "description":"<contexto + trade-off>",
+    "reportedBy":"fe1b589c-7cf2-4779-82d4-b7ae536536ce"
+  }'
+
+# Entry tipo tech_debt (con severidad low/medium — NUNCA high si va deferred)
+curl -s -X POST "https://api.vttagent.com/api/tasks/$TASK_ID/devlog" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{
+    "categoryCode":"tech_debt",
+    "severity":"low",
+    "title":"<titulo deuda>",
+    "description":"<por que no se hace ahora + plan futuro>",
+    "reportedBy":"fe1b589c-7cf2-4779-82d4-b7ae536536ce"
+  }'
+
+# Lifecycle (transicionar status del entry — NUNCA al Coordinator/TL)
+curl -s -X PATCH "https://api.vttagent.com/api/tasks/$TASK_ID/devlog/<ENTRY_ID>/status" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"status":"resolved","resolution":"<descripcion del fix>"}'
+```
+
+> Ver `VTT.PROTOCOL-DEV-001` y `VTT.SKILL-DEV-001..005` para detalle. Vos como TW-OPS creás entries; el Coordinator (revisor) las procesa a estado terminal.
+
+### 7.5 Reportar criteria fulfillment (PATCH criteria/:cid)
+
+Las tareas tienen N criterios cargados al crearlas. Al cerrar la tarea, vos reportás el estado de cada uno:
+
+```bash
+# Listar criterios de la tarea
+curl -s "https://api.vttagent.com/api/tasks/$TASK_ID/criteria" -H "Authorization: Bearer $TOKEN"
+
+# Reportar criterio cumplido (met)
+curl -s -X PATCH "https://api.vttagent.com/api/tasks/$TASK_ID/criteria/<CRITERION_ID>" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{
+    "fulfillmentStatus":"met",
+    "evidence":"<descripcion + path/sha del artefacto>",
+    "fulfilledBy":"fe1b589c-7cf2-4779-82d4-b7ae536536ce"
+  }'
+
+# Reportar criterio NO cumplido (con justificacion)
+curl -s -X PATCH "https://api.vttagent.com/api/tasks/$TASK_ID/criteria/<CRITERION_ID>" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{
+    "fulfillmentStatus":"not_met",
+    "evidence":"<por que no se cumplio + plan>",
+    "fulfilledBy":"fe1b589c-7cf2-4779-82d4-b7ae536536ce"
+  }'
+```
+
+> ⚠️ **TODOS los criterios deben tener `fulfillmentStatus` reportado antes de mover a `task_in_review`** (Review Gate los exige).
+
+### 7.6 Subir attachments (BRIEF, ASSIGNMENT, devlog, code_logic)
+
+```bash
+# fileType admitidos: brief | assignment | devlog | code_logic | manifest | report
+curl -s -X POST "https://api.vttagent.com/api/tasks/$TASK_ID/attachments" \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@knowledge/agent-tasks/briefs/BRIEF_<TASK_ID>_<desc>.md;type=text/markdown" \
+  -F "fileType=brief" \
+  -F "uploadedById=fe1b589c-7cf2-4779-82d4-b7ae536536ce"
+```
+
+> ⚠️ **Gotcha #7:** `uploadedById` es **obligatorio** en el multipart. Sin él → HTTP 400.
+
+Repetir para `assignment`, `devlog`, `code_logic` con sus archivos respectivos.
+
+### 7.7 Postear SKL-REPORT-01 como comment
+
+```bash
+curl -s -X POST "https://api.vttagent.com/api/tasks/$TASK_ID/comments" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d @- <<'PAYLOAD'
+{
+  "message": "## SKL-REPORT-01 — Entrega <TASK_ID>\n\n### Resumen\n<resumen ejecutivo>\n\n### Branch & PR\n- Branch: agent/tw-ops/<proyecto>/<desc>\n- PR: <url-github>\n- Commit: <sha>\n\n### Archivos modificados/creados\n- ...\n\n### Attachments subidos\n- brief: <id>\n- assignment: <id>\n- devlog: <id>\n- code_logic: <id>\n\n### Criterios cumplidos\n<N>/<N>\n\n### Devlog entries\n- <N> creadas\n- <N> en estado terminal\n\n### Cero regresión\n<evidencia>\n\n### Listo para review.\n— TW-OPS",
+  "userId": "fe1b589c-7cf2-4779-82d4-b7ae536536ce"
+}
+PAYLOAD
+```
+
+> ⚠️ **Gotcha #5:** comments usan `message` + `userId` (NOT `content`/`authorId`).
+
+### 7.8 Mover tarea a `task_in_review`
+
+```bash
+curl -s -X PATCH "https://api.vttagent.com/api/tasks/$TASK_ID/status" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"statusId":"1ec975a5-7581-4a1a-ab8f-51b1a7ef868d","changedBy":"fe1b589c-7cf2-4779-82d4-b7ae536536ce"}'
+```
+
+> ⚠️ **Review Gate:** este PATCH falla con HTTP 422 si:
+> - Hay devlog entries `critical`/`high` en estado no terminal
+> - Hay criterios sin `fulfillmentStatus` reportado
+> - Verificar primero con: `GET /api/tasks/$TASK_ID/review-gate`
+
+### 7.9 Si necesitás pausar la tarea (PUT /on-hold, NO PATCH /status)
+
+```bash
+# Solicitar on_hold (cuando hay bloqueante real — issue tipo blocker/bug)
+curl -s -X PUT "https://api.vttagent.com/api/tasks/$TASK_ID/on-hold" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{
+    "onHoldIssueId":"<ISSUE_ID>",
+    "changedBy":"fe1b589c-7cf2-4779-82d4-b7ae536536ce",
+    "reason":"<descripcion del bloqueante>"
+  }'
+
+# Liberar de on_hold (cuando el bloqueante se resolvió)
+curl -s -X PUT "https://api.vttagent.com/api/tasks/$TASK_ID/release-hold" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"changedBy":"fe1b589c-7cf2-4779-82d4-b7ae536536ce"}'
+```
+
+> ⚠️ **Gotcha #6 / ERR-006:** NUNCA usar `PATCH /status` con `statusId=task_on_hold`. Usar SIEMPRE `PUT /on-hold`.
+
+### 7.10 Crear issue tipo `question` (consulta no bloqueante)
+
+Si tenés duda que NO te bloquea técnicamente (necesitás respuesta del Coordinator para destrabar decisión de diseño/scope):
+
+```bash
+# Crear issue tipo question (NO mover a on_hold)
+curl -s -X POST "https://api.vttagent.com/api/tasks/$TASK_ID/issues" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{
+    "type":"question",
+    "severity":"low",
+    "title":"<pregunta concreta>",
+    "description":"<contexto + opciones que ves>",
+    "reportedBy":"fe1b589c-7cf2-4779-82d4-b7ae536536ce"
+  }'
+
+# Postear comment en la tarea con prefijo QUESTION-COORD: para que el Coordinator lo detecte
+curl -s -X POST "https://api.vttagent.com/api/tasks/$TASK_ID/comments" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"message":"QUESTION-COORD: <pregunta corta> (ver issue <ISSUE_ID>)","userId":"fe1b589c-7cf2-4779-82d4-b7ae536536ce"}'
+
+# Cuando el Coordinator responde, vos cerrás tu propio issue
+curl -s -X PATCH "https://api.vttagent.com/api/issues/<ISSUE_ID>" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{
+    "isResolved":true,
+    "resolutionNotes":"<resumen respuesta + como se aplicó>"
+  }'
+```
+
+> Ver `VTT.PROTOCOL-ASG-001 §5.4.bis` para detalle del flujo question. Timeout: 4h sin respuesta del Coordinator → reclasificar a `blocker medium` y mover a `on_hold` con §5.4.
+
+### 7.11 Workflow completo end-to-end (resumen)
+
+```
+1. (al arrancar) GET /api/tasks?assignedToId=<TU_UUID>&projectId=...
+2. (leer ASG)    GET /api/tasks/$TASK_ID  +  GET /api/tasks/$TASK_ID/attachments
+3. (in_progress) PATCH /api/tasks/$TASK_ID/status → 2a76888a-...
+4. (trabajo)     editar archivos en disco, branch + commit + push siguiendo §6 (15 pasos)
+5. (devlog)      POST /api/tasks/$TASK_ID/devlog (N veces — decisiones, observaciones)
+6. (BRIEF/ASG)   POST /api/tasks/$TASK_ID/attachments (fileType=brief, assignment, devlog, code_logic)
+7. (criteria)    PATCH /api/tasks/$TASK_ID/criteria/<cid> (por cada criterion)
+8. (review-gate) GET /api/tasks/$TASK_ID/review-gate → canProceedToReview=true
+9. (comment)     POST /api/tasks/$TASK_ID/comments con SKL-REPORT-01
+10. (in_review)  PATCH /api/tasks/$TASK_ID/status → 1ec975a5-...
+11. (notify)     comentario al Coordinator (en su ventana) "VTS-XXX lista para review"
+```
+
+### 7.12 Gotchas críticos del API VTT
+
+| # | Gotcha | Consecuencia |
+|---|---|---|
+| 1 | `assigneeId` en queries/PATCH → IGNORADO | Usar `assignedToId` (Prisma field) |
+| 2 | `assigneeId` en POST tasks también IGNORADO | Asignar con PATCH posterior |
+| 3 | `sprintId` en POST tasks NO PERSISTE | Asignar con PATCH posterior |
+| 4 | `priorityCode` NO acepta | Usar `priorityId` (UUID) |
+| 5 | comments usan `message` + `userId` | NOT `content`/`authorId` |
+| 6 | on_hold requiere `PUT /on-hold` | NUNCA `PATCH /status` con task_on_hold (ERR-006) |
+| 7 | `uploadedById` obligatorio en multipart | Sin él → 400 |
+| 8 | `complexity` MAYÚSCULAS | `LOW \| MEDIUM \| HIGH` |
+| 9 | Comentarios con `!` en bash → ERR-002 | Usar Python urllib o escape |
+| 10 | Rate limit en `/api/auth/login` | USAR `/api/auth/service-token` SIEMPRE |
+
 ### Paso 16 — Esperar review del Coordinator
 
 Si el Coordinator pide cambios → repetir desde Paso 11 en el mismo branch. Si OK → el Coordinator/PM hace el merge a main.

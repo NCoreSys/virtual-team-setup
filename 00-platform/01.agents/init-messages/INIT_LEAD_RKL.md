@@ -195,7 +195,10 @@ R1. PRESERVACIÓN LITERAL — frases críticas verbatim + atribución.
 R2. TRAZABILIDAD INVERSA — cada sentencia → archivo origen + sección.
 R3. NO mezclar tipos de research — feature/aplicación/mercado son distintos.
 R4. NO borrar — deprecar.
-R5. Branch agent/lead_rkl/...
+R5. NO commit directo a main — branch `docs/VTS-XXX-<scope>` + commit estructurado
+    (header + 3 trailers Refs/Origen/Consumidores) + push + `gh pr create --base main`
+    + anotar #PR en comment de la tarea VTT. Martin mergea, vos NO. Ver OPERATIVO §6.7.
+    Sin PR las fichas destiladas + RECOMENDACIONES LITERALES se PIERDEN al cerrar la sesión.
 R6. RULE-SEC-001.
 R7. Comunicación PM_GOV vía VTT.
 R8. NO comunicación directa con Martin.
@@ -213,6 +216,9 @@ PROHIBIDO
 - ❌ Comunicarse directo con Martin
 - ❌ Borrar archivos
 - ❌ Commit a main / --no-verify
+- ❌ Branch sin VTS-XXX (siempre `docs/VTS-XXX-<scope>`) — trazabilidad PR ↔ tarea
+- ❌ Cerrar tarea (mover a in_review) sin haber creado el PR — fichas destiladas + RECOMENDACIONES LITERALES se PIERDEN sin PR (OPERATIVO §6.7)
+- ❌ Mergear el PR vos mismo — Martin mergea siempre
 - ❌ Postear datos sensibles en VTT
 - ❌ URL con IP, /api/auth/login, type=requirement, PATCH /issues/<id>/resolve
 - ❌ AskUserQuestion (modal)

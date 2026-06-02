@@ -3,9 +3,9 @@
 **Proyecto:** virtual-teams-setup (VTS)
 **Rol:** `LEAD_RKL` — dueño de pipelines de research, destilación, catálogos de ejes
 **Working dir:** `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/`
-**Tu branch idle:** `main`
+**Tu branch idle:** `main` (commits cuando subas pipelines/fichas destiladas/catálogos, branch `docs/VTS-XXX-<scope>` — los Leads suben docs no código, ver §6.7)
 **Última actualización:** 2026-06-02
-**Versión:** 1.0
+**Versión:** 1.1
 
 ---
 
@@ -150,6 +150,97 @@ Cuando necesitás rol especializado que aún no existe (ej. Research Distiller, 
 
 ---
 
+### §6.7 Commit + PR de artefactos LEAD_RKL (OBLIGATORIO)
+
+Como LEAD_RKL **subís artefactos al repo**: fichas destiladas de research (con bloque RECOMENDACIONES LITERALES preservado), diseños de pipeline (drafts antes de pasar a LEAD_NPL), catálogos (ejes/prompts/fuentes), reviews aprobados/devueltos. NO subís código pero SÍ artefactos que viven en git. **Sin commit + PR, el conocimiento destilado se PIERDE al cerrar la sesión.**
+
+**Cuándo aplica el commit + PR:**
+- Procesaste una destilación research-de-feature (`<carpeta destilations>/FEATURE_SPEC_<nombre>.md` con EXTRACT + RECOMENDACIONES LITERALES + THEMES + INDEX)
+- Procesaste research-de-aplicación (TAM/SAM/SOM, análisis competitivo, business case)
+- Actualizaste catálogo de ejes (`02.normativa/catalogs/RESEARCH_AXES_CATALOG.md`)
+- Actualizaste catálogo de prompts reutilizables (`02.normativa/catalogs/RESEARCH_PROMPTS_CATALOG.md`)
+- Actualizaste catálogo de fuentes (`02.normativa/catalogs/RESEARCH_SOURCES_CATALOG.md`)
+- Diseñaste un pipeline nuevo (draft `PIPELINE_<NOMBRE>.md` en working area antes de coordinación con LEAD_NPL)
+- Coordinaste captura de drift de research desde proyecto satélite
+
+```bash
+# 1. Branch desde main — patrón docs/ porque los Leads suben docs, no código (PROTOCOL-GOV-002)
+git checkout main && git pull origin main
+git checkout -b docs/VTS-XXX-<scope-corto>
+
+# 2. Add + commit estructurado (formato GIT-002)
+git add <carpeta destilations>/FEATURE_SPEC_<nombre>.md \
+        02.normativa/catalogs/RESEARCH_AXES_CATALOG.md \
+        02.normativa/catalogs/RESEARCH_PROMPTS_CATALOG.md \
+        <otros artefactos generados>
+
+git commit -m "[agente:lead_rkl] [proyecto:vtt-setup] [scope:<area>] [type:functional|structural]
+VTS-XXX: <título corto de la ficha destilada / pipeline / catálogo>
+
+- <bullet 1>
+- <bullet 2>
+
+Refs: VTS-XXX
+Origen: VTS-XXX
+Consumidores: <quién consume — equipos de feature, PM_GOV, LEAD_NPL para Protocol, proyectos satélite>
+
+Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
+
+# 3. Push
+git push origin docs/VTS-XXX-<scope-corto>
+
+# 4. Crear PR a main — OBLIGATORIO antes de cerrar tarea LEAD_RKL
+# Sin PR las fichas destiladas + recomendaciones literales se PIERDEN al cerrar la sesión
+gh pr create \
+  --title "[LEAD_RKL] VTS-XXX <título corto>" \
+  --body "$(cat <<'EOF'
+## Summary
+- <bullet 1: qué research se destila o qué pipeline se diseña>
+- <bullet 2: alcance — feature vs aplicación, ejecutor usado, archivos input procesados>
+- <bullet 3: hallazgos clave (cantidad de recomendaciones literales preservadas, ejes identificados)>
+
+## Artefactos en este PR
+- <carpeta destilations>/FEATURE_SPEC_<nombre>.md (si aplica destilación)
+- 02.normativa/catalogs/RESEARCH_AXES_CATALOG.md (si actualizado)
+- 02.normativa/catalogs/RESEARCH_PROMPTS_CATALOG.md (si actualizado)
+- 02.normativa/catalogs/RESEARCH_SOURCES_CATALOG.md (si actualizado)
+- <working area>/PIPELINE_<NOMBRE>.md (si diseño de pipeline)
+- <otros>
+
+## Verificación (auto-review LEAD_RKL)
+- [ ] Branch sigue patrón `docs/VTS-XXX-<scope>` (NO `feature/*` — los Leads suben docs)
+- [ ] Hook commit-msg validó SIN --no-verify
+- [ ] Co-Authored-By incluido
+- [ ] RULE-SEC-001 respetado (sin IPs prod, paths absolutos, credenciales)
+- [ ] Refs: VTS-XXX presente
+- [ ] Si es destilación:
+      - [ ] Preservación literal: ✅ frases críticas verbatim en bloque RECOMENDACIONES LITERALES (NO parafraseadas)
+      - [ ] Atribución completa: ✅ cada frase apunta a archivo origen + sección
+      - [ ] Trazabilidad inversa: ✅ INDEX completo
+      - [ ] Cobertura input: ✅ N archivos procesados de M
+      - [ ] Distribución triple: [aplica/no aplica] [✅ vtt-setup + VTT attachment + repo origen]
+- [ ] Si es catálogo: ejes/prompts no duplicados, definición + ejemplos claros
+- [ ] Si es pipeline: inputs/outputs/ejecutor/reglas inviolables documentadas
+
+Refs: VTS-XXX
+
+🤖 Generated with Claude Opus 4.7
+Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
+EOF
+)" \
+  --base main
+
+# 5. Anotar el número de PR en la tarea VTT (comentario)
+PR_NUM=$(gh pr view --json number -q .number)
+curl -s -X POST "https://api.vttagent.com/api/tasks/VTS-XXX/comments" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d "{\"userId\":\"fde73f36-dc27-48f2-bc5a-44dad5853388\",\"message\":\"📎 PR #${PR_NUM} creado: $(gh pr view --json url -q .url) — fichas destiladas/catálogos commiteados al repo\"}"
+```
+
+⚠️ **NO mergeás el PR — eso lo hace Martin.** Vos solo lo creás. Martin revisa y mergea cuando esté listo.
+
+---
+
 ## §7 VTT API GOTCHAS
 
 Idéntica a §7 de OPERATIVO_PM_GOV_VTT-SETUP. **Específicos LEAD_RKL:**
@@ -278,6 +369,8 @@ Cuando no hay tarea PM_GOV:
 - ❌ Postear datos sensibles en VTT
 - ❌ URL con IP, /api/auth/login, type=requirement, PATCH /issues/<id>/resolve
 - ❌ AskUserQuestion (modal) con humanos
+- ❌ **Cerrar tarea VTS (mover a `in_review`) sin haber creado el PR en GitHub** — las fichas destiladas y el bloque RECOMENDACIONES LITERALES VIVEN EN EL REPO, no solo en VTT attachments. Sin PR el conocimiento destilado se PIERDE al cerrar la sesión. Ver §6.7.
+- ❌ Branch sin el TASK_ID (`docs/VTS-XXX-<scope>`) — el VTS-XXX es obligatorio para trazabilidad PR ↔ tarea VTT
 
 ---
 
@@ -286,6 +379,7 @@ Cuando no hay tarea PM_GOV:
 | Versión | Fecha | Editor | Cambios |
 |---|---|---|---|
 | 1.0 | 2026-06-02 | PM_GOV (con Martin) | Versión inicial. Rol creado para resolver pain point de destilación de research consolidado. Backlog: pipeline destilación + catálogo ejes + diferenciación feature vs aplicación. |
+| 1.1 | 2026-06-02 | PM_GOV (con Martin) | Agregada §6.7 Commit + PR de artefactos LEAD_RKL (OBLIGATORIO) replicando patrón TW-OPS/RA/PM_GOV. Branch `docs/VTS-XXX-<scope>` (Leads suben docs, no código). +2 prohibiciones: no cerrar sin PR (fichas+RECOMENDACIONES LITERALES se pierden), branch debe llevar VTS-XXX. Header §0 línea "branch idle" actualizada. |
 
 ---
 

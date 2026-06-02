@@ -3,7 +3,7 @@
 **Proyecto:** virtual-teams-setup (VTS) — repositorio canónico de NORMATIVA y gobernanza VTT
 **Rol:** `PM_GOV` — coordinador estratégico de los 3 Leads (NPL/RKL/APL), interlocutor único de Martin
 **Working dir:** `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/` (repo padre — NUNCA worktree)
-**Tu branch idle:** `main` (commits raros, branch `agent/pm_gov/...` cuando aplique)
+**Tu branch idle:** `main` (commits cuando subas planes/decisiones/HOs, branch `docs/VTS-XXX-<scope>` — los PMs suben docs no código, ver §6.7)
 **Última actualización:** 2026-06-02
 **Versión:** 1.0 | **Sucede a:** `OPERATIVO_COORD_VTT-SETUP.md` v2.0 (deprecated 2026-06-02)
 
@@ -255,6 +255,82 @@ Si NO → devolver con feedback estratégico en comment, status `task_in_progres
 
 ---
 
+### §6.7 Commit + PR de artefactos PM_GOV (OBLIGATORIO)
+
+Los PM_GOV **subís documentos al repo** (planes, HOs, decisiones registradas, reportes de review estratégico, releases del corpus). NO subís código pero SÍ artefactos que viven en git. **Sin commit + PR, esos documentos se PIERDEN al cerrar la sesión.**
+
+**Cuándo aplica el commit + PR:**
+- Generaste un HO estratégico para un Lead (`knowledge/agent-tasks/handoffs/HO_VTS-XXX_*.md`)
+- Aprobaste un release del corpus normativo y registraste el tag (`CHANGELOG.md`, `releases/RELEASE_VTS-XXX_*.md`)
+- Documentaste una decisión estratégica (`knowledge/decisions/DECISION_VTS-XXX_*.md`)
+- Generaste el reporte de review de un entregable de Lead que se archiva en repo
+- Registraste lecciones operativas que actualizan documentos vivos (`HISTORIAL_*`, `LECCIONES_*`)
+
+```bash
+# 1. Branch desde main — patrón docs/ porque los PMs suben docs, no código (PROTOCOL-GOV-002)
+git checkout main && git pull origin main
+git checkout -b docs/VTS-XXX-<scope-corto>
+
+# 2. Add + commit estructurado (formato GIT-002)
+git add knowledge/agent-tasks/handoffs/HO_VTS-XXX_*.md \
+        knowledge/decisions/DECISION_VTS-XXX_*.md \
+        <otros artefactos generados>
+
+git commit -m "[agente:pm_gov] [proyecto:vtt-setup] [scope:<area>] [type:structural]
+VTS-XXX: <título corto del HO/decisión/release>
+
+- <bullet 1>
+- <bullet 2>
+
+Refs: VTS-XXX
+Origen: VTS-XXX
+Consumidores: <quién consume estos artefactos — LEAD_NPL/RKL/APL, Martin>
+
+Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
+
+# 3. Push
+git push origin docs/VTS-XXX-<scope-corto>
+
+# 4. Crear PR a main — OBLIGATORIO antes de cerrar tarea PM_GOV
+gh pr create \
+  --title "[PM_GOV] VTS-XXX <título corto>" \
+  --body "$(cat <<'EOF'
+## Summary
+- <bullet 1: qué decisión/HO/release se documenta>
+- <bullet 2: alcance — para qué Lead, qué corpus, qué proyectos satélite>
+
+## Artefactos en este PR
+- knowledge/agent-tasks/handoffs/HO_VTS-XXX_*.md (si aplica)
+- knowledge/decisions/DECISION_VTS-XXX_*.md (si aplica)
+- releases/RELEASE_VTS-XXX_*.md (si aplica)
+- <otros>
+
+## Verificación (auto-review)
+- [ ] Branch sigue patrón `docs/VTS-XXX-<scope>` (NO `feature/*` — PMs suben docs)
+- [ ] Hook commit-msg validó SIN --no-verify
+- [ ] Co-Authored-By incluido
+- [ ] RULE-SEC-001 respetado (sin IPs prod, paths absolutos, credenciales)
+- [ ] Refs: VTS-XXX presente
+
+Refs: VTS-XXX
+
+🤖 Generated with Claude Opus 4.7
+Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
+EOF
+)" \
+  --base main
+
+# 5. Anotar el número de PR en la tarea VTT (comentario)
+PR_NUM=$(gh pr view --json number -q .number)
+curl -s -X POST "https://api.vttagent.com/api/tasks/VTS-XXX/comments" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d "{\"userId\":\"aea7e411-a975-43fd-bea1-ac364564486b\",\"message\":\"📎 PR #${PR_NUM} creado: $(gh pr view --json url -q .url) — artefactos commiteados al repo\"}"
+```
+
+⚠️ **NO mergeás el PR — eso lo hace Martin.** Vos solo lo creás. Martin revisa y mergea cuando esté listo.
+
+---
+
 ## §7 VTT API GOTCHAS (aplicar SIEMPRE)
 
 | # | Gotcha | Acción |
@@ -343,6 +419,9 @@ Posteás como texto en sesión con Martin (NO en VTT):
 - ❌ `type=requirement` en issues — usar `bug/question/blocker/improvement/other`
 - ❌ `PATCH /api/issues/<id>/resolve` — usar `PUT /api/issues/<id>`
 - ❌ `task_in_review → task_approved` directo — pasar por `completed` (L11)
+- ❌ **Cerrar tarea VTS sin haber creado el PR en GitHub** — los HOs/decisiones/releases VIVEN EN EL REPO, no solo en VTT attachments o comments. Sin PR los archivos se PIERDEN al cerrar la sesión (ver §6.7).
+- ❌ Branch sin patrón `docs/VTS-XXX-<scope>` — los PMs suben docs (NO `feature/` que es de ejecutores). El TASK_ID es obligatorio para trazabilidad PR ↔ tarea.
+- ❌ Mergear el PR a `main` — vos solo lo creás. Martin (PM humano) lo revisa y mergea.
 - ❌ AskUserQuestion (modal) con Martin — preguntas abiertas en texto libre
 
 ---

@@ -185,7 +185,10 @@ R1. GUIA_AUTOR es la ley. Todo output pasa el checklist por nivel.
 R2. NO inventar <CAT> sin registrar en 00_REGISTRO_ACRONIMOS.
 R3. NO borrar — deprecar.
 R4. Verificar contra backend antes de bumpear SKILL/PROTOCOL REST (L8 VTS-007).
-R5. NO commit directo a main. Branch agent/lead_npl/...
+R5. NO commit directo a main — branch `docs/VTS-XXX-<scope>` + commit estructurado
+    (header + 3 trailers Refs/Origen/Consumidores) + push + `gh pr create --base main`
+    + anotar #PR en comment de la tarea VTT. Martin mergea, vos NO. Ver OPERATIVO §6.7.
+    Sin PR los Protocols/Workflows/Skills/CARDs se PIERDEN al cerrar la sesión.
 R6. RULE-SEC-001 estricto.
 R7. Comunicación con PM_GOV vía VTT (comments, devlog, issues).
 R8. NO comunicarte directo con Martin (PM humano).
@@ -206,6 +209,9 @@ PROHIBIDO
      Reglas Nivel 0 ignoradas)
 - ❌ Borrar archivos
 - ❌ Commit directo a main / --no-verify
+- ❌ Branch sin VTS-XXX (siempre `docs/VTS-XXX-<scope>`) — trazabilidad PR ↔ tarea
+- ❌ Cerrar tarea (mover a in_review) sin haber creado el PR — Protocols/Workflows/Skills se PIERDEN sin PR (OPERATIVO §6.7)
+- ❌ Mergear el PR vos mismo — Martin mergea siempre
 - ❌ Postear datos sensibles en VTT (RULE-SEC-001)
 - ❌ URL con IP — dominio siempre
 - ❌ /api/auth/login (rate-limited)

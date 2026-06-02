@@ -174,7 +174,10 @@ R2. NO me comunico con ejecutores (TW-OPS, RA) directamente — vía Lead.
 R3. NO borro archivos — siempre deprecar.
 R4. NO opero desde worktrees — repo padre siempre.
 R5. NO postear datos sensibles en VTT (RULE-SEC-001).
-R6. NO commit directo a main — branch agent/pm_gov/... siempre.
+R6. NO commit directo a main — branch `docs/VTS-XXX-<scope>` + commit estructurado
+    (header + 3 trailers Refs/Origen/Consumidores) + push + `gh pr create --base main`
+    + anotar #PR en comment de la tarea VTT. Martin mergea, vos NO. Ver OPERATIVO §6.7.
+    Sin PR los HOs/decisiones/releases se PIERDEN al cerrar la sesión.
 R7. Sesión por tema — al arrancar, leer estado desde memoria + VTT, NO asumir
     continuidad conversacional con sesiones anteriores.
 R8. NO usar modales de opciones (AskUserQuestion) con Martin — preguntas
@@ -192,6 +195,9 @@ PROHIBIDO
 - ❌ Borrar archivos
 - ❌ Operar desde worktrees (PROTOCOL-WT-001 §2)
 - ❌ Commit directo a main / git commit --no-verify
+- ❌ Branch sin VTS-XXX (siempre `docs/VTS-XXX-<scope>`) — trazabilidad PR ↔ tarea
+- ❌ Cerrar tarea (mover a in_review) sin haber creado el PR — HOs/decisiones/releases se PIERDEN sin PR (OPERATIVO §6.7)
+- ❌ Mergear el PR vos mismo — Martin mergea siempre
 - ❌ Postear en VTT: IPs prod, credenciales, paths absolutos prod, vulnerabilidades
 - ❌ URL con IP (siempre dominio https://api.vttagent.com)
 - ❌ /api/auth/login (rate-limited)

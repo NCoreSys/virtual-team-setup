@@ -45,7 +45,7 @@ Workflow 4 fases por tarea: A setup → B auditoría read-only → C construcci�
 SKL-REPORT + transición status).
 
 Reportás al Coordinator. Aplicás PROTOCOL-GOV-002 al commitear (branch
-agent/tw-ops/vtt-setup/... + commit estructurado + hook commit-msg).
+feature/VTS-XXX-<desc> + commit estructurado + hook commit-msg + PR a main).
 Aplicás RULE-SEC-001 para no exponer datos sensibles en VTT.
 ```
 
@@ -173,8 +173,9 @@ for t in tasks: print(f\"  {t['id']} :: {t['status']['code']} :: {t['title']}\")
 
 ```bash
 # Crear branch desde main (gobierno editorial PROTOCOL-GOV-002)
+# Patrón: feature/VTS-XXX-<descripcion-corta> — siempre incluir TASK_ID
 git checkout main && git pull origin main
-git checkout -b agent/tw-ops/vtt-setup/<descripcion-corta>
+git checkout -b feature/VTS-XXX-<descripcion-corta>
 
 # Mover tarea a in_progress (precondición SKILL-STATUS-002)
 curl -s -X PATCH "https://api.vttagent.com/api/tasks/<TASK_ID>/status" \
@@ -208,13 +209,14 @@ Reglas estrictas:
 - **Hook valida cada commit** — si falla, fixear el problema, NUNCA `--no-verify`.
 
 ```bash
-# Commit estructurado (formato GIT-002)
+# Commit estructurado (formato GIT-002) — branch feature/VTS-XXX-<desc>
 git add <archivos>
 git commit -m "[agente:tw-ops] [proyecto:vtt-setup] [scope:<area>] [type:functional|structural]
-<título corto>
+VTS-XXX: <título corto>
 
 <cambios bullets>
 
+Refs: VTS-XXX
 Origen: VTS-XXX
 Consumidores: <quién los usa>
 
@@ -225,7 +227,37 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 
 ```bash
 # Push
-git push origin agent/tw-ops/vtt-setup/<desc>
+git push origin feature/VTS-XXX-<desc>
+
+# Crear PR a main — OBLIGATORIO antes de mover tarea a in_review
+# Sin PR los documentos generados se PIERDEN al cerrar la sesión (solo viven en working dir)
+gh pr create \
+  --title "[TW-OPS] VTS-XXX <título corto>" \
+  --body "$(cat <<'EOF'
+## Summary
+- <bullet 1: qué doc/proceso/normativa cambió>
+- <bullet 2: scope: protocols/workflows/skills/cards/catalogos>
+
+## Outputs generados
+- knowledge/agent-tasks/audits/AUDIT_VTS-XXX_<DOMAIN>.md
+- 02.normativa/01.Protocols/... (si aplica)
+- 02.normativa/02.Workflows/... (si aplica)
+- 02.normativa/INVENTARIO.md (si se agregaron docs)
+
+## Verificación para COORD (Review Gate)
+- [ ] Commits separados functional vs structural
+- [ ] Cross-links bidireccionales (Protocol ↔ Workflows ↔ Skills ↔ Cards)
+- [ ] GUIA_AUTOR §4.6 tokens validados (Card mini ≤700)
+- [ ] Anti-patterns GUIA_AUTOR §11 = 0 detectados
+- [ ] Hook commit-msg validó SIN --no-verify
+
+Refs: VTS-XXX
+
+🤖 Generated with Claude Opus 4.7
+Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
+EOF
+)" \
+  --base main
 
 # Subir reporte audit como attachment DOBLE (Lección L10 — Review Gate exige code_logic)
 TOKEN=$(cat .vtt_jwt)
@@ -299,7 +331,8 @@ Ver `AGENT_PROFILE_BASE_TW-OPS.md`. Resumen mínimo del SKL-REPORT-01:
 ## TW-OPS Delivery — VTS-XXX
 
 ### Git
-Branch: agent/tw-ops/vtt-setup/<desc>
+Branch: feature/VTS-XXX-<desc>
+PR: #<NUM> (gh pr view <NUM>)
 Pushed: ✅
 N commits validados por hook sin bypass:
 | # | SHA | Type | Stats | Scope |
@@ -352,6 +385,8 @@ TW-OPS: idle, esperando próxima asignación
 - ❌ Crear issues con `type=requirement` (NO existe — usar `blocker`/`improvement`/`other`)
 - ❌ Resolver issues con `PATCH /api/issues/<id>/resolve` (NO existe — usar `PUT /api/issues/<id>`)
 - ❌ Trabajar en el clone padre — siempre en `.vtt/worktrees/vtt-setup-tw-ops/`
+- ❌ **Cerrar tarea VTS (mover a `in_review`) sin haber creado el PR en GitHub** — los documentos normativos que generás VIVEN EN EL REPO, no solo en VTT attachments. Sin PR los archivos se PIERDEN al cerrar la sesión.
+- ❌ Branch sin el TASK_ID (`feature/VTS-XXX-<desc>`) — el ID es obligatorio para trazabilidad y para que el COORD pueda mapear PR ↔ tarea
 
 ---
 

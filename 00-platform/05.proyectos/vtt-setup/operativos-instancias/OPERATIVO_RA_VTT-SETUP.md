@@ -46,7 +46,7 @@ Distribución triple obligatoria de los 4 outputs: vtt-setup/knowledge
 + VTT attachment + repo origen.
 
 Reportás al Coordinator. Aplicás PROTOCOL-GOV-002 al commitear (branch
-agent/ra/<repo>/<desc> + commit estructurado + hook commit-msg).
+feature/VTS-XXX-<feature>-<desc> + commit estructurado + hook commit-msg + PR a main).
 Aplicás RULE-SEC-001 para no exponer datos sensibles en VTT.
 ```
 
@@ -173,8 +173,9 @@ for t in tasks: print(f\"  {t['id']} :: {t['status']['code']} :: {t['title']}\")
 
 ```bash
 # Branch (gobierno editorial PROTOCOL-GOV-002)
+# Patrón: feature/VTS-XXX-<feature>-<desc> — siempre incluir TASK_ID
 git checkout main && git pull origin main
-git checkout -b agent/ra/<repo-origen>/<feature>-<desc>
+git checkout -b feature/VTS-XXX-<feature>-<desc>
 
 # Status in_progress
 curl -s -X PATCH "https://api.vttagent.com/api/tasks/<TASK_ID>/status" \
@@ -278,18 +279,60 @@ done
 ```bash
 git add knowledge/research/<repo>/<feature>/
 git commit -m "[agente:ra] [proyecto:vtt-setup] [scope:knowledge/research] [type:functional]
-RA pipeline <feature>: N EXTRACTs + THEMES + FEATURE_SPEC + INDEX
+VTS-XXX: RA pipeline <feature> — N EXTRACTs + THEMES + FEATURE_SPEC + INDEX
 
 - N CRÍTICAS / N VENTAJA-COMPETITIVA / N GAP / N CONFLICTO
 - Decisiones pendientes PM: <count>
 - Distribución triple completa (vtt-setup + VTT + repo origen)
 
+Refs: VTS-XXX
 Origen: VTS-XXX
 Consumidores: implementadores BE/FE/DB del repo <repo-origen>
 
 Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 
-git push origin agent/ra/<repo>/<feature>-<desc>
+git push origin feature/VTS-XXX-<feature>-<desc>
+
+# Crear PR a main — OBLIGATORIO antes de mover tarea a in_review
+# Sin PR los outputs del research se PIERDEN al cerrar la sesión (solo viven en working dir)
+gh pr create \
+  --title "[RA] VTS-XXX <feature>: N EXTRACTs + THEMES + FEATURE_SPEC + INDEX" \
+  --body "$(cat <<'EOF'
+## Summary
+- Pipeline RA completo del feature <feature> sobre repo origen <repo-origen>
+- N CONSOLIDADOS procesados → 4 outputs generados (EXTRACT × N + THEMES + FEATURE_SPEC + INDEX)
+- Distribución triple completa (12 copias: vtt-setup + VTT attachments + repo origen)
+
+## Outputs en este PR (vtt-setup/knowledge/research/)
+- knowledge/research/<repo-origen>/<feature>/extractos/EXTRACT_<feature>_*.md (N archivos)
+- knowledge/research/<repo-origen>/<feature>/THEMES_<feature>.md
+- knowledge/research/<repo-origen>/<feature>/FEATURE_SPEC_<feature>.md
+- knowledge/research/<repo-origen>/<feature>/RESEARCH_PROCESSING_INDEX_<feature>.md
+
+## Hallazgos cuantificados
+- 🔴 CRÍTICAS: N
+- 🟢 VENTAJA-COMPETITIVA: N
+- 🟣 GAP-DETECTADO: N
+- 🟤 CONFLICTOS (DECISIÓN PENDIENTE PM): N
+
+## Verificación para COORD (Review Gate)
+- [ ] 4 outputs presentes (EXTRACT × N + THEMES + FEATURE_SPEC + INDEX)
+- [ ] Distribución triple: vtt-setup ✅ + VTT attachments ✅ + repo origen ✅
+- [ ] Citas literales en marcadores 🔴 [CRÍTICO] (R1)
+- [ ] Impacto Alto/Medio/Bajo registrado en cada item (R3)
+- [ ] Trazabilidad inversa (ítem → EXTRACT → CONSOLIDADO §)
+- [ ] CONFLICTOS marcados como DECISIÓN PENDIENTE PM (no decididos por RA solo)
+
+## Decisiones pendientes PM
+- <lista de items marcados PENDIENTE PM>
+
+Refs: VTS-XXX
+
+🤖 Generated with Claude Opus 4.7
+Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
+EOF
+)" \
+  --base main
 ```
 
 ### 6.9 SKL-REPORT-01 + Mover a in_review
@@ -353,7 +396,8 @@ Ver `AGENT_PROFILE_BASE_RA.md`. Resumen mínimo del SKL-REPORT-01:
 ## RA Delivery — <feature>
 
 ### Git
-Branch: agent/ra/<repo>/<feature>-<desc>
+Branch: feature/VTS-XXX-<feature>-<desc>
+PR: #<NUM> (gh pr view <NUM>)
 Pushed: ✅
 Commits validados por hook sin bypass
 
@@ -416,6 +460,8 @@ RA: idle, esperando próxima asignación
 - ❌ Crear issues con `type=requirement` (NO existe — usar `blocker`/`improvement`/`other`)
 - ❌ Resolver issues con `PATCH /api/issues/<id>/resolve` (NO existe — usar `PUT /api/issues/<id>`)
 - ❌ Trabajar en el clone padre — siempre en `.vtt/worktrees/vtt-setup-ra/`
+- ❌ **Cerrar tarea VTS (mover a `in_review`) sin haber creado el PR en GitHub** — los 4 outputs del research (EXTRACT/THEMES/FEATURE_SPEC/INDEX) VIVEN EN EL REPO, no solo como attachments en VTT. Sin PR los archivos se PIERDEN al cerrar la sesión.
+- ❌ Branch sin el TASK_ID (`feature/VTS-XXX-<feature>-<desc>`) — el ID es obligatorio para trazabilidad y para que el COORD pueda mapear PR ↔ tarea
 
 ---
 

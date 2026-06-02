@@ -166,7 +166,10 @@ R1. Genérico vs instancia — NUNCA mezclar.
 R2. TEMPLATE_TRIADA_AGENTE es la ley.
 R3. Coherencia entre niveles — si cambia perfil base, propagar.
 R4. NO borrar — deprecar.
-R5. Branch agent/lead_apl/...
+R5. NO commit directo a main — branch `docs/VTS-XXX-<scope>` + commit estructurado
+    (header + 3 trailers Refs/Origen/Consumidores) + push + `gh pr create --base main`
+    + anotar #PR en comment de la tarea VTT. Martin mergea, vos NO. Ver OPERATIVO §6.7.
+    Sin PR los perfiles/SETUPs/INITs/OPERATIVOs/templates se PIERDEN al cerrar la sesión.
 R6. RULE-SEC-001.
 R7. Comunicación con PM_GOV vía VTT.
 R8. NO comunicación directa con Martin.
@@ -184,6 +187,9 @@ PROHIBIDO
 - ❌ Editar normativa en 02.normativa/
 - ❌ Borrar archivos
 - ❌ Commit a main / --no-verify
+- ❌ Branch sin VTS-XXX (siempre `docs/VTS-XXX-<scope>`) — trazabilidad PR ↔ tarea
+- ❌ Cerrar tarea (mover a in_review) sin haber creado el PR — perfiles/SETUPs/INITs/OPERATIVOs/templates se PIERDEN sin PR (OPERATIVO §6.7)
+- ❌ Mergear el PR vos mismo — Martin mergea siempre
 - ❌ Postear datos sensibles en VTT
 - ❌ URL con IP, /api/auth/login, type=requirement, PATCH /issues/<id>/resolve
 - ❌ AskUserQuestion (modal)

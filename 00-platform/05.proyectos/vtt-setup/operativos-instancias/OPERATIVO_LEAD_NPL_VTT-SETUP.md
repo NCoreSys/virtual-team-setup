@@ -3,9 +3,9 @@
 **Proyecto:** virtual-teams-setup (VTS)
 **Rol:** `LEAD_NPL` — dueño del corpus normativo (Protocols/Workflows/Skills/Scripts/CARDs)
 **Working dir:** `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/` (repo padre por defecto; worktree solo si ejecutás directo)
-**Tu branch idle:** `main`
+**Tu branch idle:** `main` (commits cuando subas Protocols/Workflows/Skills/Scripts/CARDs/INVENTARIO/ACRONIMOS, branch `docs/VTS-XXX-<scope>` — los Leads suben docs no código, ver §6.7)
 **Última actualización:** 2026-06-02
-**Versión:** 1.0
+**Versión:** 1.1
 
 ---
 
@@ -161,6 +161,99 @@ Cuando PM_GOV te asigna directo (sin pasar por TW-OPS) o cuando es urgente:
 
 ---
 
+### §6.7 Commit + PR de artefactos LEAD_NPL (OBLIGATORIO)
+
+Como LEAD_NPL **subís documentos normativos al repo**: Protocols nuevos, Workflows derivados, Skills, Scripts, CARDs, INVENTARIO actualizado, 00_REGISTRO_ACRONIMOS actualizado, GUIA_AUTOR cuando agregás anti-patterns, migraciones de legacy. NO subís código pero SÍ artefactos que viven en git. **Sin commit + PR, esos documentos se PIERDEN al cerrar la sesión.**
+
+**Cuándo aplica el commit + PR:**
+- Diseñaste/redactaste un Protocol nuevo (`02.normativa/01.Protocols/VTT.PROTOCOL-<CAT>-<NNN>_*.md`)
+- Diseñaste/redactaste Workflow(s) derivados (`02.normativa/02.Workflows/VTT.WORKFLOW-<CAT>-<NNN>.<MMM>_*.md`)
+- Diseñaste/redactaste Skill(s) (`02.normativa/03.Skills/<cat>/VTT.SKILL-<CAT>-<NNN>_*.md`)
+- Diseñaste Script(s) (`02.normativa/04.Scripts/<cat>/VTT.SCRIPT-<CAT>-<NNN>_*.py`)
+- Diseñaste CARD(s) (`02.normativa/05.Cards/<cat>/VTT.CARD-<CAT>-<NNN>_*.md` + `cards_catalog.json`)
+- Migraste legacy de `_pending-migration/` (mover a `_archived/` + crear el VTT-formato)
+- Actualizaste `INVENTARIO.md`, `00_REGISTRO_ACRONIMOS.md`, `GUIA_AUTOR.md`, `02.normativa/README.md`
+- Revisaste/aprobaste entregable de TW-OPS (queda registrado tu APR-NPL en repo)
+
+```bash
+# 1. Branch desde main — patrón docs/ porque los Leads suben docs, no código (PROTOCOL-GOV-002)
+git checkout main && git pull origin main
+git checkout -b docs/VTS-XXX-<scope-corto>
+
+# 2. Add + commit estructurado (formato GIT-002)
+git add 02.normativa/01.Protocols/VTT.PROTOCOL-<CAT>-<NNN>_*.md \
+        02.normativa/02.Workflows/VTT.WORKFLOW-<CAT>-<NNN>.<MMM>_*.md \
+        02.normativa/INVENTARIO.md \
+        02.normativa/00_REGISTRO_ACRONIMOS.md \
+        <otros artefactos generados>
+
+git commit -m "[agente:lead_npl] [proyecto:vtt-setup] [scope:<area>] [type:functional|structural]
+VTS-XXX: <título corto del Protocol/Workflow/Skill/CARD>
+
+- <bullet 1>
+- <bullet 2>
+
+Refs: VTS-XXX
+Origen: VTS-XXX
+Consumidores: <quién consume — TW-OPS, agentes ejecutores, PM_GOV, proyectos satélite>
+
+Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
+
+# 3. Push
+git push origin docs/VTS-XXX-<scope-corto>
+
+# 4. Crear PR a main — OBLIGATORIO antes de cerrar tarea LEAD_NPL
+# Sin PR los Protocols/Workflows/Skills generados se PIERDEN al cerrar la sesión
+gh pr create \
+  --title "[LEAD_NPL] VTS-XXX <título corto>" \
+  --body "$(cat <<'EOF'
+## Summary
+- <bullet 1: qué Protocol/Workflow/Skill/CARD se diseña o migra>
+- <bullet 2: nivel correcto justificado por GUIA_AUTOR §2 árbol>
+- <bullet 3: categoría CAT registrada en 00_REGISTRO_ACRONIMOS>
+
+## Artefactos en este PR
+- 02.normativa/01.Protocols/VTT.PROTOCOL-<CAT>-<NNN>_*.md (si aplica)
+- 02.normativa/02.Workflows/VTT.WORKFLOW-<CAT>-<NNN>.<MMM>_*.md (si aplica)
+- 02.normativa/03.Skills/<cat>/VTT.SKILL-<CAT>-<NNN>_*.md (si aplica)
+- 02.normativa/04.Scripts/<cat>/VTT.SCRIPT-<CAT>-<NNN>_*.py (si aplica)
+- 02.normativa/05.Cards/<cat>/VTT.CARD-<CAT>-<NNN>_*.md + cards_catalog.json (si aplica)
+- 02.normativa/INVENTARIO.md (actualizado)
+- 02.normativa/00_REGISTRO_ACRONIMOS.md (si CAT nueva)
+- <otros>
+
+## Verificación (auto-review LEAD_NPL)
+- [ ] Branch sigue patrón `docs/VTS-XXX-<scope>` (NO `feature/*` — los Leads suben docs)
+- [ ] Hook commit-msg validó SIN --no-verify
+- [ ] Co-Authored-By incluido
+- [ ] RULE-SEC-001 respetado (sin IPs prod, paths absolutos, credenciales)
+- [ ] Refs: VTS-XXX presente
+- [ ] Checklist GUIA_AUTOR §4 del nivel cumplido (estructura + calidad + documental)
+- [ ] Anti-patterns GUIA_AUTOR §5 ausentes
+- [ ] Bloque "Cómo usar" del template borrado (anti-pattern #5)
+- [ ] Reglas Nivel 0 aplicables listadas en §6 del Protocol o §10 del Workflow
+- [ ] Referencias cruzadas actualizadas (INVENTARIO + Protocol padre si Workflow)
+- [ ] Si CAT nueva: registrada en 00_REGISTRO_ACRONIMOS §3.1
+
+Refs: VTS-XXX
+
+🤖 Generated with Claude Opus 4.7
+Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
+EOF
+)" \
+  --base main
+
+# 5. Anotar el número de PR en la tarea VTT (comentario)
+PR_NUM=$(gh pr view --json number -q .number)
+curl -s -X POST "https://api.vttagent.com/api/tasks/VTS-XXX/comments" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d "{\"userId\":\"3c45e61c-b3fa-4291-b08e-3f29cfe9f8b7\",\"message\":\"📎 PR #${PR_NUM} creado: $(gh pr view --json url -q .url) — Protocols/Workflows/Skills commiteados al repo\"}"
+```
+
+⚠️ **NO mergeás el PR — eso lo hace Martin.** Vos solo lo creás. Martin revisa y mergea cuando esté listo.
+
+---
+
 ## §7 VTT API GOTCHAS
 
 Idéntica a §7 del OPERATIVO_PM_GOV. **Especialmente importantes para LEAD_NPL:**
@@ -313,6 +406,8 @@ Postear comment en la tarea VTT siguiendo SKILL-REPORT-001 v1.1:
 - ❌ PATCH /issues/<id>/resolve
 - ❌ in_review → approved directo
 - ❌ AskUserQuestion (modal) con humanos
+- ❌ **Cerrar tarea VTS (mover a `in_review`) sin haber creado el PR en GitHub** — los Protocols/Workflows/Skills/CARDs que diseñás VIVEN EN EL REPO, no solo en VTT attachments. Sin PR los artefactos se PIERDEN al cerrar la sesión. Ver §6.7.
+- ❌ Branch sin el TASK_ID (`docs/VTS-XXX-<scope>`) — el VTS-XXX es obligatorio para trazabilidad PR ↔ tarea VTT
 
 ---
 
@@ -321,6 +416,7 @@ Postear comment en la tarea VTT siguiendo SKILL-REPORT-001 v1.1:
 | Versión | Fecha | Editor | Cambios |
 |---|---|---|---|
 | 1.0 | 2026-06-02 | PM_GOV (con Martin) | Versión inicial. Rol creado al desdoblar COORD generalista. Backlog inicial: ÉPICA-1 (SOP setup agentes) y ÉPICA-2 (PROTOCOL-DEP-001). |
+| 1.1 | 2026-06-02 | PM_GOV (con Martin) | Agregada §6.7 Commit + PR de artefactos LEAD_NPL (OBLIGATORIO) replicando patrón de TW-OPS/RA/PM_GOV. Branch `docs/VTS-XXX-<scope>` (Leads suben docs, no código). +2 prohibiciones: no cerrar sin PR (artefactos se pierden), branch debe llevar VTS-XXX. Header §0 línea "branch idle" actualizada. |
 
 ---
 

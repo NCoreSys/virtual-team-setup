@@ -3,9 +3,9 @@
 **Proyecto:** virtual-teams-setup (VTS)
 **Rol:** `LEAD_APL` — dueño de `01.agents/` y `03.templates/`, estandariza triadas
 **Working dir:** `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/`
-**Tu branch idle:** `main`
+**Tu branch idle:** `main` (commits cuando subas perfiles/SETUPs/INITs/templates/OPERATIVOs instanciados, branch `docs/VTS-XXX-<scope>` — los Leads suben docs no código, ver §6.7)
 **Última actualización:** 2026-06-02
-**Versión:** 1.0
+**Versión:** 1.1
 
 ---
 
@@ -174,6 +174,102 @@ Ejemplo concreto (TAREA-1 backlog): consolidar OPERATIVOs PJM duplicados memory-
 
 ---
 
+### §6.7 Commit + PR de artefactos LEAD_APL (OBLIGATORIO)
+
+Como LEAD_APL **subís artefactos al repo**: perfiles base (genéricos), SETUPs (genéricos), INITs (instanciados), OPERATIVOs instanciados por proyecto, templates de `03.templates/`, kits empaquetados, onboarding. NO subís código pero SÍ artefactos que viven en git y son consumidos por todos los proyectos VTT. **Sin commit + PR, los perfiles/templates se PIERDEN al cerrar la sesión.**
+
+**Cuándo aplica el commit + PR:**
+- Diseñaste/modificaste perfil base nuevo (`01.agents/roles/AGENT_PROFILE_BASE_<ROL>.md`)
+- Diseñaste/modificaste SETUP genérico (`01.agents/setups/SETUP_<ROL>.md`)
+- Diseñaste/modificaste INIT instanciado (`01.agents/init-messages/INIT_<ROL>.md`)
+- Diseñaste template nuevo en `03.templates/` (tarea/handoff/normativa/memoria/contexto/specs-design/setup-vtt/agents)
+- Instanciaste proyecto nuevo (`05.proyectos/<proyecto>/` con N OPERATIVOs + onboarding + Proyect_data)
+- Consolidaste duplicados (ej. PJM `-` vs `_` en memory-service)
+- Empaquetaste kit nuevo (`01.agents/kits/KIT_<ROL>.zip`)
+- Actualizaste onboarding humano (`01.agents/onboarding/`)
+- Actualizaste INDEX.md cuando se agregó/movió contenido en 01.agents/ o 03.templates/
+
+```bash
+# 1. Branch desde main — patrón docs/ porque los Leads suben docs, no código (PROTOCOL-GOV-002)
+git checkout main && git pull origin main
+git checkout -b docs/VTS-XXX-<scope-corto>
+
+# 2. Add + commit estructurado (formato GIT-002)
+git add 01.agents/roles/AGENT_PROFILE_BASE_<ROL>.md \
+        01.agents/setups/SETUP_<ROL>.md \
+        01.agents/init-messages/INIT_<ROL>.md \
+        05.proyectos/<proyecto>/operativos-instancias/OPERATIVO_<ROL>_<PROYECTO>.md \
+        03.templates/<carpeta>/<template>.md \
+        INDEX.md \
+        <otros artefactos generados>
+
+git commit -m "[agente:lead_apl] [proyecto:vtt-setup] [scope:<area>] [type:functional|structural]
+VTS-XXX: <título corto del perfil/SETUP/INIT/template/instancia>
+
+- <bullet 1>
+- <bullet 2>
+
+Refs: VTS-XXX
+Origen: VTS-XXX
+Consumidores: <quién consume — futuros agentes del rol, PM_GOV, LEAD_NPL/RKL si depende, proyectos satélite>
+
+Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
+
+# 3. Push
+git push origin docs/VTS-XXX-<scope-corto>
+
+# 4. Crear PR a main — OBLIGATORIO antes de cerrar tarea LEAD_APL
+# Sin PR los perfiles/SETUPs/INITs/OPERATIVOs/templates se PIERDEN al cerrar la sesión
+gh pr create \
+  --title "[LEAD_APL] VTS-XXX <título corto>" \
+  --body "$(cat <<'EOF'
+## Summary
+- <bullet 1: qué perfil/SETUP/INIT/template/instancia se diseña o modifica>
+- <bullet 2: alcance — rol específico, proyecto destino, drift consolidado>
+- <bullet 3: coherencia propagada (perfil → SETUP → INIT → OPERATIVOs instanciados)>
+
+## Artefactos en este PR
+- 01.agents/roles/AGENT_PROFILE_BASE_<ROL>.md (si aplica)
+- 01.agents/setups/SETUP_<ROL>.md (si aplica)
+- 01.agents/init-messages/INIT_<ROL>.md (si aplica)
+- 05.proyectos/<proyecto>/operativos-instancias/OPERATIVO_<ROL>_<PROYECTO>.md (si aplica)
+- 03.templates/<carpeta>/<template>.md (si aplica)
+- 01.agents/kits/KIT_<ROL>.zip (si aplica)
+- INDEX.md (actualizado si se agregó/movió contenido)
+- <otros>
+
+## Verificación (auto-review LEAD_APL)
+- [ ] Branch sigue patrón `docs/VTS-XXX-<scope>` (NO `feature/*` — los Leads suben docs)
+- [ ] Hook commit-msg validó SIN --no-verify
+- [ ] Co-Authored-By incluido
+- [ ] RULE-SEC-001 respetado (sin IPs prod, paths absolutos, credenciales)
+- [ ] Refs: VTS-XXX presente
+- [ ] Genérico vs instancia respetado: ✅
+  - Perfiles base / SETUPs en 01.agents/ con placeholders (NO UUIDs reales)
+  - OPERATIVOs en 05.proyectos/<proyecto>/ con datos reales del proyecto
+- [ ] TEMPLATE_TRIADA_AGENTE v1.0 cumplido (estructura + secciones obligatorias + checklist)
+- [ ] Coherencia propagada: si toqué perfil base → SETUP/INIT/OPERATIVOs lo reflejan
+- [ ] INDEX.md actualizado si aplica
+
+Refs: VTS-XXX
+
+🤖 Generated with Claude Opus 4.7
+Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
+EOF
+)" \
+  --base main
+
+# 5. Anotar el número de PR en la tarea VTT (comentario)
+PR_NUM=$(gh pr view --json number -q .number)
+curl -s -X POST "https://api.vttagent.com/api/tasks/VTS-XXX/comments" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d "{\"userId\":\"3cbca271-3e59-4bca-8b51-0adb5385dc60\",\"message\":\"📎 PR #${PR_NUM} creado: $(gh pr view --json url -q .url) — perfiles/SETUPs/INITs/templates commiteados al repo\"}"
+```
+
+⚠️ **NO mergeás el PR — eso lo hace Martin.** Vos solo lo creás. Martin revisa y mergea cuando esté listo.
+
+---
+
 ## §7 VTT API GOTCHAS
 
 Idéntica a §7 de OPERATIVO_PM_GOV_VTT-SETUP. **Específicos LEAD_APL:**
@@ -285,6 +381,8 @@ Cuando no hay tarea de PM_GOV:
 - ❌ Postear datos sensibles en VTT
 - ❌ URL con IP, /api/auth/login, type=requirement, PATCH /issues/<id>/resolve
 - ❌ AskUserQuestion (modal) con humanos
+- ❌ **Cerrar tarea VTS (mover a `in_review`) sin haber creado el PR en GitHub** — los perfiles/SETUPs/INITs/OPERATIVOs/templates VIVEN EN EL REPO, no solo en VTT attachments. Sin PR los artefactos se PIERDEN al cerrar la sesión. Ver §6.7.
+- ❌ Branch sin el TASK_ID (`docs/VTS-XXX-<scope>`) — el VTS-XXX es obligatorio para trazabilidad PR ↔ tarea VTT
 
 ---
 
@@ -293,6 +391,7 @@ Cuando no hay tarea de PM_GOV:
 | Versión | Fecha | Editor | Cambios |
 |---|---|---|---|
 | 1.0 | 2026-06-02 | PM_GOV (con Martin) | Versión inicial. Backlog: consolidación PJM duplicados + pipeline instanciación. |
+| 1.1 | 2026-06-02 | PM_GOV (con Martin) | Agregada §6.7 Commit + PR de artefactos LEAD_APL (OBLIGATORIO) replicando patrón TW-OPS/RA/PM_GOV. Branch `docs/VTS-XXX-<scope>` (Leads suben docs, no código). +2 prohibiciones: no cerrar sin PR (perfiles/SETUPs/INITs/OPERATIVOs/templates se pierden), branch debe llevar VTS-XXX. Header §0 línea "branch idle" actualizada. |
 
 ---
 

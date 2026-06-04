@@ -82,9 +82,9 @@ los artefactos vigentes (BRIEF + ASSIGNMENT) y el código real del repo VTT.
 
 | Dato | Valor |
 |------|-------|
-| **API URL** | `http://77.42.88.106:3000` |
-| **Swagger** | `http://77.42.88.106:3000/api-docs` |
-| **SERVICE_KEY** | `hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d` |
+| **API URL** | `https://api.vttagent.com` |
+| **Swagger** | `https://api.vttagent.com/api-docs` |
+| **SERVICE_KEY** | `$BE_SERVICE_KEY` |
 | **Project UUID** | `d837bcd5-3f10-4e19-a418-344a1eef98ad` |
 
 ### Status UUIDs
@@ -112,9 +112,9 @@ los artefactos vigentes (BRIEF + ASSIGNMENT) y el código real del repo VTT.
 ## 5. AUTH — Obtener JWT Token
 
 ```bash
-TOKEN=$(curl -s -X POST http://77.42.88.106:3000/api/auth/service-token \
+TOKEN=$(curl -s -X POST https://api.vttagent.com/api/auth/service-token \
   -H "Content-Type: application/json" \
-  -d '{"userId":"abdff0db-ad0b-4a0c-99f5-c898d18bd2d8","serviceKey":"hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d"}' \
+  -d '{"userId":"abdff0db-ad0b-4a0c-99f5-c898d18bd2d8","serviceKey":"$BE_SERVICE_KEY"}' \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['data']['token'])")
 ```
 
@@ -132,7 +132,7 @@ git checkout -b feature/[TASK_ID]
 
 ### Paso 1: Mover a in_progress
 ```bash
-curl -s -X PATCH "http://77.42.88.106:3000/api/tasks/[TASK_ID]/status" \
+curl -s -X PATCH "https://api.vttagent.com/api/tasks/[TASK_ID]/status" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"statusId":"2a76888a-e595-4cfc-ac4c-a3ae5087ef56","changedBy":"abdff0db-ad0b-4a0c-99f5-c898d18bd2d8"}'
@@ -196,21 +196,21 @@ gh pr create \
 
 ```bash
 # DevLog
-curl -s -X POST "http://77.42.88.106:3000/api/tasks/[TASK_ID]/attachments" \
+curl -s -X POST "https://api.vttagent.com/api/tasks/[TASK_ID]/attachments" \
   -H "Authorization: Bearer $TOKEN" \
   -F "file=@knowledge/development-log/YYYY-MM-DD_[TASK_ID]_[nombre].md;type=text/markdown" \
   -F "fileType=devlog" \
   -F "uploadedById=abdff0db-ad0b-4a0c-99f5-c898d18bd2d8"
 
 # Code Logic (uno por archivo)
-curl -s -X POST "http://77.42.88.106:3000/api/tasks/[TASK_ID]/attachments" \
+curl -s -X POST "https://api.vttagent.com/api/tasks/[TASK_ID]/attachments" \
   -H "Authorization: Bearer $TOKEN" \
   -F "file=@knowledge/code-logic/[modulo]/[archivo].LOGIC.md;type=text/markdown" \
   -F "fileType=code_logic" \
   -F "uploadedById=abdff0db-ad0b-4a0c-99f5-c898d18bd2d8"
 
 # Comentario de entrega
-curl -s -X POST "http://77.42.88.106:3000/api/tasks/[TASK_ID]/comments" \
+curl -s -X POST "https://api.vttagent.com/api/tasks/[TASK_ID]/comments" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -219,7 +219,7 @@ curl -s -X POST "http://77.42.88.106:3000/api/tasks/[TASK_ID]/comments" \
   }'
 
 # Mover a in_review
-curl -s -X PATCH "http://77.42.88.106:3000/api/tasks/[TASK_ID]/status" \
+curl -s -X PATCH "https://api.vttagent.com/api/tasks/[TASK_ID]/status" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"statusId":"1ec975a5-7581-4a1a-ab8f-51b1a7ef868d","changedBy":"abdff0db-ad0b-4a0c-99f5-c898d18bd2d8"}'
@@ -275,7 +275,7 @@ Entregables en VTT (Modelo Dinámico V4):
 
 ```bash
 # On-hold — USAR PUT, NO PATCH
-curl -s -X PUT "http://77.42.88.106:3000/api/tasks/[TASK_ID]/on-hold" \
+curl -s -X PUT "https://api.vttagent.com/api/tasks/[TASK_ID]/on-hold" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -H "x-user-id: abdff0db-ad0b-4a0c-99f5-c898d18bd2d8" \
@@ -285,7 +285,7 @@ curl -s -X PUT "http://77.42.88.106:3000/api/tasks/[TASK_ID]/on-hold" \
 ### Crear issue (si necesitas algo fuera de tu ámbito)
 
 ```bash
-curl -s -X POST "http://77.42.88.106:3000/api/tasks/[TASK_ID]/issues" \
+curl -s -X POST "https://api.vttagent.com/api/tasks/[TASK_ID]/issues" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -358,7 +358,7 @@ Antes de `PATCH /status → in_review` debes haber subido y registrado:
 
 ### Verificar Review Gate (BLOQUEANTE)
 ```bash
-curl -s "http://77.42.88.106:3000/api/tasks/[TASK_ID]/review-gate" \
+curl -s "https://api.vttagent.com/api/tasks/[TASK_ID]/review-gate" \
   -H "Authorization: Bearer $TOKEN"
 # Esperado: { "data": { "canProceedToReview": true } }
 # Si false → resolver devlog entries critical/high pendientes primero
@@ -366,7 +366,7 @@ curl -s "http://77.42.88.106:3000/api/tasks/[TASK_ID]/review-gate" \
 
 ### Resolver devlog entry pendiente
 ```bash
-curl -s -X PATCH "http://77.42.88.106:3000/api/tasks/[TASK_ID]/devlog/{entryId}/status" \
+curl -s -X PATCH "https://api.vttagent.com/api/tasks/[TASK_ID]/devlog/{entryId}/status" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"status":"resolved","resolution":"Cómo se resolvió"}'
@@ -374,7 +374,7 @@ curl -s -X PATCH "http://77.42.88.106:3000/api/tasks/[TASK_ID]/devlog/{entryId}/
 
 ### Reportar cumplimiento de CA
 ```bash
-curl -s -X POST "http://77.42.88.106:3000/api/tasks/[TASK_ID]/criteria/{criteriaId}/fulfill" \
+curl -s -X POST "https://api.vttagent.com/api/tasks/[TASK_ID]/criteria/{criteriaId}/fulfill" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"status":"met","evidence":"PR #N o evidencia concreta","notes":"opcional"}'

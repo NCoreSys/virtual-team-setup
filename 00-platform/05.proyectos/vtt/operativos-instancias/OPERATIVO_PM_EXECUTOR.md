@@ -20,8 +20,8 @@
 | Email | `pm@vtt.com` |
 | Proyecto | Virtual Teams Tracking (VTT) — ID: `d837bcd5-3f10-4e19-a418-344a1eef98ad` |
 | Project Key | VTT |
-| Backend VTT | `http://77.42.88.106:3000` |
-| Service Key | `hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d` |
+| Backend VTT | `https://api.vttagent.com` |
+| Service Key | `$BE_SERVICE_KEY` |
 | Repo (write) | `virtual-teams-tracking` |
 | Coordina a | TL, PJM, PO, todo el equipo |
 
@@ -86,9 +86,9 @@
 
 ```python
 import urllib.request, json
-req = urllib.request.Request('http://77.42.88.106:3000/api/auth/service-token',
+req = urllib.request.Request('https://api.vttagent.com/api/auth/service-token',
     data=json.dumps({'userId':'07a07147-cf5a-4117-8fbd-2fd1ccb95d54',
-                     'serviceKey':'hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d'}).encode(),
+                     'serviceKey':'$BE_SERVICE_KEY'}).encode(),
     headers={'Content-Type':'application/json'}, method='POST')
 token = json.loads(urllib.request.urlopen(req).read())['data']['token']
 ```
@@ -112,13 +112,13 @@ token = json.loads(urllib.request.urlopen(req).read())['data']['token']
 
 ```bash
 # Mover a task_approved
-curl -X PATCH http://77.42.88.106:3000/api/tasks/[TASK_ID]/status \
+curl -X PATCH https://api.vttagent.com/api/tasks/[TASK_ID]/status \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
   -d '{"statusId": "b9ca4951-6e14-4d82-b1d8-440793bbaf47", "changedBy": "07a07147-cf5a-4117-8fbd-2fd1ccb95d54"}'
 
 # Comentario APR-PM
-curl -X POST http://77.42.88.106:3000/api/tasks/[TASK_ID]/comments \
+curl -X POST https://api.vttagent.com/api/tasks/[TASK_ID]/comments \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
   -d '{"message": "APR-PM: tarea aprobada. Notas: [comentario funcional]", "userId": "07a07147-cf5a-4117-8fbd-2fd1ccb95d54"}'
@@ -128,7 +128,7 @@ curl -X POST http://77.42.88.106:3000/api/tasks/[TASK_ID]/comments \
 
 ```bash
 # Mover a task_rejected
-curl -X PATCH http://77.42.88.106:3000/api/tasks/[TASK_ID]/status \
+curl -X PATCH https://api.vttagent.com/api/tasks/[TASK_ID]/status \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
   -d '{"statusId": "eb264e77-4c1d-40d1-a3af-e6cd8f402205", "changedBy": "07a07147-cf5a-4117-8fbd-2fd1ccb95d54", "reason": "[Motivo del rechazo]"}'
@@ -160,7 +160,7 @@ gh pr merge [PR_NUMBER] --squash --delete-branch
 
 ```bash
 # Firmar cierre de sprint
-curl -X POST http://77.42.88.106:3000/api/sprints/[SPRINT_ID]/sign \
+curl -X POST https://api.vttagent.com/api/sprints/[SPRINT_ID]/sign \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"userId":"07a07147-cf5a-4117-8fbd-2fd1ccb95d54","role":"pm","comment":"Sprint cerrado"}'
@@ -188,7 +188,7 @@ Cuando el TL completa una tarea (task_completed) y queda pendiente APR-PM:
 > ⚠️ `uploadedById` es obligatorio — sin él la API devuelve 400.
 
 ```bash
-curl -X POST http://77.42.88.106:3000/api/tasks/[TASK_ID]/attachments \
+curl -X POST https://api.vttagent.com/api/tasks/[TASK_ID]/attachments \
   -H "Authorization: Bearer $TOKEN" \
   -F "file=@ruta/spec.md" \
   -F "fileType=brief" \
@@ -202,7 +202,7 @@ curl -X POST http://77.42.88.106:3000/api/tasks/[TASK_ID]/attachments \
 > ⚠️ Campos: `message` + `userId` (NO `content` / `authorId`)
 
 ```bash
-curl -X POST http://77.42.88.106:3000/api/tasks/[TASK_ID]/comments \
+curl -X POST https://api.vttagent.com/api/tasks/[TASK_ID]/comments \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
   -d '{"message": "APR-PM: tarea aprobada. Notas: ...", "userId": "07a07147-cf5a-4117-8fbd-2fd1ccb95d54"}'
@@ -301,7 +301,7 @@ curl -X POST http://77.42.88.106:3000/api/tasks/[TASK_ID]/comments \
 | SPECs del Bloque actual | `_project-management/Fases/01 Bloque uno/R2.0/` |
 | Handoffs PM → TL | `_project-management/PM coordination V2/Handoffs/` |
 | Estado del proyecto (mantenido por TL) | `knowledge/tl-docs/CONTEXTO_TECH_LEAD_SESION.md` |
-| Tareas y review | API VTT (`http://77.42.88.106:3000`) |
+| Tareas y review | API VTT (`https://api.vttagent.com`) |
 
 ---
 

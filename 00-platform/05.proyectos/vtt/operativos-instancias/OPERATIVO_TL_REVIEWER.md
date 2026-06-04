@@ -19,8 +19,8 @@
 | UUID | `abdff0db-ad0b-4a0c-99f5-c898d18bd2d8` |
 | Proyecto | Virtual Teams Tracking (VTT) — ID: `d837bcd5-3f10-4e19-a418-344a1eef98ad` |
 | Project Key | VTT |
-| Backend VTT | `http://77.42.88.106:3000` |
-| Service Key | `hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d` |
+| Backend VTT | `https://api.vttagent.com` |
+| Service Key | `$BE_SERVICE_KEY` |
 | Reporta a | PM (Martin Rivas) |
 | Coordina a | TL Executor, BE, FE, DB, DO, QA, AR, IR |
 | Email | `tech.lead@vtt.ai` |
@@ -116,9 +116,9 @@ Recibo handoff del PM y conduzco el bloque técnico completo. No espero instrucc
 ## §5 AUTH — Obtener JWT Token
 
 ```bash
-TOKEN=$(curl -s -X POST http://77.42.88.106:3000/api/auth/service-token \
+TOKEN=$(curl -s -X POST https://api.vttagent.com/api/auth/service-token \
   -H "Content-Type: application/json" \
-  -d '{"userId":"abdff0db-ad0b-4a0c-99f5-c898d18bd2d8","serviceKey":"hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d"}' \
+  -d '{"userId":"abdff0db-ad0b-4a0c-99f5-c898d18bd2d8","serviceKey":"$BE_SERVICE_KEY"}' \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['data']['token'])")
 ```
 
@@ -154,27 +154,27 @@ Sprint terminó con todo approved    → FASE 5: FIRMA DE STAGE DEVELOPMENT
 
 ```bash
 # 1. Fase principal
-curl -s -X POST "http://77.42.88.106:3000/api/projects/d837bcd5-3f10-4e19-a418-344a1eef98ad/phases" \
+curl -s -X POST "https://api.vttagent.com/api/projects/d837bcd5-3f10-4e19-a418-344a1eef98ad/phases" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"name":"[Nombre]","description":"[Desc]","order":[N],"createdBy":"abdff0db-ad0b-4a0c-99f5-c898d18bd2d8"}'
 
 # 2. Release
-curl -s -X POST "http://77.42.88.106:3000/api/projects/d837bcd5-3f10-4e19-a418-344a1eef98ad/releases" \
+curl -s -X POST "https://api.vttagent.com/api/projects/d837bcd5-3f10-4e19-a418-344a1eef98ad/releases" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"name":"R2.0","startDate":"YYYY-MM-DDT00:00:00Z","endDate":"YYYY-MM-DDT00:00:00Z","createdBy":"abdff0db-ad0b-4a0c-99f5-c898d18bd2d8"}'
 
 # 3. Sprints
-curl -s -X POST "http://77.42.88.106:3000/api/releases/[RELEASE_ID]/sprints" \
+curl -s -X POST "https://api.vttagent.com/api/releases/[RELEASE_ID]/sprints" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"name":"S00","number":0,"startDate":"YYYY-MM-DDT00:00:00Z","endDate":"YYYY-MM-DDT00:00:00Z","createdBy":"abdff0db-ad0b-4a0c-99f5-c898d18bd2d8"}'
 
 # 4. Deliveries (phaseId + name + order + createdBy)
-curl -s -X POST "http://77.42.88.106:3000/api/deliveries" \
+curl -s -X POST "https://api.vttagent.com/api/deliveries" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"phaseId":"[PHASE_UUID]","name":"[Nombre]","order":[N],"createdBy":"abdff0db-ad0b-4a0c-99f5-c898d18bd2d8"}'
 
 # 5. ⚠️ CRÍTICO: Vincular Delivery a Sprint
-curl -s -X PATCH "http://77.42.88.106:3000/api/deliveries/[DELIVERY_UUID]" \
+curl -s -X PATCH "https://api.vttagent.com/api/deliveries/[DELIVERY_UUID]" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"sprintId":"[SPRINT_UUID]"}'
 # Las tareas heredan sprint vía Delivery. NUNCA poner sprintId al Task — el validador lo ignora.
@@ -191,7 +191,7 @@ curl -s -X PATCH "http://77.42.88.106:3000/api/deliveries/[DELIVERY_UUID]" \
 
 ```bash
 # 1. Crear tarea (SIN sprintId — el sprint vive en Delivery)
-curl -s -X POST "http://77.42.88.106:3000/api/phases/[PHASE_UUID]/tasks" \
+curl -s -X POST "https://api.vttagent.com/api/phases/[PHASE_UUID]/tasks" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{
     "title":"[Título]",
@@ -206,34 +206,34 @@ curl -s -X POST "http://77.42.88.106:3000/api/phases/[PHASE_UUID]/tasks" \
 # ⚠️ assigneeId en este POST se IGNORA — asignar con PATCH después
 
 # 2. Asignar a agente
-curl -s -X PATCH "http://77.42.88.106:3000/api/tasks/[TASK_ID]" \
+curl -s -X PATCH "https://api.vttagent.com/api/tasks/[TASK_ID]" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"assigneeId":"[UUID_AGENTE]"}'
 
 # 3. Asociar tarea a Delivery
-curl -s -X POST "http://77.42.88.106:3000/api/deliveries/[DELIVERY_UUID]/tasks/[TASK_ID]" \
+curl -s -X POST "https://api.vttagent.com/api/deliveries/[DELIVERY_UUID]/tasks/[TASK_ID]" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"assignedBy":"abdff0db-ad0b-4a0c-99f5-c898d18bd2d8"}'
 
 # 4. Crear dependencias
-curl -s -X POST "http://77.42.88.106:3000/api/tasks/[TASK_ID]/dependencies" \
+curl -s -X POST "https://api.vttagent.com/api/tasks/[TASK_ID]/dependencies" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"dependsOnTaskId":"[UUID_TAREA_PREVIA]"}'
 
 # 5. Crear criterios (12 DoD + 2 integración + N acceptance específicos)
-curl -s -X POST "http://77.42.88.106:3000/api/tasks/[TASK_ID]/criteria" \
+curl -s -X POST "https://api.vttagent.com/api/tasks/[TASK_ID]/criteria" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"description":"[criterio]","kind":"DoD|integration|acceptance"}'
 
 # 6. Subir BRIEF
-curl -s -X POST "http://77.42.88.106:3000/api/tasks/[TASK_ID]/attachments" \
+curl -s -X POST "https://api.vttagent.com/api/tasks/[TASK_ID]/attachments" \
   -H "Authorization: Bearer $TOKEN" \
   -F "file=@[ruta/BRIEF_TASK.md];type=text/markdown" \
   -F "fileType=brief" \
   -F "uploadedById=abdff0db-ad0b-4a0c-99f5-c898d18bd2d8"
 
 # 7. Subir ASSIGNMENT
-curl -s -X POST "http://77.42.88.106:3000/api/tasks/[TASK_ID]/attachments" \
+curl -s -X POST "https://api.vttagent.com/api/tasks/[TASK_ID]/attachments" \
   -H "Authorization: Bearer $TOKEN" \
   -F "file=@[ruta/ASSIGNMENT_TASK.md];type=text/markdown" \
   -F "fileType=assignment" \
@@ -290,16 +290,16 @@ Paso 11: Decisión:
 
 ```bash
 # Aprobar
-curl -s -X PATCH "http://77.42.88.106:3000/api/tasks/[TASK_ID]/status" \
+curl -s -X PATCH "https://api.vttagent.com/api/tasks/[TASK_ID]/status" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"statusId":"aa5ceb90-5209-42a2-b874-a8cbee597a97","changedBy":"abdff0db-ad0b-4a0c-99f5-c898d18bd2d8"}'
 
-curl -s -X POST "http://77.42.88.106:3000/api/tasks/[TASK_ID]/comments" \
+curl -s -X POST "https://api.vttagent.com/api/tasks/[TASK_ID]/comments" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"message":"APR-TL: Revisión técnica aprobada. [resumen]","userId":"abdff0db-ad0b-4a0c-99f5-c898d18bd2d8"}'
 
 # Rechazar con feedback (NO cambiar status — dejar en in_review)
-curl -s -X POST "http://77.42.88.106:3000/api/tasks/[TASK_ID]/comments" \
+curl -s -X POST "https://api.vttagent.com/api/tasks/[TASK_ID]/comments" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"message":"REV-TL: Cambios requeridos:\n1. ...\n2. ...","userId":"abdff0db-ad0b-4a0c-99f5-c898d18bd2d8"}'
 ```

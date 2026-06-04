@@ -20,8 +20,8 @@
 | Email | `pm@vtt.com` |
 | Proyecto | Virtual Teams Tracking (VTT) — ID: `d837bcd5-3f10-4e19-a418-344a1eef98ad` |
 | Project Key | VTT |
-| Backend VTT | `http://77.42.88.106:3000` |
-| Service Key | `hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d` |
+| Backend VTT | `https://api.vttagent.com` |
+| Service Key | `$BE_SERVICE_KEY` |
 
 ---
 
@@ -66,9 +66,9 @@
 
 ```python
 import urllib.request, json
-req = urllib.request.Request('http://77.42.88.106:3000/api/auth/service-token',
+req = urllib.request.Request('https://api.vttagent.com/api/auth/service-token',
     data=json.dumps({'userId':'07a07147-cf5a-4117-8fbd-2fd1ccb95d54',
-                     'serviceKey':'hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d'}).encode(),
+                     'serviceKey':'$BE_SERVICE_KEY'}).encode(),
     headers={'Content-Type':'application/json'}, method='POST')
 token = json.loads(urllib.request.urlopen(req).read())['data']['token']
 ```
@@ -109,13 +109,13 @@ Paso 3: Decisión:
 
 ```bash
 # Feedback con cambios requeridos (no aprueba)
-curl -X POST http://77.42.88.106:3000/api/tasks/[TASK_ID]/comments \
+curl -X POST https://api.vttagent.com/api/tasks/[TASK_ID]/comments \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
   -d '{"message": "REV-PM: Cambios funcionales requeridos:\n1. ...\n2. ...", "userId": "07a07147-cf5a-4117-8fbd-2fd1ccb95d54"}'
 
 # Aprobación (cuando paso a modo Executor para APR)
-curl -X POST http://77.42.88.106:3000/api/tasks/[TASK_ID]/comments \
+curl -X POST https://api.vttagent.com/api/tasks/[TASK_ID]/comments \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
   -d '{"message": "APR-PM: Feature aprobada. [resumen funcional]", "userId": "07a07147-cf5a-4117-8fbd-2fd1ccb95d54"}'

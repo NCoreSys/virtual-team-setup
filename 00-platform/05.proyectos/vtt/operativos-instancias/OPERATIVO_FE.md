@@ -20,8 +20,8 @@
 | Email (#2) | `frontend.dev2@vtt.ai` |
 | Proyecto | Virtual Teams Tracking (VTT) — ID: `d837bcd5-3f10-4e19-a418-344a1eef98ad` |
 | Project Key | VTT |
-| Backend VTT | `http://77.42.88.106:3000` |
-| Service Key | `hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d` |
+| Backend VTT | `https://api.vttagent.com` |
+| Service Key | `$BE_SERVICE_KEY` |
 | Repo | `c:\Users\Martin\Documents\virtual-teams\virtual-teams-tracking\` |
 | Reporta a | TL |
 
@@ -97,9 +97,9 @@ El ASSIGNMENT del TL incluye:
 
 ```bash
 # Reemplazar UUID_AGENTE según seas FE #1 o #2
-TOKEN=$(curl -s -X POST http://77.42.88.106:3000/api/auth/service-token \
+TOKEN=$(curl -s -X POST https://api.vttagent.com/api/auth/service-token \
   -H "Content-Type: application/json" \
-  -d '{"userId":"[UUID_AGENTE]","serviceKey":"hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d"}' \
+  -d '{"userId":"[UUID_AGENTE]","serviceKey":"$BE_SERVICE_KEY"}' \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['data']['token'])")
 ```
 
@@ -115,7 +115,7 @@ git checkout -b feature/[TASK_ID]
 
 ### Paso 1: Mover a in_progress
 ```bash
-curl -s -X PATCH "http://77.42.88.106:3000/api/tasks/[TASK_ID]/status" \
+curl -s -X PATCH "https://api.vttagent.com/api/tasks/[TASK_ID]/status" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"statusId":"2a76888a-e595-4cfc-ac4c-a3ae5087ef56","changedBy":"[UUID_AGENTE]"}'
 ```
@@ -253,7 +253,7 @@ Crear issue requirement al DB. NO modificar schema yo mismo.
 > ⚠️ ERR-006: usar `PUT /on-hold` NUNCA `PATCH /status`
 
 ```bash
-curl -s -X PUT "http://77.42.88.106:3000/api/tasks/[TASK_ID]/on-hold" \
+curl -s -X PUT "https://api.vttagent.com/api/tasks/[TASK_ID]/on-hold" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -H "x-user-id: [UUID_AGENTE]" \

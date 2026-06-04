@@ -49,6 +49,7 @@ Para tareas que solo tocan la VM productiva (aplicar migrations, rebuild contain
 | 9 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/02.normativa/03.Skills/precheck/VTT.SKILL-PRECHECK-001_validar_entorno_inicio_tarea.md` | Pre-check obligatorio (5 checks) antes de empezar |
 | 10 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/02.normativa/03.Skills/manifest/VTT.SKILL-EXM-001_execution_manifest.md` | Skill para leer execution_manifest |
 | 11 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/02.normativa/03.Skills/manifest/VTT.SKILL-MAN-001_task_manifest.md` | Skill para generar task_manifest v1.0 |
+| 12 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/02.normativa/03.Skills/report/VTT.SKILL-REPORT-001_entrega_tarea.md` | **REPORT v1.1** — entrega de tarea. Path canonico `knowledge/task-manifests/<phase>/<sprint>/<TASK_ID>_REPORT.md` (MISMA carpeta que el manifest, NO `knowledge/agent-tasks/reports/` que es legacy) |
 
 > ⚠️ **NO leas el PROTOCOL-ASG-001 completo (47 pasos / 6 fases).** Ese es del TL. Vos solo ejecutás tu fase de agente — los Workflows + Skills de arriba cubren lo tuyo.
 
@@ -77,7 +78,7 @@ Para tareas que solo tocan la VM productiva (aplicar migrations, rebuild contain
 
 ```bash
 TOKEN=...
-curl -H "Authorization: Bearer $TOKEN" "http://77.42.88.106:3000/api/tasks?assigneeId=b2e00b9d-a657-4bdb-b982-3dcf1f5b5757"
+curl -H "Authorization: Bearer $TOKEN" "https://api.vttagent.com/api/tasks?assigneeId=b2e00b9d-a657-4bdb-b982-3dcf1f5b5757"
 ```
 
 ---
@@ -106,7 +107,7 @@ cd backend && npx prisma migrate deploy
 # Post-checks
 npx prisma migrate status
 docker-compose restart vtt-backend
-curl http://77.42.88.106:3000/health
+curl https://api.vttagent.com/health
 # Resolver issue del DB
 PUT /api/issues/[ISSUE_ID] body: {"isResolved": true, "resolvedByTaskId": "[MI_TASK_ID]"}
 # Comentario + PATCH in_review
@@ -120,7 +121,7 @@ cd /path/to/virtual-teams-tracking && git pull origin main
 cd backend && npm ci && npm run build
 docker-compose up -d --build vtt-backend
 docker logs vtt-backend --tail=50
-curl http://77.42.88.106:3000/health
+curl https://api.vttagent.com/health
 ```
 
 ---
@@ -166,4 +167,5 @@ Si solo tocaste VM (no committeás nada): no aplica cleanup de worktree.
 7. Cleanup R-AGENTE-WT-01 (si tocaste repo)
 
 **Fuente de verdad:** `OPERATIVO_DO.md`
-**Versión:** 1.0 | **Fecha:** 2026-05-29
+**Versión:** 1.1 | **Fecha:** 2026-06-03
+> **Cambio v1.1 (2026-06-03):** URL `:3000` → `https://api.vttagent.com` (VTT-870). SERVICE_KEY hardcoded → `$BE_SERVICE_KEY` del `.env` (rotada VTT-957). Agregado SKILL-REPORT-001 con path canonico `knowledge/task-manifests/<phase>/<sprint>/<TASK_ID>_REPORT.md` (legacy `knowledge/agent-tasks/reports/` deprecado).

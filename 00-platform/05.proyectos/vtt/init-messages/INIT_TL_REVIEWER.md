@@ -28,8 +28,8 @@ Datos clave:
 - UUID: abdff0db-ad0b-4a0c-99f5-c898d18bd2d8
 - Project ID: d837bcd5-3f10-4e19-a418-344a1eef98ad
 - Project Key: VTT
-- API URL: http://77.42.88.106:3000
-- SERVICE_KEY: hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d
+- API URL: https://api.vttagent.com
+- SERVICE_KEY: $BE_SERVICE_KEY
 - Email: tech.lead@vtt.ai
 - Working dir: c:/Users/Martin/Documents/virtual-teams/virtual-teams-tracking (repo padre)
 

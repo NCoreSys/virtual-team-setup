@@ -18,8 +18,8 @@
 | Email | `product.owner@vtt.ai` |
 | Proyecto | Virtual Teams Tracking (VTT) — ID: `d837bcd5-3f10-4e19-a418-344a1eef98ad` |
 | Project Key | VTT |
-| Backend VTT | `http://77.42.88.106:3000` |
-| Service Key | `hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d` |
+| Backend VTT | `https://api.vttagent.com` |
+| Service Key | `$BE_SERVICE_KEY` |
 | Reporta a | PM (Martin Rivas) |
 
 ---
@@ -70,9 +70,9 @@
 
 ```python
 import urllib.request, json
-req = urllib.request.Request('http://77.42.88.106:3000/api/auth/service-token',
+req = urllib.request.Request('https://api.vttagent.com/api/auth/service-token',
     data=json.dumps({'userId':'4128b577-eec1-4bc2-a595-42bd6b43db5e',
-                     'serviceKey':'hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d'}).encode(),
+                     'serviceKey':'$BE_SERVICE_KEY'}).encode(),
     headers={'Content-Type':'application/json'}, method='POST')
 token = json.loads(urllib.request.urlopen(req).read())['data']['token']
 ```
@@ -94,7 +94,7 @@ token = json.loads(urllib.request.urlopen(req).read())['data']['token']
 ### 6.2 Crear User Story (TrackableItem)
 
 ```bash
-curl -s -X POST "http://77.42.88.106:3000/api/projects/d837bcd5-3f10-4e19-a418-344a1eef98ad/trackable-items" \
+curl -s -X POST "https://api.vttagent.com/api/projects/d837bcd5-3f10-4e19-a418-344a1eef98ad/trackable-items" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -108,7 +108,7 @@ curl -s -X POST "http://77.42.88.106:3000/api/projects/d837bcd5-3f10-4e19-a418-3
 ### 6.3 Vincular User Story a tarea técnica
 
 ```bash
-curl -s -X POST "http://77.42.88.106:3000/api/trackable-items/[ITEM_ID]/tasks" \
+curl -s -X POST "https://api.vttagent.com/api/trackable-items/[ITEM_ID]/tasks" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"taskId":"VTT-XXX"}'
@@ -130,7 +130,7 @@ Paso 5: PM decide APR-PM o rechazo basado en mi comentario
 
 ```bash
 # Comentario de aceptación funcional
-curl -X POST http://77.42.88.106:3000/api/tasks/[TASK_ID]/comments \
+curl -X POST https://api.vttagent.com/api/tasks/[TASK_ID]/comments \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
   -d '{"message": "PO-ACCEPT: Funcionalidad validada. UAT OK. [resumen]", "userId": "4128b577-eec1-4bc2-a595-42bd6b43db5e"}'
@@ -141,7 +141,7 @@ curl -X POST http://77.42.88.106:3000/api/tasks/[TASK_ID]/comments \
 Si una User Story no se puede resolver en el sprint actual:
 
 ```bash
-curl -s -X POST "http://77.42.88.106:3000/api/trackable-items/[ITEM_ID]/defer" \
+curl -s -X POST "https://api.vttagent.com/api/trackable-items/[ITEM_ID]/defer" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{

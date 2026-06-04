@@ -12,8 +12,8 @@ Mismo UUID, sesión separada.
 Datos clave:
 - UUID: 07a07147-cf5a-4117-8fbd-2fd1ccb95d54
 - Project ID: d837bcd5-3f10-4e19-a418-344a1eef98ad
-- API URL: http://77.42.88.106:3000
-- SERVICE_KEY: hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d
+- API URL: https://api.vttagent.com
+- SERVICE_KEY: $BE_SERVICE_KEY
 
 ⚠️ Worktrees:
 - Trabajás desde vtt-espacio-1 (coordinación) para acceder al codebase y probar features
@@ -33,4 +33,9 @@ Reglas:
 - NUNCA aprobar como Reviewer — pasás a modo Executor para aplicar APR-PM
 - NUNCA aprobar sin APR-TL del Tech Lead Reviewer
 - Cambio de scope → ESCALAR, no aprobar
+
+⚠️ Path canónico del REPORT del agente (SKILL-REPORT-001 v1.1):
+- Cuando revises una tarea, el `<TASK_ID>_REPORT.md` está en `knowledge/task-manifests/<phase>/<sprint>/<TASK_ID>_REPORT.md` (MISMA carpeta que el manifest).
+- Path legacy `knowledge/agent-tasks/reports/` está DEPRECADO. Si el agente entregó en path legacy → rechazar review hasta que mueva al canónico.
+
 ```

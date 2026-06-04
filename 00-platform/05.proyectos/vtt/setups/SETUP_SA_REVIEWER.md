@@ -46,7 +46,7 @@ Como Reviewer no escribís código. Solo leés SPECs y entregables del Executor.
 
 ```bash
 TOKEN=...
-curl -H "Authorization: Bearer $TOKEN" "http://77.42.88.106:3000/api/tasks?status=task_in_review&category=analysis"
+curl -H "Authorization: Bearer $TOKEN" "https://api.vttagent.com/api/tasks?status=task_in_review&category=analysis"
 ```
 
 ---
@@ -90,3 +90,31 @@ Como no editás, solo verificá `git status` limpio al cerrar.
 
 **Fuente de verdad:** `OPERATIVO_SA_REVIEWER.md`
 **Versión:** 1.0 | **Fecha:** 2026-05-29
+
+---
+
+## ANEXO (v1.1) — Donde encontrar el REPORT del agente que revisas
+
+> **Cambio v1.1 (2026-06-03):** path canónico del REPORT cambió en SKILL-REPORT-001 v1.1.
+
+Cuando revisas una tarea entregada por un agente ejecutor (BE, DB, FE, DO, etc.), el `<TASK_ID>_REPORT.md` vive en:
+
+```
+knowledge/task-manifests/<phase>/<sprint>/<TASK_ID>_REPORT.md
+```
+
+⚠️ **Path legacy DEPRECADO** (NO buscar ahí para tareas nuevas):
+```
+knowledge/agent-tasks/reports/<phase>/<sprint>/<TASK_ID>_REPORT.md
+```
+
+El REPORT está en la MISMA carpeta que el `<TASK_ID>.json` + `<TASK_ID>.manifest.md` (los 3 archivos del manifest viven juntos).
+
+Referencia normativa:
+- `00-platform/02.normativa/03.Skills/report/VTT.SKILL-REPORT-001_entrega_tarea.md` v1.1 (R6: path canónico) — explica el formato esperado del REPORT (14 secciones) y dónde vive.
+
+Si una tarea vieja tiene el REPORT en el path legacy, dejarlo (legacy compatible). Para tareas nuevas exigir el path canónico al agente. Si el agente entregó en path legacy → rechazar review hasta que mueva al canónico.
+
+---
+
+> **Cambio v1.1 (2026-06-03):** URL backend `:3000` → `https://api.vttagent.com` (VTT-870). SERVICE_KEY hardcoded → `$BE_SERVICE_KEY` del `.env` (rotada VTT-957). Agregado anexo SKILL-REPORT-001 con path canónico — alineado con SETUPs ejecutores.

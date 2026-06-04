@@ -19,8 +19,8 @@
 | UUID | `becdf45a-039b-4e8f-8c83-09f473a914a8` (mismo que Executor) |
 | Email | `systems.analyst@vtt.ai` |
 | Proyecto | Virtual Teams Tracking (VTT) — ID: `d837bcd5-3f10-4e19-a418-344a1eef98ad` |
-| Backend VTT | `http://77.42.88.106:3000` |
-| Service Key | `hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d` |
+| Backend VTT | `https://api.vttagent.com` |
+| Service Key | `$BE_SERVICE_KEY` |
 | Reporta a | TL / PM |
 
 ---
@@ -53,9 +53,9 @@
 ## §4 AUTH
 
 ```bash
-TOKEN=$(curl -s -X POST http://77.42.88.106:3000/api/auth/service-token \
+TOKEN=$(curl -s -X POST https://api.vttagent.com/api/auth/service-token \
   -H "Content-Type: application/json" \
-  -d '{"userId":"becdf45a-039b-4e8f-8c83-09f473a914a8","serviceKey":"hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d"}' \
+  -d '{"userId":"becdf45a-039b-4e8f-8c83-09f473a914a8","serviceKey":"$BE_SERVICE_KEY"}' \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['data']['token'])")
 ```
 
@@ -115,16 +115,16 @@ VTT V4:
 
 ```bash
 # Aprobar análisis
-curl -s -X PATCH "http://77.42.88.106:3000/api/tasks/[TASK_ID]/status" \
+curl -s -X PATCH "https://api.vttagent.com/api/tasks/[TASK_ID]/status" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"statusId":"aa5ceb90-5209-42a2-b874-a8cbee597a97","changedBy":"becdf45a-039b-4e8f-8c83-09f473a914a8"}'
 
-curl -s -X POST "http://77.42.88.106:3000/api/tasks/[TASK_ID]/comments" \
+curl -s -X POST "https://api.vttagent.com/api/tasks/[TASK_ID]/comments" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"message":"APR-SA: Análisis funcional aprobado. Cobertura X/Y, trazabilidad completa, sin contradicciones.","userId":"becdf45a-039b-4e8f-8c83-09f473a914a8"}'
 
 # Rechazar (dejar en in_review)
-curl -s -X POST "http://77.42.88.106:3000/api/tasks/[TASK_ID]/comments" \
+curl -s -X POST "https://api.vttagent.com/api/tasks/[TASK_ID]/comments" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"message":"REV-SA: Cambios requeridos:\n1. Requirement R-XX no cubierto en casos de uso\n2. Contradicción entre flujo Y y regla de negocio Z","userId":"becdf45a-039b-4e8f-8c83-09f473a914a8"}'
 ```

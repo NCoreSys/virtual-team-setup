@@ -12,8 +12,8 @@ Datos clave:
 - UUID: becdf45a-039b-4e8f-8c83-09f473a914a8
 - Email: systems.analyst@vtt.ai
 - Project ID: d837bcd5-3f10-4e19-a418-344a1eef98ad
-- API URL: http://77.42.88.106:3000
-- SERVICE_KEY: hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d
+- API URL: https://api.vttagent.com
+- SERVICE_KEY: $BE_SERVICE_KEY
 
 ⚠️ Worktrees:
 - TL te asigna worktree (típicamente espacio-1 para leer SPECs)
@@ -31,6 +31,11 @@ Workflow:
 - Validar consistencia entre documentos
 - Validar trazabilidad
 - Aprobar (PATCH task_completed + APR-SA) o rechazar (comentario REV-SA)
+
+
+⚠️ Path canónico del REPORT del agente (SKILL-REPORT-001 v1.1):
+- Cuando revises una tarea, el `<TASK_ID>_REPORT.md` está en `knowledge/task-manifests/<phase>/<sprint>/<TASK_ID>_REPORT.md` (MISMA carpeta que el manifest).
+- Path legacy `knowledge/agent-tasks/reports/` está DEPRECADO. Si el agente entregó en path legacy → rechazar review hasta que mueva al canónico.
 
 Reglas innegociables:
 - NUNCA reescribir trabajo del Executor — solo aprobar/rechazar

@@ -19,8 +19,8 @@
 | UUID | `ebf0f384-51ba-49f5-8e98-fa7569ce1d31` (mismo que Executor) |
 | Email | `design.lead@vtt.ai` |
 | Proyecto | Virtual Teams Tracking (VTT) — ID: `d837bcd5-3f10-4e19-a418-344a1eef98ad` |
-| Backend VTT | `http://77.42.88.106:3000` |
-| Service Key | `hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d` |
+| Backend VTT | `https://api.vttagent.com` |
+| Service Key | `$BE_SERVICE_KEY` |
 | Reporta a | PM / TL |
 
 ---
@@ -56,9 +56,9 @@ Triggers:
 ## §4 AUTH
 
 ```bash
-TOKEN=$(curl -s -X POST http://77.42.88.106:3000/api/auth/service-token \
+TOKEN=$(curl -s -X POST https://api.vttagent.com/api/auth/service-token \
   -H "Content-Type: application/json" \
-  -d '{"userId":"ebf0f384-51ba-49f5-8e98-fa7569ce1d31","serviceKey":"hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d"}' \
+  -d '{"userId":"ebf0f384-51ba-49f5-8e98-fa7569ce1d31","serviceKey":"$BE_SERVICE_KEY"}' \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['data']['token'])")
 ```
 
@@ -104,7 +104,7 @@ Paso 5: Decisión:
 ### 5.3 Firmar stage design
 
 ```bash
-curl -s -X POST "http://77.42.88.106:3000/api/sprints/[SPRINT_ID]/stages/design/sign" \
+curl -s -X POST "https://api.vttagent.com/api/sprints/[SPRINT_ID]/stages/design/sign" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"userId":"ebf0f384-51ba-49f5-8e98-fa7569ce1d31","role":"design_lead","comment":"QA Visual OK. Tokens correctos. Estados implementados."}'
@@ -159,16 +159,16 @@ Accesibilidad:
 
 ```bash
 # Aprobar (PATCH a task_completed si soy el aprobador del lado design)
-curl -s -X PATCH "http://77.42.88.106:3000/api/tasks/[TASK_ID]/status" \
+curl -s -X PATCH "https://api.vttagent.com/api/tasks/[TASK_ID]/status" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"statusId":"aa5ceb90-5209-42a2-b874-a8cbee597a97","changedBy":"ebf0f384-51ba-49f5-8e98-fa7569ce1d31"}'
 
-curl -s -X POST "http://77.42.88.106:3000/api/tasks/[TASK_ID]/comments" \
+curl -s -X POST "https://api.vttagent.com/api/tasks/[TASK_ID]/comments" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"message":"APR-DL: QA Visual OK. Tokens correctos. Estados completos.","userId":"ebf0f384-51ba-49f5-8e98-fa7569ce1d31"}'
 
 # Rechazar (no cambia status — queda in_review)
-curl -s -X POST "http://77.42.88.106:3000/api/tasks/[TASK_ID]/comments" \
+curl -s -X POST "https://api.vttagent.com/api/tasks/[TASK_ID]/comments" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"message":"REV-DL: Cambios visuales requeridos:\n1. Color de botón usa #ff0000 hardcoded — usar var(--vtt-error)\n2. Empty state no implementado","userId":"ebf0f384-51ba-49f5-8e98-fa7569ce1d31"}'
 ```

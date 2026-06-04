@@ -17,8 +17,8 @@
 | UUID | `fbef6ae6-ba0d-43ce-8cc1-2f28c9c6346d` |
 | Email | `integration.reviewer@vtt.ai` |
 | Proyecto | Virtual Teams Tracking (VTT) — ID: `d837bcd5-3f10-4e19-a418-344a1eef98ad` |
-| Backend VTT | `http://77.42.88.106:3000` |
-| Service Key | `hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d` |
+| Backend VTT | `https://api.vttagent.com` |
+| Service Key | `$BE_SERVICE_KEY` |
 | Reporta a | TL Reviewer |
 
 ---
@@ -78,9 +78,9 @@
 ## §4 AUTH
 
 ```bash
-TOKEN=$(curl -s -X POST http://77.42.88.106:3000/api/auth/service-token \
+TOKEN=$(curl -s -X POST https://api.vttagent.com/api/auth/service-token \
   -H "Content-Type: application/json" \
-  -d '{"userId":"fbef6ae6-ba0d-43ce-8cc1-2f28c9c6346d","serviceKey":"hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d"}' \
+  -d '{"userId":"fbef6ae6-ba0d-43ce-8cc1-2f28c9c6346d","serviceKey":"$BE_SERVICE_KEY"}' \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['data']['token'])")
 ```
 
@@ -143,20 +143,20 @@ rm -rf prisma/migrations/[timestamp]_test_ir
 ### Servidor
 ```bash
 cd backend && npm run dev
-curl http://localhost:3000/health
+curl https://api.vttagent.com/health
 ```
 
 ### Endpoints con JWT
 ```bash
 # Sin auth (espera 401)
-curl http://localhost:3000/api/[endpoint]
+curl https://api.vttagent.com/api/[endpoint]
 
 # Con auth
 TOKEN=...
-curl -H "Authorization: Bearer $TOKEN" http://localhost:3000/api/[endpoint]
+curl -H "Authorization: Bearer $TOKEN" https://api.vttagent.com/api/[endpoint]
 
 # Validación (espera 400)
-curl -X POST http://localhost:3000/api/[endpoint] \
+curl -X POST https://api.vttagent.com/api/[endpoint] \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"invalid":"payload"}'
@@ -164,9 +164,9 @@ curl -X POST http://localhost:3000/api/[endpoint] \
 
 ### Smoke test (endpoints existentes no rotos)
 ```bash
-curl -H "Authorization: Bearer $TOKEN" http://localhost:3000/api/tasks
-curl -H "Authorization: Bearer $TOKEN" http://localhost:3000/api/projects
-curl -H "Authorization: Bearer $TOKEN" http://localhost:3000/api/users
+curl -H "Authorization: Bearer $TOKEN" https://api.vttagent.com/api/tasks
+curl -H "Authorization: Bearer $TOKEN" https://api.vttagent.com/api/projects
+curl -H "Authorization: Bearer $TOKEN" https://api.vttagent.com/api/users
 ```
 
 ---
@@ -220,21 +220,21 @@ Se encontraron N issues que deben corregirse.
 
 ```bash
 # Aprobar (PATCH a task_completed solo si no hay críticos)
-curl -s -X PATCH "http://77.42.88.106:3000/api/tasks/[TASK_ID]/status" \
+curl -s -X PATCH "https://api.vttagent.com/api/tasks/[TASK_ID]/status" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"statusId":"aa5ceb90-5209-42a2-b874-a8cbee597a97","changedBy":"fbef6ae6-ba0d-43ce-8cc1-2f28c9c6346d"}'
 
-curl -s -X POST "http://77.42.88.106:3000/api/tasks/[TASK_ID]/comments" \
+curl -s -X POST "https://api.vttagent.com/api/tasks/[TASK_ID]/comments" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"message":"APR-IR: 19/19 checks OK. Listo para APR-TL.","userId":"fbef6ae6-ba0d-43ce-8cc1-2f28c9c6346d"}'
 
 # Rechazar (no cambia status — queda in_review)
-curl -s -X POST "http://77.42.88.106:3000/api/tasks/[TASK_ID]/comments" \
+curl -s -X POST "https://api.vttagent.com/api/tasks/[TASK_ID]/comments" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"message":"REV-IR: N críticos + N medios. Detalle: ...","userId":"fbef6ae6-ba0d-43ce-8cc1-2f28c9c6346d"}'
 
 # Crear issue por cada FAIL
-curl -s -X POST "http://77.42.88.106:3000/api/tasks/[TASK_ID]/issues" \
+curl -s -X POST "https://api.vttagent.com/api/tasks/[TASK_ID]/issues" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{
     "title": "[Check ID] [Resumen]",

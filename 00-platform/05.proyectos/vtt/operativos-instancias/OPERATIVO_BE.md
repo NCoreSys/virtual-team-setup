@@ -2,7 +2,9 @@
 
 **Proyecto:** Virtual Teams Tracking (VTT)
 **Rol:** `backend_engineer` — implementa servicios, controladores, validators y tipos TS del backend
-**Versión:** 1.0 | **Fecha:** 2026-05-28
+**Versión:** 1.1 | **Fecha:** 2026-06-03
+
+> **Cambio v1.1 (2026-06-03):** URL backend `:3000` → `https://api.vttagent.com` (VTT-870 cerró el puerto). SERVICE_KEY hardcoded → `BE_SERVICE_KEY` del `.env` (rotada VTT-957). Paso 12 entrega ahora usa SKILL-REPORT-001 con path canónico `knowledge/task-manifests/<phase>/<sprint>/<TASK_ID>_REPORT.md` (path legacy `knowledge/agent-tasks/reports/` DEPRECADO).
 
 > **NOTA:** Este operativo cubre a **Backend Engineer #1 y #2**. Ambos comparten el mismo perfil; solo cambia el UUID/email según cuál de los dos esté activo.
 
@@ -20,8 +22,8 @@
 | Email (#2) | `backend.dev2@vtt.ai` |
 | Proyecto | Virtual Teams Tracking (VTT) — ID: `d837bcd5-3f10-4e19-a418-344a1eef98ad` |
 | Project Key | VTT |
-| Backend VTT | `http://77.42.88.106:3000` |
-| Service Key | `hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d` |
+| Backend VTT | `https://api.vttagent.com`  (NO `:3000` — VTT-870 cerró el puerto) |
+| Service Key | viene de `BE_SERVICE_KEY` del `.env` local (NUNCA hardcodear en repo — rotada VTT-957) |
 | Repo | `c:\Users\Martin\Documents\virtual-teams\virtual-teams-tracking\` |
 | Reporta a | TL |
 | Entrega a | TL Reviewer (review) → PM (aprobación) |
@@ -95,9 +97,12 @@ Si encuentro algo ambiguo o faltante, creo un issue (bloqueo real) o un devlog e
 
 ```bash
 # Reemplazar UUID_AGENTE según seas BE #1 o #2
-TOKEN=$(curl -s -X POST http://77.42.88.106:3000/api/auth/service-token \
+# BE_SERVICE_KEY viene del .env local (NUNCA hardcodear)
+source .env  # debe definir BE_SERVICE_KEY
+
+TOKEN=$(curl -sk -X POST https://api.vttagent.com/api/auth/service-token \
   -H "Content-Type: application/json" \
-  -d '{"userId":"[UUID_AGENTE]","serviceKey":"hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d"}' \
+  -d "{\"userId\":\"[UUID_AGENTE]\",\"serviceKey\":\"$BE_SERVICE_KEY\"}" \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['data']['token'])")
 ```
 
@@ -113,7 +118,7 @@ git checkout -b feature/[TASK_ID]
 
 ### Paso 1: Mover a in_progress
 ```bash
-curl -s -X PATCH "http://77.42.88.106:3000/api/tasks/[TASK_ID]/status" \
+curl -s -X PATCH "https://api.vttagent.com/api/tasks/[TASK_ID]/status" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"statusId":"2a76888a-e595-4cfc-ac4c-a3ae5087ef56","changedBy":"[UUID_AGENTE]"}'
@@ -183,27 +188,66 @@ gh pr create \
 
 > ⚠️ **CRÍTICO:** PR siempre a `main`, NUNCA a `develop` (LL-004).
 
-### Paso 12: Subir entregables y mover a in_review
+### Paso 12: Generar REPORT + manifest v1.0, subir entregables y mover a in_review
 
-Subir DevLog + Code Logic como attachments, comentario de entrega, mover a in_review.
+#### 12.1 Generar `<TASK_ID>_REPORT.md` con SKILL-REPORT-001
+
+⚠️ **Path canónico v1.1** (NO el legacy):
+```
+knowledge/task-manifests/<phase>/<sprint>/<TASK_ID>_REPORT.md
+```
+
+Ejemplos:
+- `knowledge/task-manifests/01-Bloque1A/S01/VTT-824_REPORT.md`
+- `knowledge/task-manifests/04-development/S06-FIX-A/VTT-705_REPORT.md`
+
+⚠️ **Path legacy DEPRECADO** (NO usar para tareas nuevas):
+- `knowledge/agent-tasks/reports/<phase>/<sprint>/<TASK_ID>_REPORT.md`
+
+El REPORT respeta 14 secciones canónicas del template SKILL-REPORT-001 (Entrega / Lo que se hizo / Código / DevLog / CodeLogic / CAs / DevLog entries / Findings / ADRs / TIs / Items detectados / Tareas derivadas / Cómo verificar / Notas / Review gate / Commit / PR).
+
+#### 12.2 Generar `<TASK_ID>.json` + `<TASK_ID>.manifest.md` con SCRIPT-MAN-001
+
+```bash
+python3 "$VTT_SETUP/00-platform/02.normativa/03.Skills/manifest/VTT.SCRIPT-MAN-001_gen_task_manifest.py" \
+  --task [TASK_ID] --version 1.0
+```
+
+Si SCRIPT-MAN-001 NO está disponible en tu worktree → `POST /issues type=question` escalando el gap. NO fabriques manifest manual sin escalación.
+
+#### 12.3 Subir attachments + comentario + mover a in_review
 
 ```bash
 # DevLog
-curl -s -X POST "http://77.42.88.106:3000/api/tasks/[TASK_ID]/attachments" \
+curl -sk -X POST "https://api.vttagent.com/api/tasks/[TASK_ID]/attachments" \
   -H "Authorization: Bearer $TOKEN" \
   -F "file=@knowledge/development-log/YYYY-MM-DD_[TASK_ID]_*.md;type=text/markdown" \
   -F "fileType=devlog" \
   -F "uploadedById=[UUID_AGENTE]"
 
 # Code Logic (uno por archivo)
-curl -s -X POST "http://77.42.88.106:3000/api/tasks/[TASK_ID]/attachments" \
+curl -sk -X POST "https://api.vttagent.com/api/tasks/[TASK_ID]/attachments" \
   -H "Authorization: Bearer $TOKEN" \
   -F "file=@knowledge/code-logic/backend/src/services/example.service.LOGIC.md;type=text/markdown" \
   -F "fileType=code_logic" \
   -F "uploadedById=[UUID_AGENTE]"
 
+# REPORT (path canónico knowledge/task-manifests/.../[TASK_ID]_REPORT.md) como fileType=manifest
+curl -sk -X POST "https://api.vttagent.com/api/tasks/[TASK_ID]/attachments" \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@knowledge/task-manifests/[phase]/[sprint]/[TASK_ID]_REPORT.md;type=text/markdown" \
+  -F "fileType=manifest" \
+  -F "uploadedById=[UUID_AGENTE]"
+
+# Manifest .md (wrapper del JSON) como fileType=manifest
+curl -sk -X POST "https://api.vttagent.com/api/tasks/[TASK_ID]/attachments" \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@knowledge/task-manifests/[phase]/[sprint]/[TASK_ID].manifest.md;type=text/markdown" \
+  -F "fileType=manifest" \
+  -F "uploadedById=[UUID_AGENTE]"
+
 # Mover a in_review
-curl -s -X PATCH "http://77.42.88.106:3000/api/tasks/[TASK_ID]/status" \
+curl -sk -X PATCH "https://api.vttagent.com/api/tasks/[TASK_ID]/status" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"statusId":"1ec975a5-7581-4a1a-ab8f-51b1a7ef868d","changedBy":"[UUID_AGENTE]"}'
@@ -263,7 +307,7 @@ VTT (Modelo Dinámico V4):
 
 ```bash
 # Crear issue al DB Engineer (NO modificar schema.prisma yo mismo)
-curl -s -X POST "http://77.42.88.106:3000/api/tasks/[TASK_ID]/issues" \
+curl -s -X POST "https://api.vttagent.com/api/tasks/[TASK_ID]/issues" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -283,7 +327,7 @@ Crear issue tipo `requirement` para DO. NUNCA tocar docker-compose, .env, nginx.
 > ⚠️ **CRÍTICO (ERR-006):** NUNCA usar `PATCH /status` con `task_on_hold`. Si lo haces, `previousStatus` queda NULL.
 
 ```bash
-curl -s -X PUT "http://77.42.88.106:3000/api/tasks/[TASK_ID]/on-hold" \
+curl -s -X PUT "https://api.vttagent.com/api/tasks/[TASK_ID]/on-hold" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -H "x-user-id: [UUID_AGENTE]" \
@@ -364,7 +408,7 @@ curl -s -X PUT "http://77.42.88.106:3000/api/tasks/[TASK_ID]/on-hold" \
 | Schema BD (read-only) | `backend/prisma/schema.prisma` |
 | Endpoints existentes | `backend/src/routes/*.routes.ts` |
 | Services existentes | `backend/src/services/*.service.ts` |
-| Swagger UI | `http://77.42.88.106:3000/api-docs` |
+| Swagger UI | `https://api.vttagent.com/api-docs` |
 | Mis devlogs y code logic | `knowledge/development-log/` + `knowledge/code-logic/backend/` |
 
 ---

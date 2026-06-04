@@ -53,6 +53,7 @@ cd c:/Users/Martin/Documents/virtual-teams/virtual-teams-tracking/.vtt/worktrees
 | 9 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/02.normativa/03.Skills/precheck/VTT.SKILL-PRECHECK-001_validar_entorno_inicio_tarea.md` | Pre-check obligatorio (5 checks) antes de empezar |
 | 10 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/02.normativa/03.Skills/manifest/VTT.SKILL-EXM-001_execution_manifest.md` | Skill para leer execution_manifest |
 | 11 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/02.normativa/03.Skills/manifest/VTT.SKILL-MAN-001_task_manifest.md` | Skill para generar task_manifest v1.0 |
+| 12 | `c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platform/02.normativa/03.Skills/report/VTT.SKILL-REPORT-001_entrega_tarea.md` | **REPORT v1.1** — entrega de tarea. Path canónico `knowledge/task-manifests/<phase>/<sprint>/<TASK_ID>_REPORT.md` (MISMA carpeta que el manifest, NO `knowledge/agent-tasks/reports/` que es legacy) |
 
 > ⚠️ **NO leas el PROTOCOL-ASG-001 completo (47 pasos / 6 fases).** Ese es del TL. Vos solo ejecutás tu fase de agente — los Workflows + Skills de arriba cubren lo tuyo.
 
@@ -76,21 +77,24 @@ cd c:/Users/Martin/Documents/virtual-teams/virtual-teams-tracking/.vtt/worktrees
 | UUID #1 | `8834830b-578f-46be-933b-0abcbbc5da99` |
 | UUID #2 | `008cacfc-d0cb-41d2-8628-def9571f8c77` |
 | Project ID | `d837bcd5-3f10-4e19-a418-344a1eef98ad` |
-| API URL | `http://77.42.88.106:3000` |
-| SERVICE_KEY | `hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d` |
-| Swagger | `http://77.42.88.106:3000/api-docs` |
+| API URL | `https://api.vttagent.com`  (NO `:3000` — VTT-870 cerró el puerto) |
+| SERVICE_KEY | viene de `BE_SERVICE_KEY` del `.env` local (NUNCA hardcodear en repo — rotada VTT-957) |
+| Swagger | `https://api.vttagent.com/api-docs` |
 
 ---
 
 ## PASO 3 — JWT + tareas asignadas
 
 ```bash
-TOKEN=$(curl -s -X POST http://77.42.88.106:3000/api/auth/service-token \
+# Cargar BE_SERVICE_KEY del .env local (NUNCA hardcodear)
+source .env  # debe definir BE_SERVICE_KEY
+
+TOKEN=$(curl -sk -X POST https://api.vttagent.com/api/auth/service-token \
   -H "Content-Type: application/json" \
-  -d '{"userId":"<TU_UUID>","serviceKey":"hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d"}' \
+  -d "{\"userId\":\"<TU_UUID>\",\"serviceKey\":\"$BE_SERVICE_KEY\"}" \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['data']['token'])")
 
-curl -H "Authorization: Bearer $TOKEN" "http://77.42.88.106:3000/api/tasks?assigneeId=<TU_UUID>"
+curl -H "Authorization: Bearer $TOKEN" "https://api.vttagent.com/api/tasks?assigneeId=<TU_UUID>"
 ```
 
 ---
@@ -184,4 +188,6 @@ Pasos resumidos:
 6. Cleanup R-AGENTE-WT-01 antes de in_review
 
 **Fuente de verdad:** `OPERATIVO_BE.md`
-**Versión:** 1.0 | **Fecha:** 2026-05-29
+**Versión:** 1.1 | **Fecha:** 2026-06-03
+
+> **Cambio v1.1 (2026-06-03):** URL `:3000` → `https://api.vttagent.com` (VTT-870). SERVICE_KEY hardcoded → `BE_SERVICE_KEY` del `.env` (rotada VTT-957). Agregado item 12 SKILL-REPORT-001 con path canónico `knowledge/task-manifests/<phase>/<sprint>/<TASK_ID>_REPORT.md` (legacy `knowledge/agent-tasks/reports/` deprecado).

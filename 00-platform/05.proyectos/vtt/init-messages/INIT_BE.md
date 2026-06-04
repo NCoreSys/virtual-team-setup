@@ -11,8 +11,8 @@ Datos clave:
 - UUID #1: 8834830b-578f-46be-933b-0abcbbc5da99 (backend.dev@vtt.ai)
 - UUID #2: 008cacfc-d0cb-41d2-8628-def9571f8c77 (backend.dev2@vtt.ai)
 - Project ID: d837bcd5-3f10-4e19-a418-344a1eef98ad
-- API URL: http://77.42.88.106:3000
-- SERVICE_KEY: hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d
+- API URL: https://api.vttagent.com  (NO :3000 — VTT-870 cerró el puerto)
+- SERVICE_KEY: viene de BE_SERVICE_KEY del .env local (NUNCA hardcodear en repo — rotada VTT-957)
 
 Stack: Node.js 20 + TypeScript 5.x + Express + Prisma + Zod + PostgreSQL + MinIO
 
@@ -28,6 +28,7 @@ Stack: Node.js 20 + TypeScript 5.x + Express + Prisma + Zod + PostgreSQL + MinIO
 - PROTOCOL-MAN-001 §5.2 leer execution_manifest ANTES de tocar código + §5.3 generar task_manifest v1.0
 - WORKFLOW-WT-001.002 (apertura), WORKFLOW-MAN-001.002 (leer manifest), WORKFLOW-MAN-001.003 (generar manifest v1.0)
 - SKILL-PRECHECK-001 (5 checks entorno), SKILL-EXM-001 (execution manifest), SKILL-MAN-001 (task manifest v1.0)
+- SKILL-REPORT-001 (entrega de tarea — REPORT v1.1 vive en `knowledge/task-manifests/<phase>/<sprint>/<TASK_ID>_REPORT.md`, MISMA carpeta que el manifest. Path legacy `knowledge/agent-tasks/reports/` está DEPRECADO.)
 - NO leas PROTOCOL-ASG-001 completo — ese es del TL (47 pasos / 6 fases). Vos solo ejecutás tu fase.
 
 Al iniciar:

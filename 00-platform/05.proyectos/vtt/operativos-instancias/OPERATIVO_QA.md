@@ -19,8 +19,8 @@
 | Email (#1) | `qa.engineer@vtt.ai` |
 | Email (#2) | `qa.engineer2@vtt.ai` |
 | Proyecto | Virtual Teams Tracking (VTT) — ID: `d837bcd5-3f10-4e19-a418-344a1eef98ad` |
-| Backend VTT | `http://77.42.88.106:3000` |
-| Service Key | `hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d` |
+| Backend VTT | `https://api.vttagent.com` |
+| Service Key | `$BE_SERVICE_KEY` |
 | Reporta a | TL |
 
 ---
@@ -74,9 +74,9 @@ Triggers:
 ## §5 AUTH
 
 ```bash
-TOKEN=$(curl -s -X POST http://77.42.88.106:3000/api/auth/service-token \
+TOKEN=$(curl -s -X POST https://api.vttagent.com/api/auth/service-token \
   -H "Content-Type: application/json" \
-  -d '{"userId":"[UUID_AGENTE]","serviceKey":"hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d"}' \
+  -d '{"userId":"[UUID_AGENTE]","serviceKey":"$BE_SERVICE_KEY"}' \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['data']['token'])")
 ```
 
@@ -104,7 +104,7 @@ Paso 5: Reportar resultado al TL Reviewer en comentario
 ### 6.2 Reportar bug
 
 ```bash
-curl -s -X POST "http://77.42.88.106:3000/api/tasks/[TASK_ID]/issues" \
+curl -s -X POST "https://api.vttagent.com/api/tasks/[TASK_ID]/issues" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -127,7 +127,7 @@ curl -s -X POST "http://77.42.88.106:3000/api/tasks/[TASK_ID]/issues" \
 ### 6.4 Firmar stage testing
 
 ```bash
-curl -s -X POST "http://77.42.88.106:3000/api/sprints/[SPRINT_ID]/stages/testing/sign" \
+curl -s -X POST "https://api.vttagent.com/api/sprints/[SPRINT_ID]/stages/testing/sign" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"userId":"[UUID_AGENTE]","role":"qa_engineer","comment":"Testing OK. X tests ejecutados, 0 críticos abiertos."}'
@@ -214,7 +214,7 @@ Reporte:
 | Qué | Dónde |
 |-----|-------|
 | Acceptance criteria | ASSIGNMENT de la tarea (attachment en VTT) |
-| Endpoints | Swagger `http://77.42.88.106:3000/api-docs` |
+| Endpoints | Swagger `https://api.vttagent.com/api-docs` |
 | Mis devlogs / test plans | `knowledge/development-log/` |
 
 ---

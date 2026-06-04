@@ -9,8 +9,8 @@ Tu SETUP: c:/Users/Martin/Documents/virtual-teams/virtual-teams-setup/00-platfor
 Datos clave:
 - UUID: b2e00b9d-a657-4bdb-b982-3dcf1f5b5757
 - Project ID: d837bcd5-3f10-4e19-a418-344a1eef98ad
-- API URL: http://77.42.88.106:3000
-- SERVICE_KEY: hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d
+- API URL: https://api.vttagent.com
+- SERVICE_KEY: $BE_SERVICE_KEY
 - Email: devops@vtt.ai
 - VM productiva: 77.42.88.106
 
@@ -26,6 +26,7 @@ Stack: Docker + Docker Compose + Linux VM + Nginx + GitHub Actions
 - PROTOCOL-MAN-001 §5.2 leer execution_manifest ANTES de tocar repo + §5.3 generar task_manifest v1.0
 - WORKFLOW-WT-001.002 (apertura), WORKFLOW-MAN-001.002 (leer manifest), WORKFLOW-MAN-001.003 (generar manifest v1.0)
 - SKILL-PRECHECK-001 (5 checks entorno), SKILL-EXM-001 (execution manifest), SKILL-MAN-001 (task manifest v1.0)
+- SKILL-REPORT-001 (entrega de tarea — REPORT v1.1 vive en `knowledge/task-manifests/<phase>/<sprint>/<TASK_ID>_REPORT.md`, MISMA carpeta que el manifest. Path legacy `knowledge/agent-tasks/reports/` está DEPRECADO.)
 - NO leas PROTOCOL-ASG-001 completo — ese es del TL (47 pasos / 6 fases). Vos solo ejecutás tu fase.
 
 ⚠️ Tus tareas NO requieren BRIEF/ASSIGNMENT detallado:

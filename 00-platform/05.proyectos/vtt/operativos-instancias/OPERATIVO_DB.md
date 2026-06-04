@@ -16,8 +16,8 @@
 | Email | `db.engineer@vtt.ai` |
 | Proyecto | Virtual Teams Tracking (VTT) — ID: `d837bcd5-3f10-4e19-a418-344a1eef98ad` |
 | Project Key | VTT |
-| Backend VTT | `http://77.42.88.106:3000` |
-| Service Key | `hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d` |
+| Backend VTT | `https://api.vttagent.com` |
+| Service Key | `$BE_SERVICE_KEY` |
 | Repo | `c:\Users\Martin\Documents\virtual-teams\virtual-teams-tracking\` |
 | Reporta a | TL |
 
@@ -67,9 +67,9 @@ Recibo ASSIGNMENT del TL con campos exactos requeridos. Verifico contra schema a
 ## §5 AUTH — Obtener JWT Token
 
 ```bash
-TOKEN=$(curl -s -X POST http://77.42.88.106:3000/api/auth/service-token \
+TOKEN=$(curl -s -X POST https://api.vttagent.com/api/auth/service-token \
   -H "Content-Type: application/json" \
-  -d '{"userId":"a3a2ce62-28d8-419d-9888-44203a963894","serviceKey":"hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d"}' \
+  -d '{"userId":"a3a2ce62-28d8-419d-9888-44203a963894","serviceKey":"$BE_SERVICE_KEY"}' \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['data']['token'])")
 ```
 
@@ -85,7 +85,7 @@ git checkout -b feature/[TASK_ID]
 
 ### Paso 1: Mover a in_progress
 ```bash
-curl -s -X PATCH "http://77.42.88.106:3000/api/tasks/[TASK_ID]/status" \
+curl -s -X PATCH "https://api.vttagent.com/api/tasks/[TASK_ID]/status" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"statusId":"2a76888a-e595-4cfc-ac4c-a3ae5087ef56","changedBy":"a3a2ce62-28d8-419d-9888-44203a963894"}'
 ```
@@ -151,7 +151,7 @@ gh pr create --title "[[TASK_ID]] Schema [descripción]" --body "Ver devlog" --b
 
 ```bash
 # Crear issue tipo bug/requirement asignado al DO
-curl -s -X POST "http://77.42.88.106:3000/api/tasks/[TASK_ID]/issues" \
+curl -s -X POST "https://api.vttagent.com/api/tasks/[TASK_ID]/issues" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -162,7 +162,7 @@ curl -s -X POST "http://77.42.88.106:3000/api/tasks/[TASK_ID]/issues" \
   }'
 
 # Mover MI tarea a in_review (la del schema, no la del DO)
-curl -s -X PATCH "http://77.42.88.106:3000/api/tasks/[TASK_ID]/status" \
+curl -s -X PATCH "https://api.vttagent.com/api/tasks/[TASK_ID]/status" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"statusId":"1ec975a5-7581-4a1a-ab8f-51b1a7ef868d","changedBy":"a3a2ce62-28d8-419d-9888-44203a963894"}'
 ```

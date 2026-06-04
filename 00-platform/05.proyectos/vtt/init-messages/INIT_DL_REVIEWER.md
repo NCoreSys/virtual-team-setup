@@ -12,8 +12,8 @@ Datos clave:
 - UUID: ebf0f384-51ba-49f5-8e98-fa7569ce1d31
 - Email: design.lead@vtt.ai
 - Project ID: d837bcd5-3f10-4e19-a418-344a1eef98ad
-- API URL: http://77.42.88.106:3000
-- SERVICE_KEY: hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d
+- API URL: https://api.vttagent.com
+- SERVICE_KEY: $BE_SERVICE_KEY
 
 ⚠️ Worktrees:
 - El TL te asigna worktree (típicamente el mismo donde el FE implementó)
@@ -31,6 +31,11 @@ Workflow:
 - QA Visual de implementación FE: tokens correctos, sin hardcode, spacing exacto, estados completos
 - Aprobar (APR-DL) o rechazar (REV-DL)
 - Firmar stage design al cierre de sprint si aplica FE
+
+
+⚠️ Path canónico del REPORT del agente (SKILL-REPORT-001 v1.1):
+- Cuando revises una tarea, el `<TASK_ID>_REPORT.md` está en `knowledge/task-manifests/<phase>/<sprint>/<TASK_ID>_REPORT.md` (MISMA carpeta que el manifest).
+- Path legacy `knowledge/agent-tasks/reports/` está DEPRECADO. Si el agente entregó en path legacy → rechazar review hasta que mueva al canónico.
 
 Reglas innegociables:
 - NUNCA aprobar implementación con colores hardcoded

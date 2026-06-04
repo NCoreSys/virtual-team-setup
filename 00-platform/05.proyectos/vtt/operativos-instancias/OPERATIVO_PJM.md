@@ -16,8 +16,8 @@
 | Email | `project.manager@vtt.ai` |
 | Proyecto | Virtual Teams Tracking (VTT) — ID: `d837bcd5-3f10-4e19-a418-344a1eef98ad` |
 | Project Key | VTT |
-| Backend VTT | `http://77.42.88.106:3000` |
-| Service Key | `hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d` |
+| Backend VTT | `https://api.vttagent.com` |
+| Service Key | `$BE_SERVICE_KEY` |
 | Reporta a | Martin Rivas (PM) |
 
 ---
@@ -70,10 +70,10 @@ import urllib.request, json, sys
 sys.stdout.reconfigure(encoding='utf-8')
 
 req = urllib.request.Request(
-    'http://77.42.88.106:3000/api/auth/service-token',
+    'https://api.vttagent.com/api/auth/service-token',
     data=json.dumps({
         'userId': '49937318-7a1d-4b83-9b7e-81aa49394d92',
-        'serviceKey': 'hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d'
+        'serviceKey': '$BE_SERVICE_KEY'
     }).encode(),
     headers={'Content-Type': 'application/json'}, method='POST')
 token = json.loads(urllib.request.urlopen(req).read())['data']['token']
@@ -106,7 +106,7 @@ token = '<TOKEN>'
 PROJECT_ID = 'd837bcd5-3f10-4e19-a418-344a1eef98ad'
 
 req = urllib.request.Request(
-    f'http://77.42.88.106:3000/api/tasks?projectId={PROJECT_ID}&limit=200',
+    f'https://api.vttagent.com/api/tasks?projectId={PROJECT_ID}&limit=200',
     headers={'Authorization': f'Bearer {token}'})
 tasks = json.loads(urllib.request.urlopen(req).read())['data']['data']
 

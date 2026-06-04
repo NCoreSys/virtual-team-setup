@@ -15,8 +15,8 @@
 | UUID | `ce8a2ace-21cb-44e9-978b-aa5f45977478` |
 | Email | `ux.designer@vtt.ai` |
 | Proyecto | Virtual Teams Tracking (VTT) — ID: `d837bcd5-3f10-4e19-a418-344a1eef98ad` |
-| Backend VTT | `http://77.42.88.106:3000` |
-| Service Key | `hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d` |
+| Backend VTT | `https://api.vttagent.com` |
+| Service Key | `$BE_SERVICE_KEY` |
 | Reporta a | Design Lead |
 
 ---
@@ -67,9 +67,9 @@ El DL me asigna tareas con BRIEF que contiene:
 ## §5 AUTH
 
 ```bash
-TOKEN=$(curl -s -X POST http://77.42.88.106:3000/api/auth/service-token \
+TOKEN=$(curl -s -X POST https://api.vttagent.com/api/auth/service-token \
   -H "Content-Type: application/json" \
-  -d '{"userId":"ce8a2ace-21cb-44e9-978b-aa5f45977478","serviceKey":"hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d"}' \
+  -d '{"userId":"ce8a2ace-21cb-44e9-978b-aa5f45977478","serviceKey":"$BE_SERVICE_KEY"}' \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['data']['token'])")
 ```
 

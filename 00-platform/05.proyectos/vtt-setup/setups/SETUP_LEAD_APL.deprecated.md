@@ -97,7 +97,7 @@ test -d "$VTT_SETUP/03.templates" || { echo "ABORT: 03.templates ausente"; exit 
 | API VTT | `https://api.vttagent.com` |
 | Project ID | `<UUID>` |
 | Tu UUID | ver §1 OPERATIVO |
-| SERVICE_KEY | `<cargar VTT_SETUP_SERVICE_KEY del .env — NUNCA hardcodear>` |
+| SERVICE_KEY | `hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d` |
 
 ---
 

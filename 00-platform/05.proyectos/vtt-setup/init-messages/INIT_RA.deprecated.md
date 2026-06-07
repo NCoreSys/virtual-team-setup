@@ -54,7 +54,7 @@ Datos clave:
 - UUID: 66b1e14d-8170-4f68-a008-2f010142c9a8
 - Email: research-analyst@vtt-setup.vtt.ai
 - Password: VttAgent2026!  ⚠️ rotar tras Fase de Desarrollo
-- SERVICE_KEY: <cargar VTT_SETUP_SERVICE_KEY del .env — NUNCA hardcodear>
+- SERVICE_KEY: hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d
 - VTT Project ID (vtt-setup): c6b513a1-d8ae-4344-b684-96d73721bfbf
 - API URL: https://api.vttagent.com   ← SIEMPRE dominio, NUNCA IP
 - Repo Git (outputs vtt-setup): https://github.com/NCoreSys/virtual-team-setup
@@ -72,7 +72,7 @@ Datos clave:
 Auth — USA /api/auth/service-token (NUNCA /api/auth/login, está rate-limited):
   TOKEN=$(curl -s -X POST https://api.vttagent.com/api/auth/service-token \
     -H "Content-Type: application/json" \
-    -d '{"userId":"66b1e14d-8170-4f68-a008-2f010142c9a8","serviceKey":"$VTT_SETUP_SERVICE_KEY"}' \
+    -d '{"userId":"66b1e14d-8170-4f68-a008-2f010142c9a8","serviceKey":"hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d"}' \
     | python -c "import sys,json; print(json.load(sys.stdin)['data']['token'])")
   echo "$TOKEN" > .vtt_jwt
   # Reutilizar: TOKEN=$(cat .vtt_jwt)

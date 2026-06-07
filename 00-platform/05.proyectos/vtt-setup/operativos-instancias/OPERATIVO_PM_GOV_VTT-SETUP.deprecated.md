@@ -17,7 +17,7 @@
 | Código | `PM_GOV` |
 | UUID | `aea7e411-a975-43fd-bea1-ac364564486b` |
 | Email | `gov-pm@vtt-setup.vtt.ai` |
-| SERVICE_KEY | `<cargar VTT_SETUP_SERVICE_KEY del .env — NUNCA hardcodear>` ⚠️ compartida — rotar tras Fase de Desarrollo |
+| SERVICE_KEY | `hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d` ⚠️ compartida — rotar tras Fase de Desarrollo |
 | Proyecto | virtual-teams-setup (VTS) |
 | Project ID | `c6b513a1-d8ae-4344-b684-96d73721bfbf` |
 | Project Key | VTS |
@@ -134,7 +134,7 @@ task_completed → task_approved    (cierre formal)
 ```bash
 TOKEN=$(curl -s -X POST https://api.vttagent.com/api/auth/service-token \
   -H "Content-Type: application/json" \
-  -d '{"userId":"aea7e411-a975-43fd-bea1-ac364564486b","serviceKey":"$VTT_SETUP_SERVICE_KEY"}' \
+  -d '{"userId":"aea7e411-a975-43fd-bea1-ac364564486b","serviceKey":"hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d"}' \
   | python -c "import sys,json; print(json.load(sys.stdin)['data']['token'])")
 echo "$TOKEN" > .vtt_jwt
 

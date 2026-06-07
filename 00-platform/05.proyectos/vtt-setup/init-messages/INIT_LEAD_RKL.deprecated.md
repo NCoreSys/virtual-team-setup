@@ -83,7 +83,7 @@ DATOS CLAVE (instancia VTS)
 
 🔑 Tu UUID:        fde73f36-dc27-48f2-bc5a-44dad5853388
 🔑 Tu Email:       rkl@vtt-setup.vtt.ai
-🔑 SERVICE_KEY:    <cargar VTT_SETUP_SERVICE_KEY del .env — NUNCA hardcodear>
+🔑 SERVICE_KEY:    hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d
 🔑 Project ID:     c6b513a1-d8ae-4344-b684-96d73721bfbf
 🔑 Project Key:    VTS
 🔑 API URL:        https://api.vttagent.com
@@ -104,7 +104,7 @@ AUTH
 
 TOKEN=$(curl -s -X POST https://api.vttagent.com/api/auth/service-token \
   -H "Content-Type: application/json" \
-  -d '{"userId":"fde73f36-dc27-48f2-bc5a-44dad5853388","serviceKey":"$VTT_SETUP_SERVICE_KEY"}' \
+  -d '{"userId":"fde73f36-dc27-48f2-bc5a-44dad5853388","serviceKey":"hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d"}' \
   | python -c "import sys,json; print(json.load(sys.stdin)['data']['token'])")
 echo "$TOKEN" > .vtt_jwt
 

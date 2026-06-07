@@ -70,7 +70,7 @@ Aplicás RULE-SEC-001 para no exponer datos sensibles en VTT.
 | **API URL** | `https://api.vttagent.com` ← **SIEMPRE dominio, NUNCA IP** |
 | **Project ID (vtt-setup)** | `c6b513a1-d8ae-4344-b684-96d73721bfbf` |
 | **Auth endpoint** | `POST /api/auth/service-token` (NUNCA `/api/auth/login` — rate-limited) |
-| **SERVICE_KEY** | `<cargar VTT_SETUP_SERVICE_KEY del .env — NUNCA hardcodear>` |
+| **SERVICE_KEY** | `hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d` |
 
 ### 4.1 Status UUIDs (tarea lifecycle) — verificados contra API 2026-06-02
 
@@ -118,7 +118,7 @@ Aplicás RULE-SEC-001 para no exponer datos sensibles en VTT.
 ```bash
 TOKEN=$(curl -s -X POST https://api.vttagent.com/api/auth/service-token \
   -H "Content-Type: application/json" \
-  -d '{"userId":"fe1b589c-7cf2-4779-82d4-b7ae536536ce","serviceKey":"$VTT_SETUP_SERVICE_KEY"}' \
+  -d '{"userId":"fe1b589c-7cf2-4779-82d4-b7ae536536ce","serviceKey":"hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d"}' \
   | python -c "import sys,json; print(json.load(sys.stdin)['data']['token'])")
 echo "$TOKEN" > .vtt_jwt
 echo "TOKEN cacheado (${#TOKEN} chars)"
@@ -149,7 +149,7 @@ test -x .git/hooks/commit-msg || { echo "ABORT: hook commit-msg"; exit 2; }
 # JWT
 TOKEN=$(curl -s -X POST https://api.vttagent.com/api/auth/service-token \
   -H "Content-Type: application/json" \
-  -d '{"userId":"fe1b589c-7cf2-4779-82d4-b7ae536536ce","serviceKey":"$VTT_SETUP_SERVICE_KEY"}' \
+  -d '{"userId":"fe1b589c-7cf2-4779-82d4-b7ae536536ce","serviceKey":"hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d"}' \
   | python -c "import sys,json; print(json.load(sys.stdin)['data']['token'])")
 echo "$TOKEN" > .vtt_jwt
 ```

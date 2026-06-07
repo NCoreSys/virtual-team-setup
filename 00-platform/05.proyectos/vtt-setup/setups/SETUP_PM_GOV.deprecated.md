@@ -98,7 +98,7 @@ test -d "$VTT_SETUP/05.proyectos/<proyecto>" || { echo "ABORT: proyecto ausente"
 | API VTT | `https://api.vttagent.com` ← dominio, NUNCA IP |
 | Project ID | `<UUID del proyecto>` |
 | Tu UUID | ver §1 del OPERATIVO |
-| SERVICE_KEY | `<cargar VTT_SETUP_SERVICE_KEY del .env — NUNCA hardcodear>` (compartida hasta que se rote) |
+| SERVICE_KEY | `hBCGEKm41BijI6jJ-s91KTMfv4pZ4a06d4a06d` (compartida hasta que se rote) |
 
 ---
 

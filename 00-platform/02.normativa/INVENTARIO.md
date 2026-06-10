@@ -238,6 +238,14 @@ Los operativos y scripts referencian:
 | `VTT.WORKFLOW-WT-001.004` | Casos especiales (multi-repo / branch dependiente / pausar / recovery) | `02.normativa/02.Workflows/VTT.WORKFLOW-WT-001.004_casos_especiales.md` | ✅ Nuevo (2026-05-18) — invocado por PROTOCOL-WT-001 §5.4 |
 | `VTT.WORKFLOW-WT-001.005` | Cleanup final del proyecto | `02.normativa/02.Workflows/VTT.WORKFLOW-WT-001.005_cleanup_final.md` | ✅ Nuevo (2026-05-18) — invocado por PROTOCOL-WT-001 §5.5 |
 
+### Workflows de PROTOCOL-DEV-001 (Lifecycle de Devlog Entry)
+
+| Código | Título | Path canónico | Estado |
+|---|---|---|---|
+| `VTT.WORKFLOW-DEV-001.001` | Crear devlog entry durante ejecución (FASE 1 del Protocol — agente registra) | `02.normativa/02.Workflows/VTT.WORKFLOW-DEV-001.001_crear_devlog_entry.md` | ✅ Nuevo v1.0.0 (2026-06-10) — Por TW-OPS (VTS-027). Invocado por `PROTOCOL-DEV-001 §5.1.3`. Incorpora tabla canónica 12 categorías del catálogo vivo + matriz D-61/D-62 + nota H-2 (severity ignorada en `decision`/`observation`). Invoca SKILL-DEV-001/002. |
+| `VTT.WORKFLOW-DEV-001.002` | Editar o transicionar devlog entry en code review (FASE 3 del Protocol — TL Reviewer) | `02.normativa/02.Workflows/VTT.WORKFLOW-DEV-001.002_editar_o_transicionar_entry.md` | ✅ Nuevo v1.0.0 (2026-06-10) — Por TW-OPS (VTS-027). Invocado por `PROTOCOL-DEV-001 §5.3.3`. Incorpora R13 destacada (DEV-003 NUNCA para `status`, BUG-CONSISTENCIA H-3) + R14 destacada (preservar referencia en `deferred`, T2 BY-DESIGN) + §5.bis flujo manual T3 + cross-ref `PROTOCOL-ASG-001 §5.4` para bloqueo. Invoca SKILL-DEV-003/004/005 + COMMENT-001. |
+| `VTT.WORKFLOW-DEV-001.003` | Cerrar entries a estado terminal pre-aprobación del sprint (FASE 4 del Protocol — TL+PM) | `02.normativa/02.Workflows/VTT.WORKFLOW-DEV-001.003_cerrar_entries_terminal_pre_aprobacion.md` | ✅ Nuevo v1.0.0 (2026-06-10) — Por TW-OPS (VTS-027). Invocado por `PROTOCOL-DEV-001 §5.4`. Alcance FASE 4 cierre sprint (Q5 resuelta VTS-026). Incorpora D-65 mapa de gates (4 familias devlog/findings/CAs/TIs) + D-63 findings open high/critical bloquean + D-64 elevación a TI patrón Sprint DEUDA + R14 workaround T2. Invoca SKILL-DEV-004 + COMMENT-001 + QUERY-003. |
+
 > **Nota:** los Workflows nacen cuando se genera su Protocol padre. No hay Workflows huérfanos.
 
 ---

@@ -4,12 +4,14 @@
 |---|---|
 | **Código** | `VTT.SKILL-DEV-002` |
 | **Categoría** | DEV (Devlog) |
-| **Versión** | 1.1 |
-| **Fecha** | 2026-05-20 |
+| **Versión** | 1.2 |
+| **Fecha** | 2026-06-10 |
 | **Aplica a** | Todos los roles ejecutores |
-| **Tokens estimados** | ~180 |
+| **Tokens estimados** | ~200 |
 | **Cuándo se usa** | Para registrar observaciones, hallazgos o notas técnicas durante la ejecución (no son decisiones ni bloqueantes) |
 | **Reemplaza** | `SKL-DEVLOG-02_observacion.md` (legacy) |
+| **Pertenece a** | `VTT.WORKFLOW-DEV-001.001` (FASE 1 del `VTT.PROTOCOL-DEV-001` v1.1.0) |
+| **Acepta** | Cualquier `categoryCode` del catálogo vivo de 12 valores (`PROTOCOL-DEV-001 v1.1.0 §3.1`). Esta Skill y DEV-001 son **intercambiables operativamente** — ambas hacen `POST /api/tasks/:id/devlog`; la diferencia es semántica del payload típico documentado. **NO se crean Skills nuevas por categoría** (anti-pattern 1 de `GUIA_AUTOR` — decisión VTS-026 §4.2 + VTS-028). |
 
 ---
 
@@ -36,9 +38,11 @@
 
 ```bash
 $TOKEN
-$VTT_BASE_URL              # http://77.42.88.106:3000
+$VTT_BASE_URL              # https://api.vttagent.com  (siempre dominio — RULE-SEC-001 prohibe IP)
 $AGENT_UUID
 ```
+
+> **⚠️ Drift IP corregido en v1.2 (VTS-028):** versiones anteriores (≤v1.1) documentaban `$VTT_BASE_URL=http://77.42.88.106:3000` (IP de dev/staging). Esto **violaba RULE-SEC-001** que exige usar el dominio `https://api.vttagent.com` siempre. Hallazgo registrado en reporte VTS-026 Anexo C.
 
 ---
 
@@ -80,10 +84,33 @@ curl -s -X POST "$VTT_BASE_URL/api/tasks/$TASK_ID/devlog-entries" \
   }"
 ```
 
-> **Nota técnica:**
-> - `severity` enum no-null obligatorio (mismo issue que DEV-001). Default `low`.
-> - `description` es **obligatorio** — sin descripción la observación pierde valor para el TL.
-> - Si usás `/devlog-entries` (plural) **sin** el wrapper `{ entries: [...] }` → HTTP 400.
+### Notas técnicas
+
+#### ⚠️ H-2 — `severity` ignorada silenciosamente en `observation` (corregido v1.2)
+
+**Hallazgo H-2 confirmado empíricamente VTS-026 §2.1.2:**
+
+El catálogo vivo de devlog categories declara `severityLevels: []` para `categoryCode: "observation"`. El backend **descarta silenciosamente** cualquier `severity` enviado — la normaliza a `null` sin retornar warning ni HTTP 400.
+
+```bash
+# Payload enviado por el cliente:
+POST /api/tasks/.../devlog
+{ "categoryCode": "observation", "severity": "high", ... }
+
+# Respuesta del backend:
+{ "data": { "categoryCode": "observation", "severity": null, ... } }
+#                                                     ^^^^^ silenciosamente descartada
+```
+
+**Recomendación operativa v1.2:** **OMITIR el campo `severity`** en payloads de `observation`. Confiar en severity para `observation` no bloquea el Review Gate aunque se envíe `high`/`critical` — la severity efectiva en BD será siempre `null`.
+
+> Versiones ≤v1.1 decían "severity enum no-null obligatorio" — **incorrecto**. Documentación corregida en v1.2 con base en validación empírica VTS-026.
+
+#### Otras notas técnicas
+
+- `description` es **obligatorio** — sin descripción la observación pierde valor para el TL.
+- Si usás `/devlog-entries` (plural) **sin** el wrapper `{ entries: [...] }` → HTTP 400.
+- Esta Skill acepta cualquier `categoryCode` del catálogo vivo de 12 valores (ver `PROTOCOL-DEV-001 v1.1.0 §3.1`). El nombre "observation" es semántico — para `decision` invocar `DEV-001` por convención (mismo endpoint singular).
 
 ---
 
@@ -151,3 +178,4 @@ print(f'observations: {len(obs)}')
 |---|---|---|
 | 1.0 | 2026-05-19 | Versión inicial. Migración de `SKL-DEVLOG-02_observacion.md`. Misma corrección del bug `categoryCode` y `severity` que en DEV-001. Tabla de cuándo usar observation vs otras categorías. |
 | 1.1 | 2026-05-20 | **Mismo fix que DEV-001 v1.1.** El ejemplo curl usaba `/devlog-entries` (plural) **sin el wrapper requerido** `{ entries: [...] }` → HTTP 400. Ahora documenta 2 endpoints: Opción A `/devlog` (singular, 1 entry) y Opción B `/devlog-entries` (batch con wrapper). Reportado por BE de VTT tras incidente MS-333. |
+| 1.2 | 2026-06-10 | **Bump VTS-028 sobre hallazgos VTS-026 + alineación con Protocol DEV-001 v1.1.0** (mismo perfil de cambios que DEV-001 v1.2). (1) **Drift IP corregido (RULE-SEC-001):** `$VTT_BASE_URL` cambia de `http://77.42.88.106:3000` a `https://api.vttagent.com`. Hallazgo VTS-026 Anexo C. (2) **H-2 documentado correctamente:** la "Nota técnica" v1.1 decía "severity enum no-null obligatorio" — incorrecto para `observation`. El catálogo vivo declara `severityLevels: []` para `observation` y el backend descarta silenciosamente cualquier severity enviado. Validación empírica VTS-026 §2.1.2. Recomendación operativa: **omitir `severity`** en payloads de `observation`. (3) Header agrega "Pertenece a `VTT.WORKFLOW-DEV-001.001`". (4) Aclaración explícita: esta Skill acepta cualquier `categoryCode` del catálogo vivo de 12 valores. **NO se crean Skills nuevas DEV-006..010 por categoría** (decisión VTS-026 §4.2 + VTS-028). DEV-001 y DEV-002 son intercambiables operativamente. |

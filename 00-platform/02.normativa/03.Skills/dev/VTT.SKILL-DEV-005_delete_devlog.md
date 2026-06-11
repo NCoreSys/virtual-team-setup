@@ -4,12 +4,13 @@
 |---|---|
 | **Código** | `VTT.SKILL-DEV-005` |
 | **Categoría** | DEV (Devlog) |
-| **Versión** | 1.0 |
-| **Fecha** | 2026-05-22 |
+| **Versión** | 1.1 |
+| **Fecha** | 2026-06-10 |
 | **Aplica a** | Todos los roles con `tasks.update` (TL Reviewer típico, también agente para entries propios) |
-| **Tokens estimados** | ~350 |
+| **Tokens estimados** | ~360 |
 | **Cuándo se usa** | Eliminar **permanente** un devlog entry. Operación **destructiva e irreversible** (sin soft-delete, sin rollback) |
 | **Permiso requerido** | `tasks.update` |
+| **Pertenece a** | `VTT.WORKFLOW-DEV-001.002` (FASE 3 del `VTT.PROTOCOL-DEV-001` v1.1.0) — Paso 7 borrar entry duplicada/errónea |
 
 ---
 
@@ -70,12 +71,14 @@
 
 ```bash
 $TOKEN
-$VTT_BASE_URL              # http://77.42.88.106:3000
-$TASK_ID                   # MS-XXX / VTT-XXX
+$VTT_BASE_URL              # https://api.vttagent.com  (siempre dominio — RULE-SEC-001 prohibe IP)
+$TASK_ID                   # MS-XXX / VTS-XXX
 $ENTRY_ID                  # UUID del entry
 $AGENT_UUID                # UUID del actor (para comment de trazabilidad)
 $CONFIRM_INTENT            # justificación del borrado
 ```
+
+> **⚠️ Drift IP corregido en v1.1 (VTS-028):** la versión 1.0 documentaba `$VTT_BASE_URL=http://77.42.88.106:3000` — violaba RULE-SEC-001. Corregido a dominio prod. Hallazgo VTS-026 Anexo C.
 
 ---
 
@@ -255,3 +258,4 @@ Los entries finales (`resolved`/`wont_fix`/`deferred`) con contenido válido son
 | Versión | Fecha | Cambios |
 |---|---|---|
 | 1.0 | 2026-05-22 | Versión inicial. Cubre el endpoint `DELETE /api/tasks/:taskId/devlog/:entryId` con énfasis en irreversibilidad (sin soft-delete, sin audit log específico). Spec provista por BE de VTT tras incidente MS-333 (3 decisions sin description eliminadas ad-hoc). Documenta el árbol de decisión "borrar vs editar vs lifecycle", las 4 reglas de negocio (R1 trazabilidad obligatoria, R2 gate D-32, R3 fixTaskId huérfano, R4 preservar histórico válido), el workaround para `ENTRY_ALREADY_FINAL` (borrar + recrear) y receta de ejecución en lote. |
+| 1.1 | 2026-06-10 | **Bump VTS-028 sobre hallazgos VTS-026.** (1) **Drift IP corregido (RULE-SEC-001):** `$VTT_BASE_URL` cambia de `http://77.42.88.106:3000` a `https://api.vttagent.com`. Único cambio operativo. Hallazgo VTS-026 Anexo C. (2) Header agrega "Pertenece a `VTT.WORKFLOW-DEV-001.002`" (FASE 3 del Protocol — Paso 7 borrar entry duplicada/errónea con comment de trazabilidad previo según R1 del listado de reglas de negocio). Sin otros fixes: las reglas R1-R4 y el árbol de decisión siguen vigentes y alineados con Protocol DEV-001 v1.1.0. |

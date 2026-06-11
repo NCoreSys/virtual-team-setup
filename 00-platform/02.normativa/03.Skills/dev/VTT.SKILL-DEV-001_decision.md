@@ -4,12 +4,14 @@
 |---|---|
 | **Código** | `VTT.SKILL-DEV-001` |
 | **Categoría** | DEV (Devlog) |
-| **Versión** | 1.1 |
-| **Fecha** | 2026-05-22 |
+| **Versión** | 1.2 |
+| **Fecha** | 2026-06-10 |
 | **Aplica a** | Todos los roles ejecutores |
-| **Tokens estimados** | ~200 |
+| **Tokens estimados** | ~220 |
 | **Cuándo se usa** | Para registrar decisiones técnicas o de producto durante la ejecución de una tarea — quedan vinculadas al review gate del cierre |
 | **Reemplaza** | `SKL-DEVLOG-01_decision.md` (legacy) |
+| **Pertenece a** | `VTT.WORKFLOW-DEV-001.001` (FASE 1 del `VTT.PROTOCOL-DEV-001` v1.1.0) |
+| **Acepta** | Cualquier `categoryCode` del catálogo vivo de 12 valores (`PROTOCOL-DEV-001 v1.1.0 §3.1`). Esta Skill y DEV-002 son **intercambiables operativamente** — ambas hacen `POST /api/tasks/:id/devlog`; la diferencia es semántica del payload típico documentado. **NO se crean Skills nuevas por categoría** (anti-pattern 1 de `GUIA_AUTOR` — decisión VTS-026 §4.2 + VTS-028). |
 
 ---
 
@@ -40,9 +42,11 @@
 
 ```bash
 $TOKEN
-$VTT_BASE_URL              # http://77.42.88.106:3000
+$VTT_BASE_URL              # https://api.vttagent.com  (siempre dominio — RULE-SEC-001 prohibe IP)
 $AGENT_UUID                # = reportedBy
 ```
+
+> **⚠️ Drift IP corregido en v1.2 (VTS-028):** versiones anteriores (≤v1.1) documentaban `$VTT_BASE_URL=http://77.42.88.106:3000` (IP de dev/staging). Esto **violaba RULE-SEC-001** que exige usar el dominio `https://api.vttagent.com` siempre. Agentes que hayan copy-paste de la versión anterior deben actualizar la variable. Hallazgo registrado en reporte VTS-026 Anexo C.
 
 ---
 
@@ -96,9 +100,33 @@ curl -s -X POST "$VTT_BASE_URL/api/tasks/$TASK_ID/devlog-entries" \
   }"
 ```
 
-> **Nota técnica:**
-> - El campo `severity` debe ser **enum no-null** (low/medium/high/critical). NO usar `null` ni omitir el campo. Si no estás seguro → `low`.
-> - El campo `description` es **obligatorio** (caso MS-333: decisions sin description fueron borradas por el TL).
+### Notas técnicas
+
+#### ⚠️ H-2 — `severity` ignorada silenciosamente en `decision` (corregido v1.2)
+
+**Hallazgo H-2 confirmado empíricamente VTS-026 §2.1.2:**
+
+El catálogo vivo de devlog categories declara `severityLevels: []` para `categoryCode: "decision"`. El backend **descarta silenciosamente** cualquier `severity` enviado — la normaliza a `null` sin retornar warning ni HTTP 400.
+
+```bash
+# Payload enviado por el cliente:
+POST /api/tasks/.../devlog
+{ "categoryCode": "decision", "severity": "high", ... }
+
+# Respuesta del backend:
+{ "data": { "categoryCode": "decision", "severity": null, ... } }
+#                                                  ^^^^^ silenciosamente descartada
+```
+
+**Recomendación operativa v1.2:** **OMITIR el campo `severity`** en payloads de `decision`. Confiar en severity para `decision` no bloquea el Review Gate aunque se envíe `high`/`critical` — la severity efectiva en BD será siempre `null`.
+
+> Versiones ≤v1.1 decían "severity enum no-null obligatorio" — **incorrecto**. Documentación corregida en v1.2 con base en validación empírica VTS-026.
+
+#### Otras notas técnicas
+
+- El campo `description` es **obligatorio** (caso MS-333: decisions sin description fueron borradas por el TL).
+- VTT usa `categoryCode` (no `type` como decía el legacy). Para decisiones → `categoryCode: "decision"`.
+- Esta Skill acepta cualquier `categoryCode` del catálogo vivo de 12 valores (ver `PROTOCOL-DEV-001 v1.1.0 §3.1`). El nombre "decision" es semántico — para `observation` invocar `DEV-002` por convención (mismo endpoint singular).
 
 ---
 
@@ -173,3 +201,4 @@ if decisions:
 |---|---|---|
 | 1.0 | 2026-05-19 | Versión inicial. Migración de `SKL-DEVLOG-01_decision.md`. **Corrección crítica:** legacy decía `"type"` pero VTT backend usa `"categoryCode"`. También documenta el bug de `severity null` (debe ser enum no-null). Agrega tabla de cuándo registrar una decisión vs cuándo no. |
 | 1.1 | 2026-05-20 | **Fixes reportados por BE de VTT tras incidente MS-333.** (1) `description` ahora marcado como **obligatorio** (estaba como "sí/no" — caso real: 3 decisions sin description tuvieron que borrarse por el TL). (2) **Bug crítico del ejemplo curl corregido:** la skill usaba `/devlog-entries` (plural) sin el wrapper `{entries: [...]}` requerido → HTTP 400 garantizado. Ahora documenta 2 endpoints distintos: **Opción A** `POST /devlog` (singular, 1 entry, payload directo, recomendado) y **Opción B** `POST /devlog-entries` (plural, batch, con wrapper). (3) Tabla de errores comunes ampliada con 3 nuevos casos: wrapper faltante, description required, TL borra decisions sin contexto. |
+| 1.2 | 2026-06-10 | **Bump VTS-028 sobre hallazgos VTS-026 + alineación con Protocol DEV-001 v1.1.0.** (1) **Drift IP corregido (RULE-SEC-001):** `$VTT_BASE_URL` cambia de `http://77.42.88.106:3000` (IP dev/staging) a `https://api.vttagent.com` (dominio prod, siempre). Hallazgo VTS-026 Anexo C. (2) **H-2 documentado correctamente:** la "Nota técnica" v1.1 decía "severity enum no-null obligatorio" — incorrecto para `decision`. El catálogo vivo declara `severityLevels: []` para `decision` y el backend descarta silenciosamente cualquier severity enviado (normaliza a `null` sin warning). Validación empírica VTS-026 §2.1.2. Recomendación operativa: **omitir `severity`** en payloads de `decision`. (3) Header agrega "Pertenece a `VTT.WORKFLOW-DEV-001.001`" (FASE 1 del Protocol). (4) Aclaración explícita en Header + Notas técnicas: esta Skill acepta cualquier `categoryCode` del catálogo vivo de 12 valores (`PROTOCOL-DEV-001 v1.1.0 §3.1`). **NO se crean Skills nuevas DEV-006..010 por categoría** (decisión VTS-026 §4.2 + VTS-028 — viola anti-pattern 1 de GUIA_AUTOR). DEV-001 y DEV-002 son intercambiables operativamente. |

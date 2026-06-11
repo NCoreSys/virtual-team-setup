@@ -4,12 +4,13 @@
 |---|---|
 | **Código** | `VTT.SKILL-DEV-004` |
 | **Categoría** | DEV (Devlog) |
-| **Versión** | 1.0 |
-| **Fecha** | 2026-05-22 |
+| **Versión** | 1.1 |
+| **Fecha** | 2026-06-10 |
 | **Aplica a** | Todos los roles ejecutores + TL Reviewer (resolver/deferir en cierre) |
-| **Tokens estimados** | ~350 |
-| **Cuándo se usa** | Transición formal de un devlog entry por su ciclo de vida: `acknowledged`, `in_progress`, `resolved`, `wont_fix`, `deferred` |
+| **Tokens estimados** | ~420 |
+| **Cuándo se usa** | Transición formal de un devlog entry por su ciclo de vida: `acknowledged`, `in_progress`, `resolved`, `wont_fix`, `deferred`. **Único endpoint correcto para cambiar `status`** (R13 del Protocol DEV-001 v1.1.0 §7). |
 | **Permiso requerido** | `tasks.update` |
+| **Pertenece a** | `VTT.WORKFLOW-DEV-001.002` (FASE 3 del `VTT.PROTOCOL-DEV-001` v1.1.0) y `VTT.WORKFLOW-DEV-001.003` (FASE 4 cierre sprint) |
 
 ---
 
@@ -123,10 +124,12 @@ Si intentás cambiar el status de un entry ya en estado final → HTTP 400 `ENTR
 
 ```bash
 $TOKEN
-$VTT_BASE_URL              # http://77.42.88.106:3000
-$TASK_ID                   # MS-XXX
+$VTT_BASE_URL              # https://api.vttagent.com  (siempre dominio — RULE-SEC-001 prohibe IP)
+$TASK_ID                   # MS-XXX o VTS-XXX
 $ENTRY_ID                  # UUID del entry
 ```
+
+> **⚠️ Drift IP corregido en v1.1 (VTS-028):** la versión 1.0 documentaba `$VTT_BASE_URL=http://77.42.88.106:3000` — violaba RULE-SEC-001. Corregido a dominio prod. Hallazgo VTS-026 Anexo C.
 
 ---
 
@@ -183,7 +186,13 @@ curl -s -X PATCH "$VTT_BASE_URL/api/tasks/$TASK_ID/devlog/$ENTRY_ID/status" \
 
 > **Backend ejecuta auto:** `resolvedAt = now`. NO registra `resolvedBy` (no fue resuelto).
 
-### Caso 5 — `deferred` a otra fase
+### Caso 5 — `deferred` a otra fase (T2 BY-DESIGN + R14)
+
+> **🚨 Comportamiento BY-DESIGN del backend (T2 — confirmado empíricamente VTS-026):** al transicionar a `deferred`, el backend **limpia a `null`** los campos `resolution`, `resolvedAt` y `resolvedBy`. NO es bug — es comportamiento intencional documentado en `PROTOCOL-DEV-001 v1.1.0 §4` tabla auto-side-effects + servicio línea 227. La FEATURE v1.1 §4.1 exige "referencia obligatoria al destino" en `deferred`, pero esa referencia **NO puede vivir en `resolution`** (se borra).
+>
+> **Regla R14 del Protocol DEV-001 v1.1.0 §7:** *"Cuando se transiciona a `deferred`, **NUNCA** confiar en `resolution` para guardar la referencia al destino: el backend la limpia a `null` (BY-DESIGN — T2 confirmado VTS-026). Usar `description` original, comment en la tarea, o `fixTaskId` (si el destino es una tarea)."*
+
+#### Ejemplo básico (sin workaround — la referencia se pierde)
 
 ```bash
 curl -s -X PATCH "$VTT_BASE_URL/api/tasks/$TASK_ID/devlog/$ENTRY_ID/status" \
@@ -192,11 +201,89 @@ curl -s -X PATCH "$VTT_BASE_URL/api/tasks/$TASK_ID/devlog/$ENTRY_ID/status" \
   -d '{
     "status": "deferred",
     "deferredToPhaseId": "<UUID_FASE_DESTINO>",
-    "fixTaskId": "MS-410"
+    "resolution": "Elevado a TD-CORE-003"
   }'
 ```
 
-> **Backend ejecuta auto:** **limpia** `resolvedAt`, `resolvedBy`, `resolution` (queda como pendiente en la fase destino).
+> ❌ **NO HACER ASÍ:** el `resolution` enviado se descarta a `null`. La referencia "TD-CORE-003" se pierde silenciosamente. Solo queda `deferredToPhaseId` (el UUID de la fase, sin contexto operativo).
+
+#### 3 workarounds para preservar la referencia al destino (R14)
+
+Aplicar **una** de las 3 opciones según el momento en que se conoce el destino:
+
+##### Workaround 1 — `description` original (destino conocido al CREAR el entry)
+
+Si al crear la entry (en FASE 1) ya sabés que va a diferirse a un destino concreto, escribilo en el `description` original. El backend **preserva `description`** en cualquier transición.
+
+```bash
+# Al crear (FASE 1, VTT.SKILL-DEV-001 o DEV-002):
+{
+  "categoryCode": "tech_debt",
+  "title": "CleanupService fuera de scope S2",
+  "description": "Memoria crece sin límite. Si se difiere, va a TD-CORE-003 del proyecto.",
+  ...
+}
+
+# Al diferir (este Caso 5):
+{ "status": "deferred", "deferredToPhaseId": "<UUID>" }
+
+# Resultado: description preservado con la referencia. Trazabilidad OK.
+```
+
+##### Workaround 2 — Comment en la tarea (destino decidido AL diferir — caso típico)
+
+Si el destino se decide al momento del diferimiento, postear un comment en la tarea **antes** del PATCH a `deferred`. El comment queda en activity feed visible y permanente.
+
+```bash
+# Paso 1: comment de trazabilidad
+curl -s -X POST "$VTT_BASE_URL/api/tasks/$TASK_ID/comments" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"message\": \"Entry $ENTRY_ID diferido → TD-CORE-003 (compromiso cross-sprint) / Sprint DEUDA-B1A\",
+    \"userId\": \"$AGENT_UUID\"
+  }"
+
+# Paso 2: PATCH /status a deferred
+curl -s -X PATCH "$VTT_BASE_URL/api/tasks/$TASK_ID/devlog/$ENTRY_ID/status" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{
+    "status": "deferred",
+    "deferredToPhaseId": "<UUID_FASE_DESTINO>"
+  }'
+```
+
+##### Workaround 3 — `fixTaskId` (destino es una tarea concreta)
+
+Si el destino del traspaso es una tarea concreta del backlog (típicamente del Sprint DEUDA), setear `fixTaskId` en el mismo PATCH. El backend **preserva `fixTaskId`** al diferir.
+
+```bash
+curl -s -X PATCH "$VTT_BASE_URL/api/tasks/$TASK_ID/devlog/$ENTRY_ID/status" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{
+    "status": "deferred",
+    "deferredToPhaseId": "<UUID_FASE_DESTINO>",
+    "fixTaskId": "VTS-940"
+  }'
+```
+
+> El campo `fixTaskId` queda en BD como link documental a la tarea destino. El TL/PM al revisar la entry en code review o cierre de sprint puede saltar a la tarea correctiva con ese campo.
+
+#### Auto-side-effects que SÍ aplican en `deferred`
+
+| Campo | Comportamiento |
+|---|---|
+| `status` | → `deferred` (terminal — irreversible) |
+| `resolvedAt` | **limpia a `null`** (T2 BY-DESIGN) |
+| `resolvedBy` | **limpia a `null`** (T2 BY-DESIGN) |
+| `resolution` | **limpia a `null`** (T2 BY-DESIGN — viola R14 si se confió ahí) |
+| `description` | **preservado** (workaround 1) |
+| `deferredToPhaseId` | persistido (obligatorio) |
+| `fixTaskId` | **preservado** si se envió (workaround 3) |
+
+> **Validación post-PATCH:** verificar con `GET /devlog` que `description` y/o `fixTaskId` siguen poblados con la referencia al destino. Si ambos están vacíos y solo se confió en `resolution`, la trazabilidad se perdió — postear comment retroactivo (workaround 2) inmediatamente para no perder el contexto.
 
 ---
 
@@ -302,3 +389,4 @@ else:
 | Versión | Fecha | Cambios |
 |---|---|---|
 | 1.0 | 2026-05-22 | Versión inicial. Cubre el endpoint `PATCH /api/tasks/:taskId/devlog/:entryId/status` (lifecycle estricto con validaciones cruzadas). Spec provista por BE de VTT. Documenta los 3 estados finales irreversibles (`resolved`/`wont_fix`/`deferred`), la lógica automática de timestamps (`resolvedAt`/`resolvedBy`) y la tabla de obligatoriedad de `resolution`/`deferredToPhaseId` según status objetivo. |
+| 1.1 | 2026-06-10 | **Bump VTS-028 sobre hallazgos VTS-026 + alineación con Protocol DEV-001 v1.1.0.** (1) **Drift IP corregido (RULE-SEC-001):** `$VTT_BASE_URL` cambia de `http://77.42.88.106:3000` a `https://api.vttagent.com`. Hallazgo VTS-026 Anexo C. (2) **§Caso 5 (`deferred`) ampliado con T2 BY-DESIGN + 3 workarounds (R14).** Documenta empíricamente que el backend limpia `resolution`/`resolvedAt`/`resolvedBy` a `null` al transicionar a `deferred` — NO es bug, es comportamiento intencional (T2 confirmado VTS-026 §2.3 + Protocol §4 tabla auto-side-effects). Agrega 3 workarounds explícitos para preservar la referencia al destino sin confiar en `resolution`: (W1) escribir destino en `description` original al crear la entry; (W2) postear comment de trazabilidad antes del PATCH (caso típico cuando destino se decide al diferir); (W3) usar `fixTaskId` si destino es tarea concreta del backlog. Cita literal a R14 del Protocol DEV-001 v1.1.0 §7: "NUNCA confiar en `resolution` para guardar la referencia al destino". (3) Header §Cuándo se usa marca DEV-004 como **único endpoint correcto para cambiar `status`** con cita a R13. (4) Header agrega "Pertenece a `VTT.WORKFLOW-DEV-001.002`" (FASE 3) y `VTT.WORKFLOW-DEV-001.003` (FASE 4). |
